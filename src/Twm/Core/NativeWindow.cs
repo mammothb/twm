@@ -67,17 +67,8 @@ public static class NativeWindow
             return Fail("own-process", out reason);
         }
 
-        long exStyle = User32.GetWindowStyle(hwnd, GwlExStyle);
-        if ((exStyle & User32.WS_EX_TOOLWINDOW) != 0)
-        {
-            return Fail("toolwindow", out reason);
-        }
-
-        if (Title(hwnd).Length == 0)
-        {
-            return Fail("untitled", out reason);
-        }
-
+        // permissive: skip toolwindow check to match komorebi/glazewm behavior
+        //
         string className = ClassName(hwnd);
         if (s_classDenylist.Contains(className))
         {
