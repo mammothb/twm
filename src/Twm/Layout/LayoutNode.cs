@@ -23,15 +23,22 @@ public abstract class LayoutNode
     /// <summary>Ancestors, nearest container first.</summary>
     public IEnumerable<SplitContainer> Ancestors()
     {
-        for (var node = Parent; node is not null; node = node.Parent)
+        for (SplitContainer? node = Parent; node is not null; node = node.Parent)
+        {
             yield return node;
+        }
     }
 
     internal static bool Contains(LayoutNode outer, LayoutNode inner)
     {
         for (LayoutNode? n = inner; n is not null; n = n.Parent)
+        {
             if (ReferenceEquals(n, outer))
+            {
                 return true;
+            }
+        }
+
         return false;
     }
 }
@@ -86,7 +93,7 @@ public sealed class SplitContainer : LayoutNode
 
     internal void Replace(LayoutNode oldNode, LayoutNode newNode)
     {
-        var index = _children.IndexOf(oldNode);
+        int index = _children.IndexOf(oldNode);
         _children[index] = newNode;
         oldNode.Parent = null;
         newNode.Parent = this;

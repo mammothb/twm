@@ -14,8 +14,11 @@ public class SplitTreeTests
     private static SplitTree Tree(params nint[] hwnds)
     {
         var tree = new SplitTree();
-        foreach (var h in hwnds)
+        foreach (nint h in hwnds)
+        {
             tree.Insert(h);
+        }
+
         tree.Apply(Area);
         return tree;
     }
@@ -25,7 +28,7 @@ public class SplitTreeTests
     [Fact]
     public void First_window_becomes_root_leaf_filling_area()
     {
-        var tree = Tree(1);
+        SplitTree tree = Tree(1);
 
         tree.Root.ShouldBeOfType<WindowLeaf>();
         tree.Count.ShouldBe(1);
@@ -35,7 +38,7 @@ public class SplitTreeTests
     [Fact]
     public void Second_window_splits_horizontally_into_equal_halves()
     {
-        var tree = Tree(1, 2);
+        SplitTree tree = Tree(1, 2);
 
         tree.Find(1)!.AssignedRect.ShouldBe(new Rect(0, 0, W / 2, H));
         tree.Find(2)!.AssignedRect.ShouldBe(Rect.FromLtrb(W / 2, 0, W, H));
@@ -46,7 +49,7 @@ public class SplitTreeTests
     {
         // i3: new window takes half of the focused (anchor) window's space.
         // Insert order 1,2,3 → focus on 2 when 3 arrives.
-        var tree = Tree(1, 2, 3);
+        SplitTree tree = Tree(1, 2, 3);
 
         tree.Find(1)!.AssignedRect.ShouldBe(new Rect(0, 0, 500, H));
         tree.Find(2)!.AssignedRect.ShouldBe(Rect.FromLtrb(500, 0, 750, H));
@@ -56,8 +59,9 @@ public class SplitTreeTests
     [Fact]
     public void New_window_anchors_at_focused_window()
     {
-        var tree = Tree(1, 2);
-        tree.SetFocused(tree.Find(1)!); // focus left leaf this time
+        SplitTree tree = Tree(1, 2);
+        WindowLeaf one = tree.Find(1)!;
+        tree.SetFocused(one); // focus left leaf this time
         tree.Insert(3);
         tree.Apply(Area);
 
@@ -72,8 +76,10 @@ public class SplitTreeTests
     public void Tiles_never_overlap_and_cover_the_area_exactly()
     {
         var tree = new SplitTree();
-        foreach (var h in new nint[] { 1, 2, 3, 4, 5 })
+        foreach (nint h in new nint[] { 1, 2, 3, 4, 5 })
+        {
             tree.Insert(h);
+        }
 
         var root = (SplitContainer)tree.Root!;
         root.Children[0].Weight = 2.5; // awkward weights to stress rounding
@@ -89,15 +95,19 @@ public class SplitTreeTests
     {
         container.AssignedRect.ShouldBe(bounds);
 
-        var children = container.Children;
+        IReadOnlyList<LayoutNode> children = container.Children;
         for (int i = 1; i < children.Count; i++)
         {
-            var prev = children[i - 1].AssignedRect;
-            var cur = children[i].AssignedRect;
+            Rect prev = children[i - 1].AssignedRect;
+            Rect cur = children[i].AssignedRect;
             if (container.Horizontal)
+            {
                 prev.Right.ShouldBe(cur.Left, "tiles must be contiguous horizontally");
+            }
             else
+            {
                 prev.Bottom.ShouldBe(cur.Top, "tiles must be contiguous vertically");
+            }
         }
 
         for (int i = 0; i < children.Count; i++)
@@ -130,7 +140,7 @@ public class SplitTreeTests
     [Fact]
     public void Removing_window_keeps_survivor_weights()
     {
-        var tree = Tree(1, 2, 3); // weights 1, 0.5, 0.5
+        SplitTree tree = Tree(1, 2, 3); // weights 1, 0.5, 0.5
         tree.Remove(tree.Find(2)!);
         tree.Apply(Area);
 
@@ -143,7 +153,7 @@ public class SplitTreeTests
     public void Removing_from_nested_container_collapses_it()
     {
         // root H[ V[1,2] , 3 ] — remove 2 → V collapses into root.
-        var tree = BuildNested();
+        SplitTree tree = BuildNested();
         tree.Remove(tree.Find(2)!);
         tree.Apply(Area);
 
@@ -156,7 +166,7 @@ public class SplitTreeTests
     [Fact]
     public void Removing_last_window_empties_tree()
     {
-        var tree = Tree(7);
+        SplitTree tree = Tree(7);
         tree.Remove(tree.Find(7)!);
 
         tree.Root.ShouldBeNull();
@@ -167,7 +177,7 @@ public class SplitTreeTests
     [Fact]
     public void Focused_falls_to_previous_neighbor_on_remove()
     {
-        var tree = Tree(1, 2, 3); // focused = 3
+        SplitTree tree = Tree(1, 2, 3); // focused = 3
         tree.Remove(tree.Find(3)!);
 
         tree.Focused.ShouldBeSameAs(tree.Find(2));
@@ -178,7 +188,7 @@ public class SplitTreeTests
     [Fact]
     public void Directional_focus_crosses_containers_deterministically()
     {
-        var tree = BuildGrid();
+        SplitTree tree = BuildGrid();
 
         tree.SetFocused(tree.Find(1)); // top-left
         tree.FocusDirection(Direction.Right).ShouldBeTrue();
@@ -197,7 +207,7 @@ public class SplitTreeTests
     [Fact]
     public void Directional_focus_at_edge_is_noop()
     {
-        var tree = BuildGrid();
+        SplitTree tree = BuildGrid();
         tree.SetFocused(tree.Find(1));
 
         tree.FocusDirection(Direction.Left).ShouldBeFalse();
@@ -210,9 +220,9 @@ public class SplitTreeTests
     [Fact]
     public void Move_swaps_window_positions_across_containers()
     {
-        var tree = BuildGrid();
+        SplitTree tree = BuildGrid();
         tree.SetFocused(tree.Find(1)); // top-left
-        var oldRightTop = tree.Find(2)!.AssignedRect;
+        Rect oldRightTop = tree.Find(2)!.AssignedRect;
 
         tree.MoveFocused(Direction.Right).ShouldBeTrue();
         tree.Apply(Area);
@@ -226,7 +236,7 @@ public class SplitTreeTests
     [Fact]
     public void Resize_uses_nearest_matching_ancestor_axis()
     {
-        var tree = BuildGrid();
+        SplitTree tree = BuildGrid();
 
         // Grow bottom-left window upward: steals height from window 1.
         tree.SetFocused(tree.Find(3));
@@ -244,7 +254,7 @@ public class SplitTreeTests
     [Fact]
     public void Resize_toward_edge_with_no_border_is_noop()
     {
-        var tree = BuildGrid();
+        SplitTree tree = BuildGrid();
         tree.SetFocused(tree.Find(1)); // already at the top of its column
 
         tree.ResizeFocused(Direction.Up, 60).ShouldBeFalse();
@@ -253,7 +263,7 @@ public class SplitTreeTests
     [Fact]
     public void Resize_clamps_sibling_to_minimum_share()
     {
-        var tree = Tree(1, 2);
+        SplitTree tree = Tree(1, 2);
         tree.SetFocused(tree.Find(1));
 
         tree.ResizeFocused(Direction.Right, 10_000).ShouldBeTrue();
@@ -266,7 +276,7 @@ public class SplitTreeTests
     [Fact]
     public void Resize_without_matching_ancestor_is_noop()
     {
-        var tree = Tree(1, 2);
+        SplitTree tree = Tree(1, 2);
         tree.SetFocused(tree.Find(1));
 
         // Root is horizontal-only; resizing Up has no vertical ancestor.
@@ -278,7 +288,7 @@ public class SplitTreeTests
     [Fact]
     public void Toggle_flips_parent_orientation()
     {
-        var tree = Tree(1, 2);
+        SplitTree tree = Tree(1, 2);
 
         tree.ToggleOrientation().ShouldBeTrue();
         tree.Apply(Area);
@@ -290,7 +300,7 @@ public class SplitTreeTests
     [Fact]
     public void Toggle_on_sole_root_leaf_is_noop()
     {
-        var tree = Tree(1);
+        SplitTree tree = Tree(1);
         tree.ToggleOrientation().ShouldBeFalse();
     }
 
@@ -305,7 +315,7 @@ public class SplitTreeTests
     /// </summary>
     private static SplitTree BuildGrid()
     {
-        WindowLeaf Leaf(nint h) => new() { Hwnd = h };
+        static WindowLeaf Leaf(nint h) => new() { Hwnd = h };
 
         var colLeft = new SplitContainer { Horizontal = false };
         var colRight = new SplitContainer { Horizontal = false };

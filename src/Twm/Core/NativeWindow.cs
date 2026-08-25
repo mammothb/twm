@@ -1,4 +1,4 @@
-using System.Text;
+using System.Runtime.InteropServices;
 using Twm.Interop;
 using Twm.Layout;
 
@@ -11,7 +11,7 @@ namespace Twm.Core;
 public static class NativeWindow
 {
     // Known non-manageable top-level windows (shell chrome, popups).
-    private static readonly HashSet<string> ClassDenylist = new(StringComparer.OrdinalIgnoreCase)
+    private static readonly HashSet<string> s_classDenylist = new(StringComparer.OrdinalIgnoreCase)
     {
         "Progman", // desktop
         "WorkerW", // desktop wallpaper host
@@ -42,37 +42,57 @@ public static class NativeWindow
     public static bool IsEligible(nint hwnd, uint ownPid, out string reason)
     {
         if (!User32.IsWindow(hwnd))
+        {
             return Fail("destroyed", out reason);
+        }
+
         if (!User32.IsWindowVisible(hwnd))
+        {
             return Fail("invisible", out reason);
+        }
+
         if (
             User32.GetAncestor(
                 hwnd,
                 2 /* GA_ROOT */
             ) != hwnd
         )
+        {
             return Fail("child-window", out reason);
+        }
 
         uint pid = User32.GetWindowThreadProcessId(hwnd, out _);
         if (pid == ownPid)
+        {
             return Fail("own-process", out reason);
+        }
 
         long exStyle = User32.GetWindowStyle(hwnd, GwlExStyle);
         if ((exStyle & User32.WS_EX_TOOLWINDOW) != 0)
+        {
             return Fail("toolwindow", out reason);
+        }
 
         if (Title(hwnd).Length == 0)
+        {
             return Fail("untitled", out reason);
+        }
 
-        var className = ClassName(hwnd);
-        if (ClassDenylist.Contains(className))
+        string className = ClassName(hwnd);
+        if (s_classDenylist.Contains(className))
+        {
             return Fail($"denylisted:{className}", out reason);
+        }
 
         if (DwmApi.IsCloaked(hwnd))
+        {
             return Fail("cloaked", out reason);
+        }
 
         if (Kernel32.IsProcessElevated(pid))
+        {
             return Fail("elevated-owner", out reason);
+        }
 
         reason = "";
         return true;
@@ -88,17 +108,20 @@ public static class NativeWindow
     {
         int length = User32.GetWindowTextLength(hwnd);
         if (length <= 0)
+        {
             return "";
-        var sb = new StringBuilder(length + 1);
-        User32.GetWindowText(hwnd, sb, sb.Capacity);
-        return sb.ToString();
+        }
+
+        char[] buffer = new char[length + 1];
+        int copied = User32.GetWindowText(hwnd, buffer, buffer.Length);
+        return new string(buffer, 0, Math.Min(copied, length));
     }
 
     public static string ClassName(nint hwnd)
     {
-        var sb = new StringBuilder(256);
-        User32.GetClassName(hwnd, sb, sb.Capacity);
-        return sb.ToString();
+        char[] buffer = new char[256];
+        int copied = User32.GetClassName(hwnd, buffer, buffer.Length);
+        return new string(buffer, 0, Math.Max(0, copied));
     }
 
     public static string ProcessName(nint hwnd) => ProcessNames.OfWindow(hwnd);
@@ -110,13 +133,13 @@ public static class NativeWindow
     /// </summary>
     public static void SetTileRect(nint hwnd, Rect targetFrame)
     {
-        var currentFrame = DwmApi.GetExtendedFrameBounds(hwnd);
-        User32.GetWindowRect(hwnd, out var outer);
+        Rect currentFrame = DwmApi.GetExtendedFrameBounds(hwnd);
+        User32.GetWindowRect(hwnd, out User32.RECT outer);
 
         int offsetX = currentFrame.X - outer.Left;
         int offsetY = currentFrame.Y - outer.Top;
-        int extraWidth = (outer.Right - outer.Left) - currentFrame.Width;
-        int extraHeight = (outer.Bottom - outer.Top) - currentFrame.Height;
+        int extraWidth = outer.Right - outer.Left - currentFrame.Width;
+        int extraHeight = outer.Bottom - outer.Top - currentFrame.Height;
 
         User32.SetWindowPos(
             hwnd,
@@ -135,9 +158,11 @@ public static class NativeWindow
     /// </summary>
     public static void Focus(nint hwnd)
     {
-        var foreground = User32.GetForegroundWindow();
+        nint foreground = User32.GetForegroundWindow();
         if (foreground == hwnd)
+        {
             return;
+        }
 
         uint foregroundThread =
             foreground != nint.Zero ? User32.GetWindowThreadProcessId(foreground, out _) : 0;
@@ -147,13 +172,18 @@ public static class NativeWindow
         try
         {
             if (foregroundThread != 0 && foregroundThread != myThread)
+            {
                 attached = User32.AttachThreadInput(myThread, foregroundThread, true);
+            }
+
             _ = User32.SetForegroundWindow(hwnd);
         }
         finally
         {
             if (attached)
+            {
                 User32.AttachThreadInput(myThread, foregroundThread, false);
+            }
         }
     }
 

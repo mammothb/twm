@@ -16,8 +16,8 @@ public static class ConfigLoader
 
     public static TwmConfig Load()
     {
-        var path = Environment.GetEnvironmentVariable("TWM_CONFIG");
-        var explicitPath = !string.IsNullOrEmpty(path);
+        string? path = Environment.GetEnvironmentVariable("TWM_CONFIG");
+        bool explicitPath = !string.IsNullOrEmpty(path);
 
         if (!explicitPath && !File.Exists(DefaultPath))
         {
@@ -27,7 +27,7 @@ public static class ConfigLoader
             return Parse(DefaultYaml);
         }
 
-        var file = explicitPath ? path! : DefaultPath;
+        string file = explicitPath ? path! : DefaultPath;
         Log.Info($"Loading config: {file}");
         return Parse(File.ReadAllText(file));
     }
@@ -49,22 +49,33 @@ public static class ConfigLoader
             throw new ConfigException($"YAML syntax error: {ex.Message}");
         }
 
-        var modKey = ParseSingleModifier(file.ModKey.Length > 0 ? file.ModKey : "alt", "mod_key");
+        Modifiers modKey = ParseSingleModifier(
+            file.ModKey.Length > 0 ? file.ModKey : "alt",
+            "mod_key"
+        );
 
         var bindings = new Dictionary<KeyCombo, CommandKind>();
-        foreach (var entry in file.Keybindings)
+        foreach (KeybindingEntry entry in file.Keybindings)
         {
-            var combo = ParseTrigger(entry.Trigger, modKey, out var extraMods);
-            if (!TryParseCommand(entry.Command, out var command))
+            KeyCombo combo = ParseTrigger(entry.Trigger, modKey, out Modifiers extraMods);
+            if (!TryParseCommand(entry.Command, out CommandKind command))
+            {
                 throw new ConfigException(
                     $"Unknown command '{entry.Command}' for trigger '{entry.Trigger}'."
                 );
+            }
+
             if (extraMods.HasFlag(Modifiers.Alt) || extraMods.HasFlag(Modifiers.Win))
+            {
                 throw new ConfigException($"Trigger '{entry.Trigger}' rebinds the mod key itself.");
+            }
 
             combo = new KeyCombo(combo.Mods | extraMods, combo.VirtualKey);
             if (bindings.ContainsKey(combo))
+            {
                 throw new ConfigException($"Duplicate binding for trigger '{entry.Trigger}'.");
+            }
+
             bindings[combo] = command;
         }
 
@@ -74,8 +85,8 @@ public static class ConfigLoader
     /// <summary>"focus_left" / "FocusLeft" / "focus-left" all match.</summary>
     private static bool TryParseCommand(string text, out CommandKind command)
     {
-        var normalized = text.Replace("_", "").Replace("-", "").Trim();
-        foreach (var kind in Enum.GetValues<CommandKind>())
+        string normalized = text.Replace("_", "").Replace("-", "").Trim();
+        foreach (CommandKind kind in Enum.GetValues<CommandKind>())
         {
             if (string.Equals(kind.ToString(), normalized, StringComparison.OrdinalIgnoreCase))
             {
@@ -89,16 +100,16 @@ public static class ConfigLoader
 
     private static Modifiers ParseSingleModifier(string token, string what)
     {
-        var mods = token.ToLowerInvariant() switch
-        {
-            "alt" or "lalt" or "ralt" or "mod" => Modifiers.Alt,
-            "ctrl" or "control" => Modifiers.Ctrl,
-            "shift" => Modifiers.Shift,
-            "win" or "super" or "meta" or "logo" => Modifiers.Win,
-            _ => (Modifiers?)null,
-        };
-        if (mods is null)
-            throw new ConfigException(
+        Modifiers? mods =
+            token.ToLowerInvariant() switch
+            {
+                "alt" or "lalt" or "ralt" or "mod" => Modifiers.Alt,
+                "ctrl" or "control" => Modifiers.Ctrl,
+                "shift" => Modifiers.Shift,
+                "win" or "super" or "meta" or "logo" => Modifiers.Win,
+                _ => (Modifiers?)null,
+            }
+            ?? throw new ConfigException(
                 $"'{what}' must be exactly one of: alt, ctrl, shift, win. Got '{token}'."
             );
         return mods.Value;
@@ -108,35 +119,46 @@ public static class ConfigLoader
     private static KeyCombo ParseTrigger(string trigger, Modifiers modKey, out Modifiers extraMods)
     {
         if (string.IsNullOrWhiteSpace(trigger))
+        {
             throw new ConfigException("Empty keybinding trigger.");
+        }
 
-        var parts = trigger.Split(
+        string[] parts = trigger.Split(
             '+',
             StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries
         );
         if (parts.Length < 2)
+        {
             throw new ConfigException(
                 $"Trigger '{trigger}' must include the mod key, e.g. 'alt+h'."
             );
+        }
 
         Modifiers mods = Modifiers.None;
         for (int i = 0; i < parts.Length - 1; i++)
         {
-            var m = ParseModifiers(parts[i]);
+            Modifiers m = ParseModifiers(parts[i]);
             if (m == Modifiers.None)
+            {
                 throw new ConfigException($"Unknown modifier '{parts[i]}' in trigger '{trigger}'.");
+            }
+
             mods |= m;
         }
 
         extraMods = mods & ~modKey;
         if ((mods & modKey) == 0)
+        {
             throw new ConfigException(
                 $"Trigger '{trigger}' does not use the configured mod key ({modKey})."
             );
+        }
 
-        var keyToken = parts[^1];
+        string keyToken = parts[^1];
         if (!TryMapVirtualKey(keyToken, out uint vk))
+        {
             throw new ConfigException($"Unknown key '{keyToken}' in trigger '{trigger}'.");
+        }
 
         return new KeyCombo(modKey, vk);
     }
@@ -155,7 +177,7 @@ public static class ConfigLoader
 
     private static bool TryMapVirtualKey(string token, out uint vk)
     {
-        var t = token.ToLowerInvariant();
+        string t = token.ToLowerInvariant();
 
         if (t.Length == 1)
         {
@@ -194,7 +216,7 @@ public static class ConfigLoader
             "equal" => 0xBB,
             _ when t.Length == 2
                     && t[0] == 'f'
-                    && byte.TryParse(t.AsSpan(1), out var f)
+                    && byte.TryParse(t.AsSpan(1), out byte f)
                     && f is >= 1 and <= 24 => (uint)(0x70 + f - 1),
             _ => 0,
         };

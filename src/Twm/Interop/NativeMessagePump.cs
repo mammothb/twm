@@ -47,7 +47,10 @@ public sealed class NativeMessagePump : IDisposable
         {
             int result = User32.GetMessage(out User32.MSG msg, 0, 0, 0);
             if (result <= 0)
+            {
                 break;
+            }
+
             User32.DispatchMessage(ref msg);
         }
     }
@@ -55,7 +58,10 @@ public sealed class NativeMessagePump : IDisposable
     public void Stop()
     {
         if (_stopped)
+        {
             return;
+        }
+
         _stopped = true;
         User32.PostThreadMessage(_threadId, User32.WM_QUIT, 0, 0); // wake GetMessage
         _thread.Join(2000);

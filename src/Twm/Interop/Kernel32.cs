@@ -3,7 +3,7 @@ using System.Text;
 
 namespace Twm.Interop;
 
-internal static partial class Kernel32
+internal static class Kernel32
 {
     internal const uint PROCESS_QUERY_LIMITED_INFORMATION = 0x1000;
     internal const uint TOKEN_QUERY = 0x0008;
@@ -22,7 +22,7 @@ internal static partial class Kernel32
     public static extern bool QueryFullProcessImageName(
         nint process,
         uint flags,
-        StringBuilder exeName,
+        char[] exeName,
         ref uint size
     );
 
@@ -50,14 +50,19 @@ internal static partial class Kernel32
     /// </summary>
     public static bool IsProcessElevated(uint processId)
     {
-        var process = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, false, processId);
+        nint process = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, false, processId);
         if (process == nint.Zero)
+        {
             return true; // can't even query: protected process, treat as elevated
+        }
 
         try
         {
-            if (!OpenProcessToken(process, TOKEN_QUERY, out var token))
+            if (!OpenProcessToken(process, TOKEN_QUERY, out nint token))
+            {
                 return true;
+            }
+
             try
             {
                 if (
@@ -69,7 +74,10 @@ internal static partial class Kernel32
                         out _
                     )
                 )
+                {
                     return true;
+                }
+
                 return elevation != 0;
             }
             finally
@@ -90,16 +98,21 @@ internal static class ProcessNames
     public static string OfWindow(nint hwnd)
     {
         uint pid = User32.GetWindowThreadProcessId(hwnd, out _);
-        var process = Kernel32.OpenProcess(Kernel32.PROCESS_QUERY_LIMITED_INFORMATION, false, pid);
+        nint process = Kernel32.OpenProcess(Kernel32.PROCESS_QUERY_LIMITED_INFORMATION, false, pid);
         if (process == nint.Zero)
+        {
             return $"pid:{pid}";
+        }
 
         try
         {
-            var sb = new StringBuilder(1024);
-            uint size = (uint)sb.Capacity;
-            if (Kernel32.QueryFullProcessImageName(process, 0, sb, ref size))
-                return Path.GetFileName(sb.ToString(0, (int)size));
+            char[] buffer = new char[1024];
+            uint size = (uint)buffer.Length;
+            if (Kernel32.QueryFullProcessImageName(process, 0, buffer, ref size))
+            {
+                return Path.GetFileName(new string(buffer, 0, (int)size));
+            }
+
             return $"pid:{pid}";
         }
         finally

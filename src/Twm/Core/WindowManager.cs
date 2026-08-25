@@ -11,7 +11,7 @@ namespace Twm.Core;
 /// All mutation happens on the main async loop; the native pump thread
 /// only enqueues messages.
 /// </summary>
-public sealed class WindowManager
+public sealed class WindowManager(TwmConfig config)
 {
     private const int ResizeStepPx = 60;
 
@@ -31,7 +31,7 @@ public sealed class WindowManager
     }
 
     private readonly uint _ownPid = (uint)Environment.ProcessId;
-    private readonly TwmConfig _config;
+    private readonly TwmConfig _config = config;
     private readonly Channel<NativeMessage> _queue = Channel.CreateUnbounded<NativeMessage>(
         new UnboundedChannelOptions { SingleReader = true }
     );
@@ -42,8 +42,6 @@ public sealed class WindowManager
     private volatile bool _quit;
     private nint _draggingHwnd;
 
-    public WindowManager(TwmConfig config) => _config = config;
-
     // ---------------------------------------------------------------
     // Pump-thread callbacks — enqueue only, never block.
     // ---------------------------------------------------------------
@@ -52,7 +50,10 @@ public sealed class WindowManager
     public bool MatchHotkey(Modifiers mods, uint vKey)
     {
         if (!_config.Bindings.ContainsKey(new KeyCombo(mods, vKey)))
+        {
             return false;
+        }
+
         _queue.Writer.TryWrite(new NativeMessage(0, 0, mods, vKey, IsHotkey: true));
         return true;
     }
@@ -83,7 +84,7 @@ public sealed class WindowManager
         User32.EnumDisplayMonitors(
             0,
             0,
-            (nint hMonitor, nint hdc, ref User32.RECT rect, nint data) =>
+            (nint hMonitor, nint _, ref User32.RECT _, nint _) =>
             {
                 EnsureMonitor(hMonitor);
                 return true;
@@ -93,12 +94,16 @@ public sealed class WindowManager
 
     private MonitorState? EnsureMonitor(nint hMonitor)
     {
-        if (_monitors.TryGetValue(hMonitor, out var existing))
+        if (_monitors.TryGetValue(hMonitor, out MonitorState? existing))
+        {
             return existing;
+        }
 
         var info = new User32.MONITORINFO { CbSize = (uint)Marshal.SizeOf<User32.MONITORINFO>() };
         if (!User32.GetMonitorInfo(hMonitor, ref info))
+        {
             return null;
+        }
 
         var state = new MonitorState
         {
@@ -121,27 +126,41 @@ public sealed class WindowManager
 
     public async Task<int> RunAsync()
     {
-        var reader = _queue.Reader;
+        ChannelReader<NativeMessage> reader = _queue.Reader;
         while (!_quit && await reader.WaitToReadAsync())
-        while (!_quit && reader.TryRead(out var message))
         {
-            if (message.IsHotkey)
-                HandleHotkey(message);
-            else
-                HandleWinEvent(message.EventId, message.Hwnd);
+            while (!_quit && reader.TryRead(out NativeMessage message))
+            {
+                if (message.IsHotkey)
+                {
+                    HandleHotkey(message);
+                }
+                else
+                {
+                    HandleWinEvent(message.EventId, message.Hwnd);
+                }
+            }
         }
+
         return 0;
     }
 
     private void HandleHotkey(NativeMessage message)
     {
-        if (_config.Bindings.TryGetValue(new KeyCombo(message.Mods, message.VKey), out var command))
+        if (
+            _config.Bindings.TryGetValue(
+                new KeyCombo(message.Mods, message.VKey),
+                out CommandKind command
+            )
+        )
+        {
             Execute(command);
+        }
     }
 
     private void Execute(CommandKind command)
     {
-        var state = ActiveState();
+        MonitorState? state = ActiveState();
 
         switch (command)
         {
@@ -185,13 +204,19 @@ public sealed class WindowManager
                 break;
 
             case CommandKind.ToggleSplitOrientation:
-                if (state is not null && state.Tree.ToggleOrientation())
+                if (state?.Tree.ToggleOrientation() == true)
+                {
                     ApplyLayout(state);
+                }
+
                 break;
 
             case CommandKind.CloseFocusedWindow:
                 if (state?.Tree.Focused is { } focused)
+                {
                     User32.PostMessage(focused.Hwnd, User32.WM_CLOSE, 0, 0);
+                }
+
                 break;
 
             case CommandKind.QuitTwm:
@@ -203,35 +228,48 @@ public sealed class WindowManager
 
     private void FocusDirection(MonitorState? state, Direction direction)
     {
-        if (state is null || !state.Tree.FocusDirection(direction))
+        if (state?.Tree.FocusDirection(direction) != true)
+        {
             return;
+        }
+
         if (state.Tree.Focused is { } leaf)
+        {
             NativeWindow.Focus(leaf.Hwnd);
+        }
     }
 
     private void MoveWindow(MonitorState? state, Direction direction)
     {
-        if (state is null || !state.Tree.MoveFocused(direction))
+        if (state?.Tree.MoveFocused(direction) != true)
+        {
             return;
+        }
+
         ApplyLayout(state);
     }
 
     private void ResizeWindow(MonitorState? state, Direction direction)
     {
-        if (state is null || !state.Tree.ResizeFocused(direction, ResizeStepPx))
+        if (state?.Tree.ResizeFocused(direction, ResizeStepPx) != true)
+        {
             return;
+        }
+
         ApplyLayout(state);
     }
 
     private MonitorState? ActiveState()
     {
-        var foreground = User32.GetForegroundWindow();
+        nint foreground = User32.GetForegroundWindow();
         if (
             foreground != nint.Zero
-            && _windows.TryGetValue(foreground, out var win)
-            && _monitors.TryGetValue(win.Monitor, out var byForeground)
+            && _windows.TryGetValue(foreground, out ManagedWindow? win)
+            && _monitors.TryGetValue(win.Monitor, out MonitorState? byForeground)
         )
+        {
             return byForeground;
+        }
 
         return _monitors.Values.FirstOrDefault(m => m.Tree.Focused is not null)
             ?? _monitors.Values.FirstOrDefault(m => m.Tree.Count > 0);
@@ -263,7 +301,10 @@ public sealed class WindowManager
             case WinEvent.ObjectLocationChange:
                 // Fires constantly for every window in the system — bail fast.
                 if (_windows.ContainsKey(hwnd) && hwnd != _draggingHwnd)
+                {
                     SnapBack(hwnd, "moved off its tile");
+                }
+
                 break;
 
             case WinEvent.SystemMoveSizeStart:
@@ -286,31 +327,38 @@ public sealed class WindowManager
 
     private void SyncFocus(nint hwnd)
     {
-        if (!_windows.TryGetValue(hwnd, out var win))
+        if (!_windows.TryGetValue(hwnd, out ManagedWindow? win))
+        {
             return;
-        var state = _monitors.GetValueOrDefault(win.Monitor);
+        }
+
+        MonitorState? state = _monitors.GetValueOrDefault(win.Monitor);
         state?.Tree.SetFocused(win.Leaf);
     }
 
     private void TryTrack(nint hwnd, bool focusNew)
     {
         if (_windows.ContainsKey(hwnd) || !User32.IsWindow(hwnd))
+        {
             return;
+        }
 
-        if (!NativeWindow.IsEligible(hwnd, _ownPid, out var reason))
+        if (!NativeWindow.IsEligible(hwnd, _ownPid, out string reason))
         {
             Log.Trace($"skip 0x{hwnd:X} [{NativeWindow.ClassName(hwnd)}]: {reason}");
             return;
         }
 
-        var hMonitor = NativeWindow.MonitorOf(hwnd);
-        var state = EnsureMonitor(hMonitor);
+        nint hMonitor = NativeWindow.MonitorOf(hwnd);
+        MonitorState? state = EnsureMonitor(hMonitor);
         if (state is null)
+        {
             return;
+        }
 
         RestoreIfMaximized(hwnd);
 
-        var leaf = state.Tree.Insert(hwnd);
+        WindowLeaf leaf = state.Tree.Insert(hwnd);
         var window = new ManagedWindow
         {
             Hwnd = hwnd,
@@ -324,30 +372,43 @@ public sealed class WindowManager
 
         ApplyLayout(state);
         if (focusNew)
+        {
             NativeWindow.Focus(hwnd);
+        }
     }
 
     private void Untrack(nint hwnd)
     {
-        if (!_windows.Remove(hwnd, out var window))
+        if (!_windows.Remove(hwnd, out ManagedWindow? window))
+        {
             return;
+        }
 
         _lastSnapAttempt.Remove(hwnd);
         if (hwnd == _draggingHwnd)
+        {
             _draggingHwnd = 0;
+        }
 
-        var state = _monitors.GetValueOrDefault(window.Monitor);
+        MonitorState? state = _monitors.GetValueOrDefault(window.Monitor);
         if (state is null)
+        {
             return;
+        }
 
         bool wasFocused = ReferenceEquals(state.Tree.Focused, window.Leaf);
         state.Tree.Remove(window.Leaf);
         Log.Info($"released '{window.Title}' [{window.ProcessName}]");
 
         if (state.Tree.Count > 0)
+        {
             ApplyLayout(state);
+        }
+
         if (wasFocused && state.Tree.Focused is { } next)
+        {
             NativeWindow.Focus(next.Hwnd);
+        }
     }
 
     // ---------------------------------------------------------------
@@ -357,16 +418,24 @@ public sealed class WindowManager
     private void ApplyLayout(MonitorState state)
     {
         if (state.Tree.Root is null || state.Tree.Count == 0)
+        {
             return;
+        }
 
         state.Tree.Apply(state.WorkArea);
 
-        foreach (var leaf in state.Tree.Leaves())
+        foreach (WindowLeaf leaf in state.Tree.Leaves())
         {
             if (!_windows.ContainsKey(leaf.Hwnd))
+            {
                 continue; // defensive: tree/table desync
+            }
+
             if (User32.IsIconic(leaf.Hwnd))
+            {
                 continue; // positioning minimized windows misbehaves
+            }
+
             NativeWindow.SetTileRect(leaf.Hwnd, leaf.AssignedRect);
         }
     }
@@ -378,29 +447,43 @@ public sealed class WindowManager
     /// </summary>
     private void SnapBack(nint hwnd, string cause)
     {
-        if (!_windows.TryGetValue(hwnd, out var window))
+        if (!_windows.TryGetValue(hwnd, out ManagedWindow? window))
+        {
             return;
+        }
+
         if (User32.IsIconic(hwnd))
+        {
             return;
+        }
 
-        var state = _monitors.GetValueOrDefault(window.Monitor);
+        MonitorState? state = _monitors.GetValueOrDefault(window.Monitor);
         if (state is null || state.Tree.Root is null)
+        {
             return;
+        }
 
-        var target = window.Leaf.AssignedRect;
+        Rect target = window.Leaf.AssignedRect;
         if (target.IsEmpty)
+        {
             return;
+        }
 
-        var current = DwmApi.GetExtendedFrameBounds(hwnd);
+        Rect current = DwmApi.GetExtendedFrameBounds(hwnd);
         if (current == target)
+        {
             return;
+        }
 
-        var now = DateTime.UtcNow;
+        DateTime now = DateTime.UtcNow;
         if (
-            _lastSnapAttempt.TryGetValue(hwnd, out var last)
+            _lastSnapAttempt.TryGetValue(hwnd, out DateTime last)
             && (now - last).TotalMilliseconds < 500
         )
+        {
             return;
+        }
+
         _lastSnapAttempt[hwnd] = now;
 
         Log.Trace($"snap back ({cause}): {window.ProcessName}");
@@ -418,6 +501,8 @@ public sealed class WindowManager
             User32.GetWindowPlacement(hwnd, ref placement)
             && placement.ShowCmd == User32.SW_SHOWMAXIMIZED
         )
+        {
             User32.ShowWindow(hwnd, User32.SW_RESTORE);
+        }
     }
 }

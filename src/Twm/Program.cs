@@ -5,7 +5,7 @@ using Twm.Interop;
 
 namespace Twm;
 
-internal static partial class Program
+internal static class Program
 {
     private static async Task<int> Main()
     {
@@ -55,6 +55,8 @@ internal static partial class Program
     {
         const nint perMonitorV2 = -4;
         if (!SetProcessDpiAwarenessContext(perMonitorV2))
+        {
             _ = SetProcessDpiAwareness(2); // best effort: system-DPI-aware
+        }
     }
 }

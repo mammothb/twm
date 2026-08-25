@@ -21,7 +21,7 @@ public class ConfigTests
     [Fact]
     public void Default_yaml_parses_with_expected_bindings()
     {
-        var config = ConfigLoader.Parse(ConfigLoader.DefaultYaml);
+        TwmConfig config = ConfigLoader.Parse(ConfigLoader.DefaultYaml);
 
         config.ModKey.ShouldBe(Modifiers.Alt);
         config.Bindings.ShouldNotBeEmpty();
@@ -48,13 +48,13 @@ public class ConfigTests
     [Fact]
     public void Mod_key_can_be_overridden()
     {
-        var yaml = """
+        const string yaml = """
             mod_key: ctrl
             keybindings:
               - { trigger: ctrl+q, command: close_focused_window }
             """;
 
-        var config = ConfigLoader.Parse(yaml);
+        TwmConfig config = ConfigLoader.Parse(yaml);
         config.ModKey.ShouldBe(Modifiers.Ctrl);
         config.Bindings.ShouldContainKey(new KeyCombo(Modifiers.Ctrl, VkLetter('q')));
     }
@@ -62,7 +62,7 @@ public class ConfigTests
     [Fact]
     public void Commands_parse_case_insensitively()
     {
-        var yaml = """
+        const string yaml = """
             mod_key: alt
             keybindings:
               - { trigger: alt+x, command: FOCUS_LEFT }
@@ -77,7 +77,7 @@ public class ConfigTests
     [Fact]
     public void Function_and_named_keys_resolve()
     {
-        var yaml = """
+        const string yaml = """
             mod_key: alt
             keybindings:
               - { trigger: alt+f5,     command: toggle_split_orientation }
@@ -85,7 +85,7 @@ public class ConfigTests
               - { trigger: alt+escape, command: quit_twm }
             """;
 
-        var bindings = ConfigLoader.Parse(yaml).Bindings;
+        IReadOnlyDictionary<KeyCombo, CommandKind> bindings = ConfigLoader.Parse(yaml).Bindings;
         bindings.ShouldContainKey(new KeyCombo(Modifiers.Alt, 0x74)); // F5
         bindings.ShouldContainKey(new KeyCombo(Modifiers.Alt, 0x22)); // PgDn
         bindings.ShouldContainKey(new KeyCombo(Modifiers.Alt, 0x1B)); // Escape
@@ -94,20 +94,20 @@ public class ConfigTests
     [Fact]
     public void Unknown_command_throws_with_the_offending_name()
     {
-        var yaml = """
+        const string yaml = """
             mod_key: alt
             keybindings:
               - { trigger: alt+x, command: make_coffee }
             """;
 
-        var ex = Should.Throw<ConfigException>(() => ConfigLoader.Parse(yaml));
+        ConfigException ex = Should.Throw<ConfigException>(() => ConfigLoader.Parse(yaml));
         ex.Message.ShouldContain("make_coffee");
     }
 
     [Fact]
     public void Trigger_missing_mod_throws()
     {
-        var yaml = """
+        const string yaml = """
             mod_key: alt
             keybindings:
               - { trigger: h, command: focus_left }
@@ -121,7 +121,7 @@ public class ConfigTests
     [Fact]
     public void Duplicate_trigger_throws()
     {
-        var yaml = """
+        const string yaml = """
             mod_key: alt
             keybindings:
               - { trigger: alt+h, command: focus_left }
@@ -136,7 +136,7 @@ public class ConfigTests
     [Fact]
     public void Unknown_modifier_throws()
     {
-        var yaml = """
+        const string yaml = """
             mod_key: alt
             keybindings:
               - { trigger: alt+hyperspace+x, command: focus_left }

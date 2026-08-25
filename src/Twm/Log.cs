@@ -13,7 +13,9 @@ public static class Log
     public static void Trace(string message)
     {
         if (TraceEnabled)
+        {
             Write("TRACE", message);
+        }
     }
 
     private static void Write(string level, string message) =>

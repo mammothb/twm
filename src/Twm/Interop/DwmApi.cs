@@ -2,7 +2,7 @@ using System.Runtime.InteropServices;
 
 namespace Twm.Interop;
 
-internal static partial class DwmApi
+internal static class DwmApi
 {
     private const uint DWMWA_EXTENDED_FRAME_BOUNDS = 9;
     private const uint DWMWA_CLOAKED = 14;
@@ -34,14 +34,16 @@ internal static partial class DwmApi
                 DwmGetWindowAttributeRect(
                     hwnd,
                     DWMWA_EXTENDED_FRAME_BOUNDS,
-                    out var rect,
+                    out User32.RECT rect,
                     sizeof(int) * 4
                 )
             )
         )
+        {
             return Layout.Rect.FromLtrb(rect.Left, rect.Top, rect.Right, rect.Bottom);
+        }
 
-        User32.GetWindowRect(hwnd, out var fallback);
+        User32.GetWindowRect(hwnd, out User32.RECT fallback);
         return Layout.Rect.FromLtrb(fallback.Left, fallback.Top, fallback.Right, fallback.Bottom);
     }
 

@@ -7,9 +7,18 @@
     <RootNamespace>Twm</RootNamespace>
     <AssemblyName>twm</AssemblyName>
     <InvariantGlobalization>true</InvariantGlobalization>
+    <!-- SYSLIB1054 suggests source-generated LibraryImport P/Invokes; the
+         generator is broken under the Debian .NET packaging used in WSL/CI
+         (duplicate analyzer assemblies emit conflicting implementations).
+         Retry migration on a Windows toolchain before removing this. -->
+    <NoWarn>$(NoWarn);SYSLIB1054</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="YamlDotNet" Version="16.*" />
+    <PackageReference Include="Roslynator.Analyzers" Version="4.15.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
 </Project>

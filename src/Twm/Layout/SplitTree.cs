@@ -33,9 +33,12 @@ public sealed class SplitTree
     /// </summary>
     public static SplitTree Adopt(LayoutNode root, WindowLeaf? focused)
     {
-        var tree = new SplitTree { Count = root.Leaves().Count() };
-        tree.Root = root;
-        tree.Focused = focused ?? root.Leaves().FirstOrDefault();
+        var tree = new SplitTree
+        {
+            Count = root.Leaves().Count(),
+            Root = root,
+            Focused = focused ?? root.Leaves().FirstOrDefault(),
+        };
         return tree;
     }
 
@@ -54,8 +57,8 @@ public sealed class SplitTree
         }
         else
         {
-            var anchor = Focused ?? Root.Leaves().Last();
-            var parent = anchor.Parent;
+            WindowLeaf anchor = Focused ?? Root.Leaves().Last();
+            SplitContainer? parent = anchor.Parent;
 
             if (parent is null)
             {
@@ -68,7 +71,7 @@ public sealed class SplitTree
             }
             else
             {
-                var index = parent.IndexOf(anchor) + 1;
+                int index = parent.IndexOf(anchor) + 1;
                 leaf.Weight = 0.0; // set below, half of anchor's
                 parent.InsertAt(index, leaf);
                 leaf.Weight = anchor.Weight / 2.0;
@@ -90,7 +93,7 @@ public sealed class SplitTree
     {
         Count--;
 
-        var parent = leaf.Parent;
+        SplitContainer? parent = leaf.Parent;
         if (parent is null)
         {
             // Sole root leaf.
@@ -99,11 +102,13 @@ public sealed class SplitTree
             return;
         }
 
-        var refocus = ReferenceEquals(Focused, leaf) ? OrderNeighbor(leaf) : null;
+        WindowLeaf? refocus = ReferenceEquals(Focused, leaf) ? OrderNeighbor(leaf) : null;
         parent.Remove(leaf);
         Collapse(parent);
         if (ReferenceEquals(Focused, leaf))
+        {
             Focused = refocus;
+        }
     }
 
     /// <summary>
@@ -115,14 +120,18 @@ public sealed class SplitTree
     public void Apply(Rect area)
     {
         if (Root is not null)
+        {
             Assign(Root, area);
+        }
     }
 
     private static void Assign(LayoutNode node, Rect rect)
     {
         node.AssignedRect = rect;
         if (node is not SplitContainer container || container.Children.Count == 0)
+        {
             return;
+        }
 
         double total = container.Children.Sum(c => Math.Max(c.Weight, MinWeightShare));
         int origin = container.Horizontal ? rect.X : rect.Y;
@@ -132,7 +141,7 @@ public sealed class SplitTree
 
         for (int i = 0; i < container.Children.Count; i++)
         {
-            var child = container.Children[i];
+            LayoutNode child = container.Children[i];
             cumulativeWeight += Math.Max(child.Weight, MinWeightShare);
 
             int boundary =
@@ -157,18 +166,22 @@ public sealed class SplitTree
     public WindowLeaf? Neighbor(Direction direction)
     {
         if (Focused is null)
+        {
             return null;
+        }
 
-        var focus = Focused.AssignedRect;
+        Rect focus = Focused.AssignedRect;
         WindowLeaf? best = null;
         long bestScore = long.MaxValue;
 
-        foreach (var candidate in Leaves())
+        foreach (WindowLeaf candidate in Leaves())
         {
             if (ReferenceEquals(candidate, Focused))
+            {
                 continue;
+            }
 
-            var r = candidate.AssignedRect;
+            Rect r = candidate.AssignedRect;
             long primary;
             long overlap;
 
@@ -176,25 +189,37 @@ public sealed class SplitTree
             {
                 case Direction.Left:
                     if (r.Right > focus.X)
+                    {
                         continue;
+                    }
+
                     primary = focus.X - r.Right;
                     overlap = VerticalOverlap(focus, r);
                     break;
                 case Direction.Right:
                     if (r.X < focus.Right)
+                    {
                         continue;
+                    }
+
                     primary = r.X - focus.Right;
                     overlap = VerticalOverlap(focus, r);
                     break;
                 case Direction.Up:
                     if (r.Bottom > focus.Y)
+                    {
                         continue;
+                    }
+
                     primary = focus.Y - r.Bottom;
                     overlap = HorizontalOverlap(focus, r);
                     break;
                 case Direction.Down:
                     if (r.Y < focus.Bottom)
+                    {
                         continue;
+                    }
+
                     primary = r.Y - focus.Bottom;
                     overlap = HorizontalOverlap(focus, r);
                     break;
@@ -203,7 +228,7 @@ public sealed class SplitTree
             }
 
             long score =
-                primary * DirectionScoreScale
+                (primary * DirectionScoreScale)
                 + (DirectionScoreScale - Math.Min(overlap, DirectionScoreScale));
             if (score < bestScore)
             {
@@ -217,9 +242,12 @@ public sealed class SplitTree
 
     public bool FocusDirection(Direction direction)
     {
-        var neighbor = Neighbor(direction);
+        WindowLeaf? neighbor = Neighbor(direction);
         if (neighbor is null)
+        {
             return false;
+        }
+
         Focused = neighbor;
         return true;
     }
@@ -227,9 +255,11 @@ public sealed class SplitTree
     /// <summary>Swaps the focused leaf with its directional neighbor.</summary>
     public bool MoveFocused(Direction direction)
     {
-        var target = Neighbor(direction);
+        WindowLeaf? target = Neighbor(direction);
         if (target is null || Focused is null)
+        {
             return false;
+        }
 
         Swap(Focused, target);
         return true;
@@ -237,8 +267,8 @@ public sealed class SplitTree
 
     private static void Swap(WindowLeaf a, WindowLeaf b)
     {
-        var pa = a.Parent!;
-        var pb = b.Parent!;
+        SplitContainer pa = a.Parent!;
+        SplitContainer pb = b.Parent!;
         int indexA = pa.IndexOf(a);
         int indexB = pb.IndexOf(b);
 
@@ -258,20 +288,30 @@ public sealed class SplitTree
     public bool ResizeFocused(Direction direction, int pixelDelta)
     {
         if (Focused is null || pixelDelta == 0)
+        {
             return false;
+        }
 
         bool horizontal = direction.IsHorizontal();
         bool positive = direction is Direction.Right or Direction.Down;
 
-        for (var container = Focused.Parent; container is not null; container = container.Parent)
+        for (
+            SplitContainer? container = Focused.Parent;
+            container is not null;
+            container = container.Parent
+        )
         {
             if (container.Horizontal != horizontal)
+            {
                 continue;
+            }
 
             int index = IndexOfChildContaining(container, Focused);
             int other = positive ? index + 1 : index - 1;
             if (other < 0 || other >= container.Children.Count)
+            {
                 continue; // no border this way; try the next ancestor
+            }
 
             // The focused window always grows toward the direction;
             // the neighbor on that side yields the space.
@@ -289,10 +329,12 @@ public sealed class SplitTree
         int pixelDelta
     )
     {
-        var rect = container.AssignedRect;
+        Rect rect = container.AssignedRect;
         int extent = container.Horizontal ? rect.Width : rect.Height;
         if (extent <= 0 || growIndex == shrinkIndex)
+        {
             return;
+        }
 
         double total = container.Children.Sum(c => Math.Max(c.Weight, MinWeightShare));
         double delta = (double)pixelDelta / extent * total;
@@ -319,9 +361,12 @@ public sealed class SplitTree
     /// <summary>Flips the focused window's immediate parent container orientation.</summary>
     public bool ToggleOrientation()
     {
-        var container = Focused?.Parent ?? Root as SplitContainer;
+        SplitContainer? container = Focused?.Parent ?? Root as SplitContainer;
         if (container is null)
+        {
             return false;
+        }
+
         container.Horizontal = !container.Horizontal;
         return true;
     }
@@ -329,8 +374,13 @@ public sealed class SplitTree
     private static int IndexOfChildContaining(SplitContainer container, LayoutNode inner)
     {
         for (int i = 0; i < container.Children.Count; i++)
+        {
             if (LayoutNode.Contains(container.Children[i], inner))
+            {
                 return i;
+            }
+        }
+
         throw new InvalidOperationException("Focused leaf not found inside its own ancestor.");
     }
 
@@ -338,8 +388,8 @@ public sealed class SplitTree
     {
         while (node.Children.Count == 1)
         {
-            var onlyChild = node.Children[0];
-            var grandparent = node.Parent;
+            LayoutNode onlyChild = node.Children[0];
+            SplitContainer? grandparent = node.Parent;
             if (grandparent is null)
             {
                 Root = onlyChild;
@@ -357,9 +407,15 @@ public sealed class SplitTree
         var leaves = Leaves().ToList();
         int index = leaves.IndexOf(leaf);
         if (index > 0)
+        {
             return leaves[index - 1];
+        }
+
         if (index < leaves.Count - 1)
+        {
             return leaves[index + 1];
+        }
+
         return null;
     }
 

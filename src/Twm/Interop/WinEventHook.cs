@@ -61,9 +61,11 @@ internal static class WinEvent
             _proc = OnEvent;
             _handle = SetWinEventHook(HookMin, HookMax, 0, _proc, 0, 0, WineventOutOfContext);
             if (_handle == nint.Zero)
+            {
                 throw new InvalidOperationException(
                     $"SetWinEventHook failed (win32 error {Marshal.GetLastWin32Error()})."
                 );
+            }
         }
 
         private void OnEvent(
@@ -78,7 +80,10 @@ internal static class WinEvent
         {
             // Only top-level window events interest us; everything else is noise.
             if (idObject != ObjIdWindow || idChild != 0 || hwnd == nint.Zero)
+            {
                 return;
+            }
+
             _dispatch(eventId, hwnd);
         }
 

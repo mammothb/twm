@@ -4,7 +4,7 @@ using System.Text;
 namespace Twm.Interop;
 
 /// <summary>P/Invoke declarations for user32. x86/x64 covered for GetWindowLong.</summary>
-internal static partial class User32
+internal static class User32
 {
     // Window messages
     internal const uint WM_KEYDOWN = 0x0100;
@@ -100,24 +100,24 @@ internal static partial class User32
     [DllImport("user32.dll")]
     public static extern nint GetAncestor(nint hWnd, uint flags);
 
-    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+    [DllImport("user32.dll")]
     public static extern int GetWindowTextLength(nint hWnd);
 
     [DllImport("user32.dll", CharSet = CharSet.Unicode)]
-    public static extern int GetWindowText(nint hWnd, StringBuilder text, int maxCount);
+    public static extern int GetWindowText(nint hWnd, char[] text, int maxCount);
 
     [DllImport("user32.dll", CharSet = CharSet.Unicode)]
-    public static extern int GetClassName(nint hWnd, StringBuilder className, int maxCount);
+    public static extern int GetClassName(nint hWnd, char[] className, int maxCount);
 
-    [DllImport("user32.dll")]
-    private static extern int GetWindowLong(nint hWnd, int nIndex);
+    [DllImport("user32.dll", EntryPoint = "GetWindowLongW")]
+    private static extern int GetWindowLong32(nint hWnd, int nIndex);
 
-    [DllImport("user32.dll")]
-    private static extern nint GetWindowLongPtr(nint hWnd, int nIndex);
+    [DllImport("user32.dll", EntryPoint = "GetWindowLongPtrW")]
+    private static extern nint GetWindowLongPtr64(nint hWnd, int nIndex);
 
     /// <summary>Architect-portable GetWindowLong. nIndex: GWL_STYLE(-16)/GWL_EXSTYLE(-20).</summary>
     public static long GetWindowStyle(nint hWnd, int nIndex) =>
-        IntPtr.Size == 8 ? GetWindowLongPtr(hWnd, nIndex) : GetWindowLong(hWnd, nIndex);
+        IntPtr.Size == 8 ? GetWindowLongPtr64(hWnd, nIndex) : GetWindowLong32(hWnd, nIndex);
 
     [DllImport("user32.dll")]
     public static extern uint GetWindowThreadProcessId(nint hWnd, out uint processId);
@@ -171,7 +171,7 @@ internal static partial class User32
         nint data
     );
 
-    [DllImport("user32.dll")]
+    [DllImport("user32.dll", SetLastError = true)]
     public static extern nint SetWindowsHookEx(
         int idHook,
         LowLevelKeyboardProc proc,
