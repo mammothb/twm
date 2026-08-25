@@ -7,7 +7,7 @@ internal static class DwmApi
     private const uint DWMWA_EXTENDED_FRAME_BOUNDS = 9;
     private const uint DWMWA_CLOAKED = 14;
 
-    [DllImport("dwmapi.dll")]
+    [DllImport("dwmapi.dll", EntryPoint = "DwmGetWindowAttribute")]
     private static extern int DwmGetWindowAttributeRect(
         nint hwnd,
         uint attribute,
@@ -15,7 +15,7 @@ internal static class DwmApi
         int size
     );
 
-    [DllImport("dwmapi.dll")]
+    [DllImport("dwmapi.dll", EntryPoint = "DwmGetWindowAttribute")]
     private static extern int DwmGetWindowAttributeDword(
         nint hwnd,
         uint attribute,
