@@ -36,6 +36,9 @@ csharp_indent_case_contents_when_block = false
 csharp_indent_switch_labels = true
 csharp_indent_labels = one_less_than_current
 
+# IDE0011: Prefer braces
+dotnet_diagnostic.IDE0011.severity = error
+
 # Modifier preferences
 csharp_preferred_modifier_order = public,private,protected,internal,file,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,required,volatile,async:suggestion
 
@@ -85,7 +88,7 @@ csharp_using_directive_placement = outside_namespace:suggestion
 # Library: flat namespace for consumers (Core/, Models/, etc. are internal organization)
 dotnet_diagnostic.IDE0130.severity = none
 dotnet_sort_system_directives_first = true
-csharp_prefer_braces = true:suggestion
+csharp_prefer_braces = true:error
 csharp_preserve_single_line_blocks = true:none
 csharp_preserve_single_line_statements = false:none
 csharp_prefer_static_local_function = true:suggestion
