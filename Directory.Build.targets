@@ -1,0 +1,5 @@
+<Project>
+  <ItemGroup>
+    <Using Remove="System.Threading" />
+  </ItemGroup>
+</Project>
