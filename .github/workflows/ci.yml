@@ -20,7 +20,9 @@ jobs:
       - name: Setup - DotNet
         uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5.4.0
       - name: NuGet - Clear cache
-        run: dotnet nuget locals all --clear
+        run: |
+          dotnet nuget locals all --clear
+          find . -type d \( -name "obj" -o -name "bin" \) -exec rm -rf {} +
       - name: Test - With Coverage
         run: make coverage
       - name: Upload to Codecov
