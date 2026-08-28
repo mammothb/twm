@@ -11,7 +11,6 @@
     <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
     <RestoreLockedMode
       Condition="'$(ContinuousIntegrationBuild)' == 'true' or '$(RuntimeIdentifier)' == 'linux-x64'"
-      >true</RestoreLockedMode
-    >
+      >true</RestoreLockedMode>
   </PropertyGroup>
 </Project>
