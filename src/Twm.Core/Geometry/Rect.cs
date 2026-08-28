@@ -12,6 +12,9 @@ public readonly record struct Rect(int X, int Y, int Width, int Height)
     /// <summary>The y-coordinate just past the bottom edge (exclusive).</summary>
     public int Bottom => Y + Height;
 
+    /// <summary>The integer midpoint of the rectangle.</summary>
+    public Point Center => new(X + (Width / 2), Y + (Height / 2));
+
     /// <summary>
     /// Whether the point lies within the half-open bounds
     /// [<see cref="X" />, <see cref="Right" />) x [<see cref="Y" />, <see cref="Bottom" />).
