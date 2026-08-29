@@ -51,12 +51,10 @@ public abstract class TreeCommandHandler<TCommand> : ICommandHandler<TCommand>
             else if (split.Children.Count == 1)
             {
                 Container onlyChild = split.Children[0];
-                int index = split.Index;
                 double fraction = split.SizeFraction;
                 split.RemoveChild(onlyChild);
-                parent.RemoveChild(split);
                 onlyChild.SizeFraction = fraction;
-                parent.InsertChild(index, onlyChild);
+                parent.ReplaceChild(split, onlyChild);
                 node = parent;
             }
             else

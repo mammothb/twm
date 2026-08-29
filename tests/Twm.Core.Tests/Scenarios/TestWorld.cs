@@ -8,7 +8,7 @@ namespace Twm.Core.Tests.Scenarios;
 
 /// <summary>
 /// A two-monitor desktop wired through the <see cref="Bussing.Bus" /> with
-/// every handler registered, for end-to-end scenario tets. Primary is 1920x1080
+/// every handler registered, for end-to-end scenario tests. Primary is 1920x1080
 /// at the origin; secondary is 1280x1024 to its right.
 /// </summary>
 public sealed class TestWorld

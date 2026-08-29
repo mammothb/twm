@@ -160,6 +160,57 @@ public abstract class Container
         child.Parent = this;
     }
 
+    /// <summary>
+    /// Replaces an existing child with a new child, preserving layout position
+    /// and focus rank.
+    /// </summary>
+    public void ReplaceChild(Container oldChild, Container newChild)
+    {
+        ArgumentNullException.ThrowIfNull(oldChild);
+        ArgumentNullException.ThrowIfNull(newChild);
+        if (ReferenceEquals(oldChild, newChild))
+        {
+            return;
+        }
+
+        int childIndex = _children.IndexOf(oldChild);
+        if (childIndex == -1)
+        {
+            throw new InvalidOperationException(
+                "The container to replace is not a child of this container."
+            );
+        }
+
+        if (ReferenceEquals(newChild, this) || newChild.IsAncestorOf(this))
+        {
+            throw new InvalidOperationException(
+                "Cannot attach a container to itself or one of its descendats."
+            );
+        }
+
+        if (newChild.Parent is not null)
+        {
+            throw new InvalidOperationException(
+                "Replacement container is already attached to a parent."
+            );
+        }
+
+        _children[childIndex] = newChild;
+
+        int focusIndex = _childFocusOrder.IndexOf(oldChild);
+        if (focusIndex == -1)
+        {
+            _childFocusOrder.Insert(0, newChild);
+        }
+        else
+        {
+            _childFocusOrder[focusIndex] = newChild;
+        }
+
+        oldChild.Parent = null;
+        newChild.Parent = this;
+    }
+
     /// <summary>Appends a detached child after the current children.</summary>
     public void AppendChild(Container child)
     {

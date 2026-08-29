@@ -24,6 +24,7 @@ public sealed class ResizeInDirectionHandler(RootContainer root, LayoutEngine la
     public override CommandResult Handle(ResizeInDirectionCommand command)
     {
         ArgumentNullException.ThrowIfNull(command);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(command.DeltaFraction);
         TilingWindow? subject = Root.FocusedWindow();
         if (subject is null)
         {
