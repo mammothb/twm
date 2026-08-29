@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <IsAotCompatible>true</IsAotCompatible>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../Twm.Core/Twm.Core.csproj" />
+    <ProjectReference Include="../Twm.Platform/Twm.Platform.csproj" />
+  </ItemGroup>
+</Project>
