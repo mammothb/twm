@@ -10,7 +10,7 @@ public class MonitorAdjacencyTests
     {
         (Monitor left, Monitor right) = TwoSideBySide();
 
-        left.AdjacentMonitor(Direction.Right).ShouldBe(right);
+        left.AdjacentMonitor(Direction.Right).ShouldBeSameAs(right);
     }
 
     [Fact]
@@ -18,7 +18,7 @@ public class MonitorAdjacencyTests
     {
         (Monitor left, Monitor right) = TwoSideBySide();
 
-        right.AdjacentMonitor(Direction.Left).ShouldBe(left);
+        right.AdjacentMonitor(Direction.Left).ShouldBeSameAs(left);
     }
 
     [Fact]

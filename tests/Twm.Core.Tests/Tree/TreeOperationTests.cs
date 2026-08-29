@@ -13,7 +13,7 @@ public class TreeOperationsTests
 
         split.AppendChild(window);
 
-        window.Parent.ShouldBe(split);
+        window.Parent.ShouldBeSameAs(split);
         split.Children.ShouldBe([window]);
         split.ChildFocusOrder.ShouldBe([window]);
     }
@@ -98,7 +98,7 @@ public class TreeOperationsTests
         var other = new SplitContainer();
         other.AppendChild(window);
 
-        window.Parent.ShouldBe(other);
+        window.Parent.ShouldBeSameAs(other);
     }
 
     [Fact]
@@ -117,9 +117,9 @@ public class TreeOperationsTests
             BuildSampleTree();
 
         w10.Siblings.ShouldBe([w20]);
-        w10.NextSibling.ShouldBe(w20);
+        w10.NextSibling.ShouldBeSameAs(w20);
         w10.PreviousSibling.ShouldBeNull();
-        w20.PreviousSibling.ShouldBe(w10);
+        w20.PreviousSibling.ShouldBeSameAs(w10);
         w20.NextSibling.ShouldBeNull();
         split.Siblings.ShouldBe([w30]);
     }
@@ -162,8 +162,8 @@ public class TreeOperationsTests
         (RootContainer root, _, _, SplitContainer split, TilingWindow w10, _, _) =
             BuildSampleTree();
 
-        split.LastFocusedChild.ShouldBe(w10);
-        root.LastFocusedDescendant.ShouldBe(w10);
+        split.LastFocusedChild.ShouldBeSameAs(w10);
+        root.LastFocusedDescendant.ShouldBeSameAs(w10);
     }
 
     [Fact]
@@ -174,9 +174,9 @@ public class TreeOperationsTests
 
         w20.Focus();
 
-        root.LastFocusedDescendant.ShouldBe(w20);
-        workspace.LastFocusedChild.ShouldBe(split);
-        split.LastFocusedChild.ShouldBe(w20);
+        root.LastFocusedDescendant.ShouldBeSameAs(w20);
+        workspace.LastFocusedChild.ShouldBeSameAs(split);
+        split.LastFocusedChild.ShouldBeSameAs(w20);
         w20.FocusIndex.ShouldBe(0);
     }
 

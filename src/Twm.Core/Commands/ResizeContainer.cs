@@ -32,7 +32,7 @@ public sealed class ResizeContainerHandler(RootContainer root, LayoutEngine layo
         }
 
         double newSubject = subject.SizeFraction + command.DeltaFraction;
-        double newNeighbor = neighbor.SizeFraction + command.DeltaFraction;
+        double newNeighbor = neighbor.SizeFraction - command.DeltaFraction;
         if (newSubject < MinimumFraction || newNeighbor < MinimumFraction)
         {
             return CommandResult.Ok;
