@@ -26,7 +26,7 @@ public sealed class Bus
     /// <summary>
     /// Command type names in invocation order, oldest first, bounded in size.
     /// </summary>
-    public IReadOnlyCollection<string> CommandHistory => _commandHistory;
+    public IReadOnlyCollection<string> CommandHistory => _commandHistory.ToArray();
 
     /// <summary>
     /// Registers the single handler for <typeparamref name="TCommand" />.
@@ -87,7 +87,7 @@ public sealed class Bus
         ArgumentNullException.ThrowIfNull(@event);
         if (_subscribers.TryGetValue(@event.GetType(), out List<Action<IEvent>>? list))
         {
-            foreach (Action<IEvent> subscriber in list)
+            foreach (Action<IEvent> subscriber in list.ToArray())
             {
                 subscriber(@event);
             }

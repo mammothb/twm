@@ -56,3 +56,5 @@ coverage/
 *.VisualState.xml
 TestResult.xml
 nunit-*.xml
+
+scratch/

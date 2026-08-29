@@ -103,12 +103,42 @@ public abstract class Container
         }
     }
 
+    /// <summary>
+    /// Determines whether this container is an ancestor of the specified target
+    /// container.
+    /// </summary>
+    public bool IsAncestorOf(Container? target)
+    {
+        if (target is null || ReferenceEquals(target, this))
+        {
+            return false;
+        }
+
+        Container? node = target.Parent;
+        while (node is not null)
+        {
+            if (ReferenceEquals(node, this))
+            {
+                return true;
+            }
+            node = node.Parent;
+        }
+
+        return false;
+    }
+
     /// <summary>Inserts a detached child at the given index.</summary>
     public void InsertChild(int index, Container child)
     {
         ArgumentNullException.ThrowIfNull(child);
         ArgumentOutOfRangeException.ThrowIfNegative(index);
         ArgumentOutOfRangeException.ThrowIfGreaterThan(index, _children.Count);
+        if (ReferenceEquals(child, this) || child.IsAncestorOf(this))
+        {
+            throw new InvalidOperationException(
+                "Cannot attach a container to itself or one of its descendants."
+            );
+        }
         if (child.Parent is not null)
         {
             throw new InvalidOperationException("Container is already attached to a parent.");

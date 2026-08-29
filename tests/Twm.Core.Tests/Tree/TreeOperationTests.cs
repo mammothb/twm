@@ -47,6 +47,31 @@ public class TreeOperationsTests
     }
 
     [Fact]
+    public void AppendChild_RejectsSelf()
+    {
+        var a = new SplitContainer();
+        var window = new TilingWindow(new WindowId(1));
+        a.AppendChild(window);
+
+        Should.Throw<InvalidOperationException>(() => a.AppendChild(window));
+    }
+
+    [Fact]
+    public void AppendChild_RejectsDescendent()
+    {
+        var workspace = new Workspace("1");
+        var split = new SplitContainer(LayoutMode.SplitVertical);
+        workspace.AppendChild(split);
+
+        var window = new TilingWindow(new WindowId(1));
+        split.AppendChild(window);
+
+        Should
+            .Throw<InvalidOperationException>(() => window.AppendChild(workspace))
+            .Message.ShouldContain("descendants");
+    }
+
+    [Fact]
     public void InsertChild_RejectsIndexOutOfRange()
     {
         var split = new SplitContainer();

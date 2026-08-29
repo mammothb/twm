@@ -62,7 +62,7 @@ public readonly record struct Rect(int X, int Y, int Width, int Height)
             throw new ArgumentException("At least one weight is required.", nameof(weights));
         }
 
-        double sum = 0;
+        double maxWeight = 0;
         for (int i = 0; i < weights.Count; i++)
         {
             double weight = weights[i];
@@ -75,12 +75,18 @@ public readonly record struct Rect(int X, int Y, int Width, int Height)
                 );
             }
 
-            sum += weight;
+            maxWeight = Math.Max(maxWeight, weight);
         }
 
-        if (sum <= 0)
+        if (maxWeight <= 0)
         {
             throw new ArgumentException("Weights must sum to a positive value.", nameof(weights));
+        }
+
+        double sum = 0;
+        for (int i = 0; i < weights.Count; i++)
+        {
+            sum += weights[i] / maxWeight;
         }
 
         int total = direction == TilingDirection.Horizontal ? Width : Height;
@@ -88,7 +94,7 @@ public readonly record struct Rect(int X, int Y, int Width, int Height)
         int used = 0;
         for (int i = 0; i < weights.Count - 1; i++)
         {
-            int size = (int)(total * (weights[i] / sum));
+            int size = (int)(total * (weights[i] / maxWeight / sum));
             sizes[i] = size;
             used += size;
         }

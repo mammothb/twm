@@ -116,6 +116,41 @@ public class LayoutEngineTests
         right.Bounds.Right.ShouldBe(monitor.Bounds.Right - 20);
     }
 
+    [Theory]
+    [InlineData(LayoutMode.SplitHorizontal)]
+    [InlineData(LayoutMode.SplitVertical)]
+    public void Arrange_WithGapsExceedContainer_ClampsChildrenToZeroWithinBounds(LayoutMode layout)
+    {
+        var monitorBounds = new Rect(0, 0, 1000, 1000);
+        var monitor = new Monitor(monitorBounds);
+        var workspace = new Workspace("1", layout);
+        monitor.AppendChild(workspace);
+        var w1 = new TilingWindow(new WindowId(1));
+        var w2 = new TilingWindow(new WindowId(2));
+        workspace.AppendChild(w1);
+        workspace.AppendChild(w2);
+
+        bool isHorizontal = layout == LayoutMode.SplitHorizontal;
+
+        // Gaps exceed monitor bounds
+        new LayoutEngine(new GapConfig(Inner: 2000, Outer: 0)).Arrange(monitor);
+
+        workspace.Bounds.ShouldBe(monitorBounds);
+
+        if (isHorizontal)
+        {
+            w1.Bounds.ShouldBe(new Rect(0, 0, 0, 1000));
+            // Core does not handle Windows rendering concern
+            w2.Bounds.ShouldBe(new Rect(1500, 0, 0, 1000));
+        }
+        else
+        {
+            w1.Bounds.ShouldBe(new Rect(0, 0, 1000, 0));
+            // Core does not handle Windows rendering concern
+            w2.Bounds.ShouldBe(new Rect(0, 1500, 1000, 0));
+        }
+    }
+
     [Fact]
     public void Arrange_RemainderPixelsGoToLastSlice()
     {
@@ -219,6 +254,29 @@ public class LayoutEngineTests
 
         // Three children -> strip = 3 * 24 = 72; each fills the content below
         var content = new Rect(0, 72, 800, 528);
+        w1.Bounds.ShouldBe(content);
+        w2.Bounds.ShouldBe(content);
+        w3.Bounds.ShouldBe(content);
+    }
+
+    [Fact]
+    public void StackedLayout_WhenTitleStripExceedHeight_KeepsContentWithinBounds()
+    {
+        var monitor = new Monitor(new Rect(0, 0, 800, 600));
+        var workspace = new Workspace("1", LayoutMode.Stacked);
+        monitor.AppendChild(workspace);
+        var w1 = new TilingWindow(new WindowId(1));
+        var w2 = new TilingWindow(new WindowId(2));
+        var w3 = new TilingWindow(new WindowId(3));
+        workspace.AppendChild(w1);
+        workspace.AppendChild(w2);
+        workspace.AppendChild(w3);
+
+        new LayoutEngine(GapConfig.None, 250).Arrange(monitor);
+
+        // Three children -> strip = 3 * 250 = 750; exceeds monitor bounds,
+        // clamped to ensure Y is within monitor bounds
+        var content = new Rect(0, 600, 800, 0);
         w1.Bounds.ShouldBe(content);
         w2.Bounds.ShouldBe(content);
         w3.Bounds.ShouldBe(content);

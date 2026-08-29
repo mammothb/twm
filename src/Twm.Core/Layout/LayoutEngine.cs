@@ -66,16 +66,12 @@ public sealed class LayoutEngine(GapConfig gaps, int titleBarHeight)
         {
             // Reserve a title strip (tabbed = one row; stacked = one row per
             // child), then give every child the same content rect below it.
-            // Only the focused child is shown (the reconsiler cloaks the rest);
+            // Only the focused child is shown (the reconciler cloaks the rest);
             // non-focused children still get valid bounds.
             int rows = split.Layout == LayoutMode.Tabbed ? 1 : split.Children.Count;
-            int strip = _titleBarHeight * rows;
-            var content = new Rect(
-                rect.X,
-                rect.Y + strip,
-                rect.Width,
-                Math.Max(0, rect.Height - strip)
-            );
+            // Avoid content from being pushed to another container
+            int strip = Math.Min(rect.Height, _titleBarHeight * rows);
+            var content = new Rect(rect.X, rect.Y + strip, rect.Width, rect.Height - strip);
             foreach (Container child in split.Children)
             {
                 ArrangeNode(child, content);
@@ -99,25 +95,38 @@ public sealed class LayoutEngine(GapConfig gaps, int titleBarHeight)
             weights[i] = split.Children[i].SizeFraction;
         }
 
+        // Divide full parent space without subtracting gaps
         bool isHorizontal = split.Layout.Axis() == TilingDirection.Horizontal;
-        int axisLength = isHorizontal ? rect.Width : rect.Height;
-        int totalGap = innerGap * (count - 1);
-        int available = Math.Max(0, axisLength - totalGap);
-
-        // Split the gap-reduced length by weights using rounding rule, then
-        // position the slices with an inner gap between each.
-        Rect probe = isHorizontal ? new Rect(0, 0, available, 1) : new Rect(0, 0, 1, available);
+        Rect probe = isHorizontal ? new Rect(0, 0, rect.Width, 1) : new Rect(0, 0, 1, rect.Height);
         Rect[] slices = probe.Split(split.Layout.Axis(), weights);
 
         Rect[] result = new Rect[count];
-        int offset = isHorizontal ? rect.X : rect.Y;
+        int halfGap = innerGap / 2;
         for (int i = 0; i < count; i++)
         {
-            int size = isHorizontal ? slices[i].Width : slices[i].Height;
-            result[i] = isHorizontal
-                ? new Rect(offset, rect.Y, size, rect.Height)
-                : new Rect(rect.X, offset, rect.Width, size);
-            offset += size + innerGap;
+            int x = isHorizontal ? rect.X + slices[i].X : rect.X;
+            int y = isHorizontal ? rect.Y : rect.Y + slices[i].Y;
+            int width = isHorizontal ? slices[i].Width : rect.Width;
+            int height = isHorizontal ? rect.Height : slices[i].Height;
+
+            // Apply half-gaps to internal boundaries
+            bool hasLeftOrTop = i > 0;
+            bool hasRightOrBottom = i < count - 1;
+            if (isHorizontal)
+            {
+                int insetLeft = hasLeftOrTop ? halfGap : 0;
+                int insetRight = hasRightOrBottom ? halfGap : 0;
+                x += insetLeft;
+                width = Math.Max(0, width - insetLeft - insetRight);
+            }
+            else
+            {
+                int insetTop = hasLeftOrTop ? halfGap : 0;
+                int insetBottom = hasRightOrBottom ? halfGap : 0;
+                y += insetTop;
+                height = Math.Max(0, height - insetTop - insetBottom);
+            }
+            result[i] = new Rect(x, y, width, height);
         }
         return result;
     }

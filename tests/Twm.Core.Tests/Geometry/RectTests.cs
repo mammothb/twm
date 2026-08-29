@@ -135,6 +135,21 @@ public class RectTests
         );
     }
 
+    [Fact]
+    public void SplitByWeights_HandlesOverflowSum()
+    {
+        var parent = new Rect(0, 0, 300, 100);
+
+        Rect[] slices = parent.Split(
+            TilingDirection.Horizontal,
+            [double.MaxValue, double.MaxValue / 2]
+        );
+
+        slices[0].Width.ShouldBe(200);
+        slices[1].Width.ShouldBe(100);
+        AssertContiguousTiling(parent, TilingDirection.Horizontal, slices);
+    }
+
     private static void AssertContiguousTiling(
         Rect parent,
         TilingDirection direction,
