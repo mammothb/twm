@@ -27,11 +27,11 @@ jobs:
           persist-credentials: false
       - name: Setup - DotNet
         uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5.4.0
-      - name: Scan - SonarQube
-        # Pinned to a commit for supply-chain safety. Bump to the `v1` tag
-        # from https://github.com/mammothb/sonarqube-ce/releases when updating.
-        uses: mammothb/sonarqube-ce@37c672334240bb99abd703293c4e7b239c959a76
+      - name: Scan - SonarQube Server
+        id: sonar
+        uses: mammothb/sonarqube-ce@feat/dotnet-scan
         with:
+          scan-mode: 'none'
           github-token: ${{ secrets.GITHUB_TOKEN }}
           # sonar-project-name defaults to the repo name ("twm") when omitted.
           # sonar-source-path defaults to "." — scans the whole repo.
@@ -39,7 +39,14 @@ jobs:
           new-code-n-days: "3d"
           reports-scopes: '["overall", "new"]'
           reports-retention-days: "7"
-          # Runs on the runner before the scanner. Builds + tests and emits
-          # coverage/coverage.cobertura.xml (same target your CI/Codecov uses).
-          pre-scan-script: make coverage
-          sonar-options: "-Dsonar.exclusions=**/bin/**,**/obj/**,coverage/** -Dsonar.cs.cobertura.reportPaths=coverage/coverage.cobertura.xml"
+      - name: Setup - SonarScanner for .NET
+        run: dotnet tool install --global dotnet-sonarscanner
+      - name: Scan
+        env:
+          SONAR_HOST_URL: ${{ steps.sonar.outputs.sonar-host-url }}
+          SONAR_TOKEN: ${{ steps.sonar.outputs.sonar-token }}
+        run: |
+          dotnet sonarscanner begin \
+            /k:"${{ steps.sonar.outputs.sonar-project-key }}"
+          make build
+          dotnet sonarscanner end
