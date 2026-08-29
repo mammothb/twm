@@ -12,9 +12,8 @@ public class WindowFilterTests
     /// </summary>
     private static readonly WindowFilter s_filter = new();
 
-    private static NativeWindowInfo Manageable()
-    {
-        return new NativeWindowInfo(
+    private static NativeWindowInfo Manageable() =>
+        new(
             Id: new WindowId(1),
             Title: "Editor",
             ClassName: "Notepad",
@@ -24,7 +23,6 @@ public class WindowFilterTests
             IsToolWindow: false,
             IsMinimized: false
         );
-    }
 
     [Fact]
     public void NormalTopLevelWindow_IsManageable()
