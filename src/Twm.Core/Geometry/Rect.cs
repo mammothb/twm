@@ -6,10 +6,14 @@ namespace Twm.Core.Geometry;
 /// </summary>
 public readonly record struct Rect(int X, int Y, int Width, int Height)
 {
-    /// <summary>The x-coordinate just past the right edge (exclusive).</summary>
+    /// <summary>
+    /// The x-coordinate just past the right edge (exclusive).
+    /// </summary>
     public int Right => X + Width;
 
-    /// <summary>The y-coordinate just past the bottom edge (exclusive).</summary>
+    /// <summary>
+    /// The y-coordinate just past the bottom edge (exclusive).
+    /// </summary>
     public int Bottom => Y + Height;
 
     /// <summary>The integer midpoint of the rectangle.</summary>
@@ -17,7 +21,8 @@ public readonly record struct Rect(int X, int Y, int Width, int Height)
 
     /// <summary>
     /// Whether the point lies within the half-open bounds
-    /// [<see cref="X" />, <see cref="Right" />) x [<see cref="Y" />, <see cref="Bottom" />).
+    /// [<see cref="X" />, <see cref="Right" />) x [<see cref="Y" />,
+    /// <see cref="Bottom" />).
     /// </summary>
     public bool Contains(Point point)
     {
@@ -50,8 +55,8 @@ public readonly record struct Rect(int X, int Y, int Width, int Height)
 
     /// <summary>
     /// Splits the rectange along <paramref name="direction" /> in proportion to
-    /// <paramref name="weights" />. Each slice is floored to whoe pixels and the
-    /// rounding remainder goes to the last slice, so the slices tile the
+    /// <paramref name="weights" />. Each slice is floored to whoe pixels and
+    /// the rounding remainder goes to the last slice, so the slices tile the
     /// rectangle exactly.
     /// </summary>
     public Rect[] Split(TilingDirection direction, IReadOnlyList<double> weights)

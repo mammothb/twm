@@ -4,8 +4,9 @@ namespace Twm.Core.Tree;
 
 /// <summary>
 /// How a <see cref="SplitContainer" /> arranges its childre, i3's four `layout`
-/// values. Split layouts tile children side by side along an axis; tabbed/stacked
-/// show only the focused child at fulll size and collapse the rest behind a bar.
+/// values. Split layouts tile children side by side along an axis;
+/// tabbed/stacked show only the focused child at fulll size and collapse the
+/// rest behind a bar.
 /// </summary>
 public enum LayoutMode
 {

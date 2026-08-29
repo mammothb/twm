@@ -4,8 +4,8 @@ namespace Twm.Core.Tree;
 
 /// <summary>
 /// A node in the layout tree. Concrete kinds are <see cref="RootContainer" />,
-/// <see cref="Monitor" />, <see cref="Workspace" />, <see cref="SplitContainer" />,
-/// and <see cref="TilingWindow" />.
+/// <see cref="Monitor" />, <see cref="Workspace" />,
+/// <see cref="SplitContainer" />, and <see cref="TilingWindow" />.
 /// </summary>
 public abstract class Container
 {
@@ -24,18 +24,25 @@ public abstract class Container
     /// <summary>Children ordered most-recently-focused first.</summary>
     public IReadOnlyList<Container> ChildFocusOrder => _childFocusOrder;
 
-    /// <summary>Computed screen rectangle. Populated by the layout engine.</summary>
+    /// <summary>
+    /// Computed screen rectangle. Populated by the layout engine.
+    /// </summary>
     public Rect Bounds { get; set; }
 
-    /// <summary>Size relative to tiling siblings within a split. Defaults to 1.</summary>
+    /// <summary>
+    /// Size relative to tiling siblings within a split. Defaults to 1.
+    /// </summary>
     public double SizeFraction { get; set; } = 1.0;
 
-    /// <summary>The most-recently-focused child, or null when there are none.</summary>
+    /// <summary>
+    /// The most-recently-focused child, or null when there are none.
+    /// </summary>
     public Container? LastFocusedChild => _childFocusOrder.Count > 0 ? _childFocusOrder[0] : null;
 
     /// <summary>
     /// The deepest most-recently-focused descendant, reached by following
-    /// <see cref="LastFocusedChild" /> downwards. Null when there are no children.
+    /// <see cref="LastFocusedChild" /> downwards. Null when there are no
+    /// children.
     /// </summary>
     public Container? LastFocusedDescendant
     {
@@ -50,10 +57,14 @@ public abstract class Container
         }
     }
 
-    /// <summary>This container's position among its parent's children.</summary>
+    /// <summary>
+    /// This container's position among its parent's children.
+    /// </summary>
     public int Index => Parent?._children.IndexOf(this) ?? 0;
 
-    /// <summary>This container's position in its parent's focus order.</summary>
+    /// <summary>
+    /// This container's position in its parent's focus order.
+    /// </summary>
     public int FocusIndex => Parent?._childFocusOrder.IndexOf(this) ?? 0;
 
     /// <summary>The next sibling in layout order, or null.</summary>
@@ -169,8 +180,8 @@ public abstract class Container
     }
 
     /// <summary>
-    /// Reorders an existing child to a new position in layout order (focus order
-    /// unchanged).
+    /// Reorders an existing child to a new position in layout order (focus
+    /// order unchanged).
     /// </summary>
     public void MoveChildToIndex(Container child, int newIndex)
     {
@@ -188,13 +199,14 @@ public abstract class Container
     }
 
     /// <summary>
-    /// Records this container as most-recently-focused along its whole ancestry,
-    /// so that <see cref="LastFocusedDescendant" /> from any ancestor reaches it.
+    /// Records this container as most-recently-focused along its whole
+    /// ancestry, so that <see cref="LastFocusedDescendant" /> from any ancestor
+    /// reaches it.
     /// </summary>
     public void Focus()
     {
         Container curr = this;
-        while (curr.Parent is { } parent)
+        while (curr.Parent is Container parent)
         {
             parent._childFocusOrder.Remove(curr);
             parent._childFocusOrder.Insert(0, curr);

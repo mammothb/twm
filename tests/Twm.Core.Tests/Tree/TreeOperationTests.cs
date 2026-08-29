@@ -29,7 +29,8 @@ public class TreeOperationsTests
         split.InsertChild(0, second); // second goes to front of layout order
 
         split.Children.ShouldBe([second, first]);
-        /// Focus order is append-on-insert, so the first-added stays most-recent
+        /// Focus order is append-on-insert, so the first-added stays
+        /// most-recent
         split.ChildFocusOrder.ShouldBe([first, second]);
         first.Index.ShouldBe(1);
         second.Index.ShouldBe(0);
