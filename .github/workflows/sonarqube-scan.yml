@@ -47,6 +47,11 @@ jobs:
           SONAR_TOKEN: ${{ steps.sonar.outputs.sonar-token }}
         run: |
           dotnet sonarscanner begin \
-            /k:"${{ steps.sonar.outputs.sonar-project-key }}"
+            /k:"${{ steps.sonar.outputs.sonar-project-key }}" \
+            /d:sonar.host.url="${SONAR_HOST_URL}" \
+            /d:sonar.token="${SONAR_TOKEN}"
+
           make build
-          dotnet sonarscanner end
+
+          dotnet sonarscanner end \
+            /d:sonar.token="${SONAR_TOKEN}"
