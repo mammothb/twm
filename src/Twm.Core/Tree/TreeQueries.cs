@@ -12,7 +12,9 @@ public static class TreeQueries
         return root.LastFocusedDescendant as TilingWindow;
     }
 
-    /// <summary>Finds a managed window by id anywhere under the container.</summary>
+    /// <summary>
+    /// Finds a managed window by id anywhere under the container.
+    /// </summary>
     public static TilingWindow? FindWindow(this Container container, WindowId id)
     {
         ArgumentNullException.ThrowIfNull(container);
@@ -26,7 +28,9 @@ public static class TreeQueries
         return null;
     }
 
-    /// <summary>Finds a workspace by name anywhere under the container.</summary>
+    /// <summary>
+    /// Finds a workspace by name anywhere under the container.
+    /// </summary>
     public static Workspace? FindWorkspace(this Container container, string name)
     {
         ArgumentNullException.ThrowIfNull(container);
@@ -56,9 +60,9 @@ public static class TreeQueries
     }
 
     /// <summary>
-    /// The nearest monitor lying in <paramref name="direction" /> from this one,
-    /// by geometry (center beyond this monitor's center in that direction, with
-    /// perpendicular overlap), or null if there is no monitor that way.
+    /// The nearest monitor lying in <paramref name="direction" /> from this
+    /// one, by geometry (center beyond this monitor's center in that direction,
+    /// with perpendicular overlap), or null if there is no monitor that way.
     /// </summary>
     public static Monitor? AdjacentMonitor(this Monitor monitor, Direction direction)
     {
@@ -194,11 +198,9 @@ public static class TreeQueries
     public static bool IsEffectivelyVisible(this TilingWindow window)
     {
         ArgumentNullException.ThrowIfNull(window);
-        if (
-            window.WorkspaceOf() is not { } workspace
-            || window.MonitorOf() is not { } monitor
-            || !ReferenceEquals(workspace, monitor.LastFocusedChild)
-        )
+        Workspace? workspace = window.WorkspaceOf();
+        Container? activeWorkspace = workspace?.MonitorOf()?.LastFocusedChild;
+        if (workspace is null || !ReferenceEquals(workspace, activeWorkspace))
         {
             return false;
         }

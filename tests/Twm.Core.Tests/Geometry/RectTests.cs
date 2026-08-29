@@ -103,7 +103,8 @@ public class RectTests
 
         Rect[] slices = parent.Split(TilingDirection.Horizontal, [1, 1, 1]);
 
-        // 100 * 1/3 floors to 33 for the first two; the remainder lands on the last.
+        // 100 * 1/3 floors to 33 for the first two; the remainder lands on the
+        // last.
         slices[0].Width.ShouldBe(33);
         slices[1].Width.ShouldBe(33);
         slices[2].Width.ShouldBe(34);
