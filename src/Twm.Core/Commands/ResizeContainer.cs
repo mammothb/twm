@@ -20,7 +20,7 @@ public sealed class ResizeContainerHandler(RootContainer root, LayoutEngine layo
     {
         ArgumentNullException.ThrowIfNull(command);
         TilingWindow? subject = Root.FocusedWindow();
-        if (subject is null)
+        if (subject is null || subject.Parent is not Container parent)
         {
             return CommandResult.Ok;
         }
@@ -31,9 +31,17 @@ public sealed class ResizeContainerHandler(RootContainer root, LayoutEngine layo
             return CommandResult.Ok;
         }
 
+        double totalWeight = 0;
+        for (int i = 0; i < parent.Children.Count; i++)
+        {
+            totalWeight += parent.Children[i].SizeFraction;
+        }
         double newSubject = subject.SizeFraction + command.DeltaFraction;
         double newNeighbor = neighbor.SizeFraction - command.DeltaFraction;
-        if (newSubject < MinimumFraction || newNeighbor < MinimumFraction)
+        if (
+            newSubject / totalWeight < MinimumFraction
+            || newNeighbor / totalWeight < MinimumFraction
+        )
         {
             return CommandResult.Ok;
         }
