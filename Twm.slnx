@@ -1,8 +1,8 @@
 <Solution>
   <Folder Name="/src/">
-    <Project Path="src/Twm/Twm.csproj" />
+    <Project Path="src/Twm.Core/Twm.Core.csproj" />
   </Folder>
   <Folder Name="/tests/">
-    <Project Path="tests/Twm.Tests/Twm.Tests.csproj" />
+    <Project Path="tests/Twm.Core.Tests/Twm.Core.Tests.csproj" />
   </Folder>
 </Solution>

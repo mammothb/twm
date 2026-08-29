@@ -1,0 +1,45 @@
+name: SonarQube Scan
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+    branches:
+      - main
+      - master
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+permissions:
+  contents: read
+jobs:
+  scan:
+    name: SonarQube
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Setup - DotNet
+        uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5.4.0
+      - name: Scan - SonarQube
+        # Pinned to a commit for supply-chain safety. Bump to the `v1` tag
+        # from https://github.com/mammothb/sonarqube-ce/releases when updating.
+        uses: mammothb/sonarqube-ce@37c672334240bb99abd703293c4e7b239c959a76
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          # sonar-project-name defaults to the repo name ("twm") when omitted.
+          # sonar-source-path defaults to "." — scans the whole repo.
+          generate-pr-comment: true
+          new-code-n-days: "3d"
+          reports-scopes: '["overall", "new"]'
+          reports-retention-days: "7"
+          # Runs on the runner before the scanner. Builds + tests and emits
+          # coverage/coverage.cobertura.xml (same target your CI/Codecov uses).
+          pre-scan-script: make coverage
+          sonar-options: "-Dsonar.exclusions=**/bin/**,**/obj/**,coverage/** -Dsonar.cs.cobertura.reportPaths=coverage/coverage.cobertura.xml"
