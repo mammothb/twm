@@ -84,6 +84,37 @@ public class MoveInDirectionTests
     }
 
     [Fact]
+    public void MoveNestedWindowAtEdgeDoesNotBreakTree()
+    {
+        var root = new RootContainer();
+        var monitor = new Monitor(new Rect(0, 0, 800, 600));
+        root.AppendChild(monitor);
+        var ws = new Workspace("1");
+        monitor.AppendChild(ws);
+
+        var innerSplit = new SplitContainer();
+        ws.AppendChild(innerSplit);
+
+        var w1 = new TilingWindow(new WindowId(1));
+        var w2 = new TilingWindow(new WindowId(2));
+        innerSplit.AppendChild(w1);
+        innerSplit.AppendChild(w2);
+
+        w2.Focus();
+
+        // Moving Right from w2 (where ReferenceEquals(pivot, subject) is false
+        // for ws, and inBounds is false for ws because innerSplit is the
+        // rightmost child of ws)
+        new MoveInDirectionHandler(root, new LayoutEngine()).Handle(
+            new MoveInDirectionCommand(Direction.Right)
+        );
+
+        // w2 stays in innerSplit because there's nowhere to go in ws.
+        innerSplit.Children.ShouldBe([w1, w2]);
+        ws.Children.ShouldBe([innerSplit]);
+    }
+
+    [Fact]
     public void MoveIntoAdjacentSplit()
     {
         var root = new RootContainer();

@@ -76,7 +76,7 @@ public sealed class MoveInDirectionHandler(RootContainer root, LayoutEngine layo
                         return true;
                     }
                 }
-                else
+                else if (inBounds)
                 {
                     // Subject is nested deeper: pop it out beside its pivot
                     // branch
