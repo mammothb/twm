@@ -165,4 +165,15 @@ public class DesktopBuilderTests
             )
         );
     }
+
+    [Fact]
+    public void ExplicitNames_ContainDuplicates_Throws()
+    {
+        Should.Throw<ArgumentException>(() =>
+            DesktopBuilder.Build(
+                [Mon(0, 0, 1920, 1080, primary: true), Mon(1920, 0, 1280, 1024, primary: false)],
+                new WorkspacesDto { Names = ["same", "same", "diff"] }
+            )
+        );
+    }
 }

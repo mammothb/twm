@@ -71,6 +71,17 @@ public static class DesktopBuilder
     {
         if (workspaces?.Names is { Count: > 0 } explicitNames)
         {
+            var seen = new HashSet<string>(explicitNames.Count, StringComparer.Ordinal);
+            foreach (string name in explicitNames)
+            {
+                if (!seen.Add(name))
+                {
+                    throw new ArgumentException(
+                        $"Duplicate workspace name detected: '{name}'. Workspace names must be unique."
+                    );
+                }
+            }
+
             if (explicitNames.Count < monitorCount)
             {
                 throw new ArgumentException(
