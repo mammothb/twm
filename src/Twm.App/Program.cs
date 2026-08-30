@@ -1,3 +1,7 @@
+using System.Diagnostics;
+using System.Threading;
+using Twm.Platform;
+using Twm.Platform.Config;
 using Twm.Platform.Diagnostics;
 using Twm.Platform.Windows;
 
@@ -63,5 +67,54 @@ if (File.Exists(configPath))
         Console.WriteLine($"config: could not read {configPath}: {readError.Message}");
     }
 }
+
+// Load config here
+
+WindowFilter filter = new();
+
+if (dump)
+{
+    Console.WriteLine("== Monitors ==");
+    foreach (MonitorInfo monitor in monitors.EnumerateMonitors())
+    {
+        string primary = monitor.IsPrimary ? "*" : " ";
+        Console.WriteLine($"  {primary} bounds={monitor.Bounds} work={monitor.WorkArea}");
+    }
+
+    Console.WriteLine();
+    Console.WriteLine("== Windows ==");
+    foreach (NativeWindowInfo window in windows.EnumerateWindows())
+    {
+        string decision = filter.IsManageable(window) ? "MANAGE" : "ignore";
+        string[] candidates =
+        [
+            !window.HasCaption ? "nocaption" : "",
+            !window.HasWindowEdge ? "nowindowedge" : "",
+            window.IsChild ? "child" : "",
+            window.IsCloaked ? "cloaked" : "",
+            window.IsElevated ? "elevated" : "",
+            window.IsLayered ? "layered" : "",
+            window.IsMenuPopup ? "menu" : "",
+            window.IsMinimized ? "min" : "",
+            window.IsNoActivate ? "noactivate" : "",
+            window.IsToolWindow ? "tool" : "",
+        ];
+        string flags = string.Join(",", candidates.Where(f => f.Length > 0));
+        string suffix = flags.Length > 0 ? $"  {{{flags}}}" : "";
+        Console.WriteLine($"  [{decision}] {window.ClassName, -28} \"{window.Title}\"{suffix}");
+    }
+    return 0;
+}
+
+// Single-instance guard so two Twm processes never fight over the same windows
+using var mutex = new Mutex(initiallyOwned: true, "Twm.SingleInstance", out bool isOnlyInstance);
+if (!isOnlyInstance)
+{
+    Console.WriteLine("Twm is already running.");
+    return 1;
+}
+
+// Let keyboard driven focus changes actually bring windows to the foreground
+WindowsStartup.DisableForegroundLockTimeout();
 
 return 0;
