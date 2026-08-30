@@ -1,5 +1,6 @@
 using Twm.Core.Commands;
 using Twm.Core.Geometry;
+using Twm.Core.Tests.Fixtures;
 using Twm.Core.Tree;
 
 namespace Twm.Core.Tests.Scenarios;
