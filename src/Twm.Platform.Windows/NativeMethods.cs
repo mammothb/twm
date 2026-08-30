@@ -415,6 +415,7 @@ internal static unsafe partial class NativeMethods
         }
     }
 
+    // TODO: check if this check is correct
     /// <summary>WS_CAPTION set: the window has a real title bar.</summary>
     internal static bool HasCaption(nint window)
     {
