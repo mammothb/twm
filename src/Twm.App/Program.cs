@@ -69,8 +69,16 @@ if (File.Exists(configPath))
 }
 
 ConfigLoadResult loadedConfig = ConfigLoader.Load(configYaml);
+ResolvedConfig config = ConfigResolver.Resolve(
+    loadedConfig.Config,
+    monitors.EnumerateMonitors().Count
+);
+foreach (string configError in loadedConfig.Errors.Concat(config.Errors))
+{
+    Console.WriteLine($"config: {configError}");
+}
 
-WindowFilter filter = new();
+WindowFilter filter = config.Filter;
 
 if (dump)
 {
