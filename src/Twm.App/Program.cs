@@ -68,7 +68,7 @@ if (File.Exists(configPath))
     }
 }
 
-// Load config here
+ConfigLoadResult loadedConfig = ConfigLoader.Load(configYaml);
 
 WindowFilter filter = new();
 
