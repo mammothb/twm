@@ -17,7 +17,7 @@ public sealed class Reconciler(IWindowSystem windows)
     /// <summary>
     /// Pushes the tree's window bounds, visibility, and focus out to the
     /// window system.
-    /// </system>
+    /// </summary>
     public void Apply(RootContainer root)
     {
         ArgumentNullException.ThrowIfNull(root);
