@@ -1,0 +1,34 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <AssemblyName>twm</AssemblyName>
+    <Version>0.1.0</Version>
+    <Product>Twm</Product>
+    <AssemblyTitle>Twm - tiling window manager</AssemblyTitle>
+    <EnableAotAnalyzer>true</EnableAotAnalyzer>
+    <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+    <EnableSingleFileAnalyzer>true</EnableSingleFileAnalyzer>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../Twm.Core/Twm.Core.csproj" />
+    <ProjectReference Include="../Twm.Platform/Twm.Platform.csproj" />
+    <ProjectReference Include="../Twm.Platform.Windows/Twm.Platform.Windows.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <!-- Rollup notices for rooted third-party assemblies (VYaml's unused
+    dynamic path): IL2104 = trim rollup, IL3053 = NativeAOT-analysis rollup.
+    Demote only these two. VYaml is source-gen ([YamlObject]) here, the dynamic
+    path that trips these is never called and is trimmed away. -->
+    <WarningsNotAsErrors>$(WarningsNotAsErrors);IL2104;IL3053</WarningsNotAsErrors>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <TrimmerRootAssembly Include="VYaml" />
+    <!-- Twm.Platform holds VYaml's source-generated mYamlObject] formatters.
+    Without rooting, the trimmer strips them and confi deserialization throws
+    at runtime. Rooting keeps the generated registration. -->
+    <TrimmerRootAssembly Include="Twm.Platform" />
+  </ItemGroup>
+</Project>
