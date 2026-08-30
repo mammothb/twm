@@ -114,7 +114,7 @@ public partial class BarDto
 public partial class BorderDto
 {
     public bool? Enabled { get; set; }
-    public string? Colore { get; set; }
+    public string? Color { get; set; }
     public int? Width { get; set; }
 }
 
