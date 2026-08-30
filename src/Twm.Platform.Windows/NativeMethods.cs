@@ -221,12 +221,12 @@ internal static unsafe partial class NativeMethods
     [return: MarshalAs(UnmanagedType.Bool)]
     private static partial bool ShowWindow(nint hWnd, int nCmdShow);
 
-    [LibraryImport("user32.dll")]
+    [LibraryImport("user32.dll", EntryPoint = "SystemParametersInfoW")]
     [return: MarshalAs(UnmanagedType.Bool)]
-    private static partial bool SystemParametersInfoW(
+    private static partial bool SystemParametersInfoSetTimeout(
         uint uiAction,
         uint uiParam,
-        nint pvParam,
+        ref uint pvParam,
         uint fWinIni
     );
 
@@ -511,8 +511,11 @@ internal static unsafe partial class NativeMethods
     // Setting the foreground lock timeout to 0 lets keyboard-driven
     // SetForegroundWindow actually activate the target window instead of only
     // flashing its taskbar button
-    internal static void DisableForegroundLockTimeout() =>
-        SystemParametersInfoW(SpiSetForegroundLockTimeout, 0, 0, SpifSendChange);
+    internal static void DisableForegroundLockTimeout()
+    {
+        uint timeout = 0;
+        SystemParametersInfoSetTimeout(SpiSetForegroundLockTimeout, 0, ref timeout, SpifSendChange);
+    }
 
     // DPI_AWARENESS_CONTEXT_PER_MONITOR_V2 = (HANDLE)-4
     internal static void EnablePerMonitorV2Dpi() => SetProcessDpiAwarenessContext((nint)(-4));
