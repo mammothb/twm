@@ -8,6 +8,7 @@ namespace Twm.Platform.Config;
 /// <see cref="TwmConfig" />.
 /// </summary>
 public sealed record ResolvedConfig(
+    IReadOnlyDictionary<KeyBinding, KeyEffect> Keymap,
     WindowFilter Filter,
     WorkspacesDto? Workspaces,
     IReadOnlyList<string> Errors
@@ -27,6 +28,9 @@ public static class ConfigResolver
         ArgumentNullException.ThrowIfNull(config);
         List<string> errors = [];
 
+        KeymapBuildResult keymap = KeymapBuilder.Build(config);
+        errors.AddRange(keymap.Errors);
+
         (IReadOnlyList<WindowRule> rules, IReadOnlyList<string> ruleErrors) = WindowRule.Compile(
             config.WindowRules
         );
@@ -41,6 +45,7 @@ public static class ConfigResolver
         }
 
         return new ResolvedConfig(
+            Keymap: keymap.Keymap,
             Filter: new WindowFilter(rules),
             Workspaces: workspaces,
             Errors: errors
