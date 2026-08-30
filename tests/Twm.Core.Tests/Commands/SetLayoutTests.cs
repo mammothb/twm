@@ -76,7 +76,7 @@ public class SetLayoutTests
     }
 
     private static (RootContainer Root, Workspace Workspace, LayoutEngine Layout) Desktop(
-        int numWindows
+        int windowCount
     )
     {
         var root = new RootContainer();
@@ -84,7 +84,7 @@ public class SetLayoutTests
         root.AppendChild(monitor);
         var ws = new Workspace("1");
         monitor.AppendChild(ws);
-        for (int i = 1; i <= numWindows; i++)
+        for (int i = 1; i <= windowCount; i++)
         {
             ws.AppendChild(new TilingWindow(new WindowId(i)));
         }
