@@ -4,7 +4,7 @@ using Twm.Core.Geometry;
 using Twm.Core.Layout;
 using Twm.Core.Tree;
 
-namespace Twm.Core.Tests.Scenarios;
+namespace Twm.Core.Tests.Fixtures;
 
 /// <summary>
 /// A two-monitor desktop wired through the <see cref="Bussing.Bus" /> with
