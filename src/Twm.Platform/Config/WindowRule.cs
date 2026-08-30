@@ -78,6 +78,7 @@ public sealed record WindowRule(string? ClassName, string? TitleSubstring, Windo
                 errors.Add(
                     $"windowRule #{index}: invalid action '{dto.Action}' (expected ignore or manage)"
                 );
+                continue;
             }
 
             rules.Add(new WindowRule(className, title, action));
