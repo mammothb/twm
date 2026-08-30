@@ -221,7 +221,14 @@ public sealed class WmSession
     {
         foreach (TilingWindow window in Root.Descendants.OfType<TilingWindow>())
         {
-            _windows.Show(window.WindowId);
+            try
+            {
+                _windows.Show(window.WindowId);
+            }
+            catch (Exception)
+            {
+                Log.Line($"shutdown: could not restore 0x{window.WindowId.Value:X}");
+            }
         }
     }
 
@@ -236,7 +243,7 @@ public sealed class WmSession
         _reconciler.Apply(Root);
         _pendingForeground = Root.FocusedWindow()?.WindowId;
         Log.Line(
-            $"reconcile: fg=0x{(_pendingForeground?.Value ?? 0):X} managed={ManagedWindowCount}"
+            $"reconcile: fg=0x{_pendingForeground?.Value ?? 0:X} managed={ManagedWindowCount}"
         );
         _bus.Emit(new LayoutChangedEvent());
     }
