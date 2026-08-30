@@ -7,7 +7,11 @@ namespace Twm.Platform.Config;
 /// The concrete inputs the WM consumes, resolved from a
 /// <see cref="TwmConfig" />.
 /// </summary>
-public sealed record ResolvedConfig(WindowFilter Filter, IReadOnlyList<string> Errors);
+public sealed record ResolvedConfig(
+    WindowFilter Filter,
+    WorkspacesDto? Workspaces,
+    IReadOnlyList<string> Errors
+);
 
 /// <summary>
 /// Turns a parsed <see cref="TwmConfig" /> into the concrete WM inputs,
@@ -28,6 +32,18 @@ public static class ConfigResolver
         );
         errors.AddRange(ruleErrors);
 
-        return new ResolvedConfig(new WindowFilter(rules), errors);
+        WorkspacesDto? workspaces = config.Workspaces;
+        if (workspaces?.Names is { Count: > 0 } names && names.Count < monitorCount)
+        {
+            errors.Add(
+                $"workspaces.names has {names.Count} entries but there are {monitorCount} monitors; using the default workspace layout."
+            );
+        }
+
+        return new ResolvedConfig(
+            Filter: new WindowFilter(rules),
+            Workspaces: workspaces,
+            Errors: errors
+        );
     }
 }

@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Threading;
+using Twm.Core.Tree;
 using Twm.Platform;
 using Twm.Platform.Config;
 using Twm.Platform.Diagnostics;
@@ -125,4 +126,21 @@ if (!isOnlyInstance)
 // Let keyboard driven focus changes actually bring windows to the foreground
 WindowsStartup.DisableForegroundLockTimeout();
 
+IMonitorSystem tilingMonitors = monitors;
+
+var session = new WmSession(
+    monitors: tilingMonitors,
+    windows: windows,
+    filter: filter,
+    workspaces: config.Workspaces
+);
+session.Start();
+
+// Teardown (also reached from Ctrl+C via WmAppQuit): stop reacting to the OS
+// first, then uncloak everything so no window is left hidden after Twm exits.
+// Uncloak last, the hook is already gone, so it can't re-adopt the windows
+// we'are revealing
+logWriter?.Dispose();
+
+session.Shutdown();
 return 0;
