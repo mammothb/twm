@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Shared test infrastructure. -->
+  <ItemGroup>
+    <ProjectReference Include="../../src/Twm.Domain/Twm.Domain.csproj" />
+  </ItemGroup>
+</Project>

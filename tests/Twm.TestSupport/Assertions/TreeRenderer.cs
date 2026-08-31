@@ -1,7 +1,8 @@
 using System.Text;
-using Twm.Core.Geometry;
+using Twm.Domain.Geometry;
+using Twm.Domain.Tree;
 
-namespace Twm.Core.Tree;
+namespace Twm.TestSupport.Assertions;
 
 /// <summary>
 /// Renders a container tree to a stable, indented text form for snapshot tests.
@@ -31,9 +32,8 @@ public static class TreeRenderer
         }
     }
 
-    private static string Describe(Container container)
-    {
-        return container switch
+    private static string Describe(Container container) =>
+        container switch
         {
             RootContainer => "Root",
             Monitor monitor => $"Monitor {FormatRect(monitor.Bounds)}",
@@ -44,24 +44,19 @@ public static class TreeRenderer
             TilingWindow window => $"Window #{window.WindowId.Value} {FormatRect(window.Bounds)}",
             _ => container.GetType().Name,
         };
-    }
 
     // Split layouts keep their historic axis label ("Horizontal"/"Vertical") so
     // existing snapshots are stable; tabbed/stacked add their own labels.
-    private static string DescribeLayout(LayoutMode layout)
-    {
-        return layout switch
+    private static string DescribeLayout(Layout layout) =>
+        layout switch
         {
-            LayoutMode.SplitHorizontal => "Horizontal",
-            LayoutMode.SplitVertical => "Vertical",
-            LayoutMode.Tabbed => "Tabbed",
-            LayoutMode.Stacked => "Stacked",
+            Layout.SplitHorizontal => "Horizontal",
+            Layout.SplitVertical => "Vertical",
+            Layout.Tabbed => "Tabbed",
+            Layout.Stacked => "Stacked",
             _ => layout.ToString(),
         };
-    }
 
-    private static string FormatRect(Rect rect)
-    {
-        return $"[{rect.X},{rect.Y} {rect.Width}x{rect.Height}]";
-    }
+    private static string FormatRect(Rect rect) =>
+        $"[{rect.X},{rect.Y} {rect.Width}x{rect.Height}]";
 }

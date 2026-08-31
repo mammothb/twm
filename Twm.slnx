@@ -9,5 +9,6 @@
   <Folder Name="/tests/">
     <Project Path="tests/Twm.Core.Tests/Twm.Core.Tests.csproj" />
     <Project Path="tests/Twm.Platform.Tests/Twm.Platform.Tests.csproj" />
+    <Project Path="tests/Twm.TestSupport/Twm.TestSupport.csproj" />
   </Folder>
 </Solution>
