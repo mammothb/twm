@@ -7,7 +7,6 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <DebugType>embedded</DebugType>
     <RestorePackagesWithLockFile>false</RestorePackagesWithLockFile>
-    <DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
     <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
     <RestoreLockedMode
       Condition="'$(ContinuousIntegrationBuild)' == 'true' or '$(RuntimeIdentifier)' == 'linux-x64'"

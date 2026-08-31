@@ -1,14 +1,15 @@
-using Twm.Core.Geometry;
-using Twm.Core.Tree;
+using Twm.Domain.Geometry;
+using Twm.Domain.Tree;
+using Twm.TestSupport.Assertions;
 
-namespace Twm.Core.Tests.Tree;
+namespace Twm.Domain.Tests.Tree;
 
 public class TreeOperationsTests
 {
     [Fact]
     public void AppendChild_SetsParentAndBothLists()
     {
-        var split = new SplitContainer(LayoutMode.SplitHorizontal);
+        var split = new SplitContainer();
         var window = new TilingWindow(new WindowId(1));
 
         split.AppendChild(window);
@@ -16,24 +17,6 @@ public class TreeOperationsTests
         window.Parent.ShouldBeSameAs(split);
         split.Children.ShouldBe([window]);
         split.ChildFocusOrder.ShouldBe([window]);
-    }
-
-    [Fact]
-    public void InsertChild_PlacesInLayoutOrderButAppendsFocusOrder()
-    {
-        var split = new SplitContainer(LayoutMode.SplitHorizontal);
-        var first = new TilingWindow(new WindowId(1));
-        var second = new TilingWindow(new WindowId(2));
-
-        split.AppendChild(first);
-        split.InsertChild(0, second); // second goes to front of layout order
-
-        split.Children.ShouldBe([second, first]);
-        /// Focus order is append-on-insert, so the first-added stays
-        /// most-recent
-        split.ChildFocusOrder.ShouldBe([first, second]);
-        first.Index.ShouldBe(1);
-        second.Index.ShouldBe(0);
     }
 
     [Fact]
@@ -61,7 +44,7 @@ public class TreeOperationsTests
     public void AppendChild_RejectsDescendent()
     {
         var workspace = new Workspace("1");
-        var split = new SplitContainer(LayoutMode.SplitVertical);
+        var split = new SplitContainer(Layout.SplitVertical);
         workspace.AppendChild(split);
 
         var window = new TilingWindow(new WindowId(1));
@@ -73,108 +56,30 @@ public class TreeOperationsTests
     }
 
     [Fact]
+    public void InsertChild_PlacesInLayoutOrderButAppendsFocusOrder()
+    {
+        var split = new SplitContainer();
+        var first = new TilingWindow(new WindowId(1));
+        var second = new TilingWindow(new WindowId(2));
+
+        split.AppendChild(first);
+        split.InsertChild(0, second); // second goes to front of layout order
+
+        split.Children.ShouldBe([second, first]);
+        /// Focus order is append-on-insert, so the first-added stays
+        /// most-recent
+        split.ChildFocusOrder.ShouldBe([first, second]);
+        first.Index.ShouldBe(1);
+        second.Index.ShouldBe(0);
+    }
+
+    [Fact]
     public void InsertChild_RejectsIndexOutOfRange()
     {
         var split = new SplitContainer();
         var window = new TilingWindow(new WindowId(1));
 
         Should.Throw<ArgumentOutOfRangeException>(() => split.InsertChild(1, window));
-    }
-
-    [Fact]
-    public void ReplaceChild_UpdatesParentReferences()
-    {
-        var workspace = new Workspace("1");
-        var split = new SplitContainer(LayoutMode.SplitHorizontal);
-        workspace.AppendChild(split);
-        var window = new TilingWindow(new WindowId(1));
-
-        workspace.ReplaceChild(split, window);
-
-        split.Parent.ShouldBeNull();
-        window.Parent.ShouldBeSameAs(workspace);
-    }
-
-    [Fact]
-    public void ReplaceChild_PreservesLayoutIndex()
-    {
-        var workspace = new Workspace("1");
-        var split = new SplitContainer(LayoutMode.SplitHorizontal);
-        var w1 = new TilingWindow(new WindowId(1));
-        var w2 = new TilingWindow(new WindowId(2));
-        workspace.AppendChild(split);
-        workspace.AppendChild(w1);
-        workspace.AppendChild(w2);
-        var w3 = new TilingWindow(new WindowId(3));
-
-        workspace.ReplaceChild(w1, w3);
-
-        workspace.Children[0].ShouldBeSameAs(split);
-        workspace.Children[1].ShouldBeSameAs(w3);
-        workspace.Children[2].ShouldBeSameAs(w2);
-        w3.Index.ShouldBe(1);
-    }
-
-    [Fact]
-    public void ReplaceChild_PreservesTopFocusRank()
-    {
-        var workspace = new Workspace("1");
-        var split = new SplitContainer(LayoutMode.SplitHorizontal);
-        var w1 = new TilingWindow(new WindowId(1));
-        var w2 = new TilingWindow(new WindowId(2));
-        workspace.AppendChild(split);
-        workspace.AppendChild(w1);
-        w1.Focus();
-
-        workspace.ReplaceChild(w1, w2);
-
-        workspace.LastFocusedChild.ShouldBeSameAs(w2);
-        workspace.ChildFocusOrder[0].ShouldBeSameAs(w2);
-        workspace.ChildFocusOrder[1].ShouldBeSameAs(split);
-    }
-
-    [Fact]
-    public void ReplaceChild_PreservesMiddleFocusRank()
-    {
-        var workspace = new Workspace("1");
-        var split = new SplitContainer(LayoutMode.SplitHorizontal);
-        var w1 = new TilingWindow(new WindowId(1));
-        var w2 = new TilingWindow(new WindowId(2));
-        var w3 = new TilingWindow(new WindowId(3));
-        workspace.AppendChild(split);
-        workspace.AppendChild(w1);
-        workspace.AppendChild(w2);
-        split.Focus();
-        w1.Focus();
-        w2.Focus();
-
-        workspace.ReplaceChild(w1, w3);
-
-        workspace.ChildFocusOrder[0].ShouldBeSameAs(w2);
-        workspace.ChildFocusOrder[1].ShouldBeSameAs(w3);
-        workspace.ChildFocusOrder[2].ShouldBeSameAs(split);
-    }
-
-    [Fact]
-    public void ReplaceChild_ThrowsWhenOldChildNotAttached()
-    {
-        var workspace = new Workspace("1");
-        var split = new SplitContainer(LayoutMode.SplitHorizontal);
-        var w1 = new TilingWindow(new WindowId(1));
-
-        Should.Throw<InvalidOperationException>(() => workspace.ReplaceChild(split, w1));
-    }
-
-    [Fact]
-    public void ReplaceChild_ThrowsWhenNewChildAlreadyAttached()
-    {
-        var workspace = new Workspace("1");
-        var split = new SplitContainer(LayoutMode.SplitHorizontal);
-        var w1 = new TilingWindow(new WindowId(1));
-        workspace.AppendChild(split);
-        workspace.AppendChild(w1);
-
-        Should.Throw<InvalidOperationException>(() => workspace.ReplaceChild(split, w1));
     }
 
     [Fact]
@@ -204,6 +109,102 @@ public class TreeOperationsTests
         var window = new TilingWindow(new WindowId(1));
 
         Should.Throw<InvalidOperationException>(() => split.RemoveChild(window));
+    }
+
+    [Fact]
+    public void ReplaceChild_UpdatesParentReferences()
+    {
+        var workspace = new Workspace("1");
+        var split = new SplitContainer();
+        workspace.AppendChild(split);
+        var window = new TilingWindow(new WindowId(1));
+
+        workspace.ReplaceChild(split, window);
+
+        split.Parent.ShouldBeNull();
+        window.Parent.ShouldBeSameAs(workspace);
+    }
+
+    [Fact]
+    public void ReplaceChild_PreservesLayoutIndex()
+    {
+        var workspace = new Workspace("1");
+        var split = new SplitContainer();
+        var w1 = new TilingWindow(new WindowId(1));
+        var w2 = new TilingWindow(new WindowId(2));
+        workspace.AppendChild(split);
+        workspace.AppendChild(w1);
+        workspace.AppendChild(w2);
+        var w3 = new TilingWindow(new WindowId(3));
+
+        workspace.ReplaceChild(w1, w3);
+
+        workspace.Children[0].ShouldBeSameAs(split);
+        workspace.Children[1].ShouldBeSameAs(w3);
+        workspace.Children[2].ShouldBeSameAs(w2);
+        w3.Index.ShouldBe(1);
+    }
+
+    [Fact]
+    public void ReplaceChild_PreservesTopFocusRank()
+    {
+        var workspace = new Workspace("1");
+        var split = new SplitContainer();
+        var w1 = new TilingWindow(new WindowId(1));
+        var w2 = new TilingWindow(new WindowId(2));
+        workspace.AppendChild(split);
+        workspace.AppendChild(w1);
+        w1.Focus();
+
+        workspace.ReplaceChild(w1, w2);
+
+        workspace.LastFocusedChild.ShouldBeSameAs(w2);
+        workspace.ChildFocusOrder[0].ShouldBeSameAs(w2);
+        workspace.ChildFocusOrder[1].ShouldBeSameAs(split);
+    }
+
+    [Fact]
+    public void ReplaceChild_PreservesMiddleFocusRank()
+    {
+        var workspace = new Workspace("1");
+        var split = new SplitContainer();
+        var w1 = new TilingWindow(new WindowId(1));
+        var w2 = new TilingWindow(new WindowId(2));
+        var w3 = new TilingWindow(new WindowId(3));
+        workspace.AppendChild(split);
+        workspace.AppendChild(w1);
+        workspace.AppendChild(w2);
+        split.Focus();
+        w1.Focus();
+        w2.Focus();
+
+        workspace.ReplaceChild(w1, w3);
+
+        workspace.ChildFocusOrder[0].ShouldBeSameAs(w2);
+        workspace.ChildFocusOrder[1].ShouldBeSameAs(w3);
+        workspace.ChildFocusOrder[2].ShouldBeSameAs(split);
+    }
+
+    [Fact]
+    public void ReplaceChild_ThrowsWhenOldChildNotAttached()
+    {
+        var workspace = new Workspace("1");
+        var split = new SplitContainer();
+        var w1 = new TilingWindow(new WindowId(1));
+
+        Should.Throw<InvalidOperationException>(() => workspace.ReplaceChild(split, w1));
+    }
+
+    [Fact]
+    public void ReplaceChild_ThrowsWhenNewChildAlreadyAttached()
+    {
+        var workspace = new Workspace("1");
+        var split = new SplitContainer();
+        var w1 = new TilingWindow(new WindowId(1));
+        workspace.AppendChild(split);
+        workspace.AppendChild(w1);
+
+        Should.Throw<InvalidOperationException>(() => workspace.ReplaceChild(split, w1));
     }
 
     [Fact]
@@ -313,10 +314,10 @@ public class TreeOperationsTests
         var monitor = new Monitor(new Rect(0, 0, 1920, 1080));
         root.AppendChild(monitor);
 
-        var workspace = new Workspace("1", LayoutMode.SplitHorizontal);
+        var workspace = new Workspace("1");
         monitor.AppendChild(workspace);
 
-        var split = new SplitContainer(LayoutMode.SplitVertical);
+        var split = new SplitContainer(Layout.SplitVertical);
         workspace.AppendChild(split);
 
         var w10 = new TilingWindow(new WindowId(10));

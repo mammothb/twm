@@ -1,6 +1,6 @@
-using Twm.Core.Geometry;
+using Twm.Domain.Geometry;
 
-namespace Twm.Core.Tests.Geometry;
+namespace Twm.Domain.Tests.Geometry;
 
 public class RectTests
 {

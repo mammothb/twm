@@ -1,14 +1,9 @@
 <Solution>
   <Folder Name="/src/">
-    <Project Path="src/Twm.App/Twm.App.csproj" />
-    <Project Path="src/Twm.Core/Twm.Core.csproj" />
     <Project Path="src/Twm.Domain/Twm.Domain.csproj" />
-    <Project Path="src/Twm.Platform.Windows/Twm.Platform.Windows.csproj" />
-    <Project Path="src/Twm.Platform/Twm.Platform.csproj" />
   </Folder>
   <Folder Name="/tests/">
-    <Project Path="tests/Twm.Core.Tests/Twm.Core.Tests.csproj" />
-    <Project Path="tests/Twm.Platform.Tests/Twm.Platform.Tests.csproj" />
+    <Project Path="tests/Twm.Domain.Tests/Twm.Domain.Tests.csproj" />
     <Project Path="tests/Twm.TestSupport/Twm.TestSupport.csproj" />
   </Folder>
 </Solution>

@@ -1,8 +1,9 @@
-using Twm.Core.Geometry;
-using Twm.Core.Layout;
-using Twm.Core.Tree;
+using Twm.Domain.Geometry;
+using Twm.Domain.Tiling;
+using Twm.Domain.Tree;
+using Twm.TestSupport.Assertions;
 
-namespace Twm.Core.Tests.Layout;
+namespace Twm.Domain.Tests.Tiling;
 
 public class LayoutEngineTests
 {
@@ -42,7 +43,7 @@ public class LayoutEngineTests
     public void Arrange_VerticalSplitDividesHeightEqually()
     {
         var monitor = new Monitor(new Rect(0, 0, 800, 600));
-        var workspace = new Workspace("1", LayoutMode.SplitVertical);
+        var workspace = new Workspace("1", Layout.SplitVertical);
         monitor.AppendChild(workspace);
         var top = new TilingWindow(new WindowId(1));
         var bottom = new TilingWindow(new WindowId(2));
@@ -80,7 +81,7 @@ public class LayoutEngineTests
         monitor.AppendChild(workspace);
         var left = new TilingWindow(new WindowId(1));
         workspace.AppendChild(left);
-        var right = new SplitContainer(LayoutMode.SplitVertical);
+        var right = new SplitContainer(Layout.SplitVertical);
         workspace.AppendChild(right);
         var rightTop = new TilingWindow(new WindowId(2));
         var rightBottom = new TilingWindow(new WindowId(3));
@@ -106,7 +107,7 @@ public class LayoutEngineTests
         workspace.AppendChild(left);
         workspace.AppendChild(right);
 
-        new LayoutEngine(new GapConfig(Inner: 10, Outer: 20)).Arrange(monitor);
+        new LayoutEngine(new Gaps(Inner: 10, Outer: 20)).Arrange(monitor);
 
         // Workspace inset by 20 on all sides -> (20, 20, 960, 960); one 10px
         // inner gap between two windows -> each 475 wide
@@ -117,9 +118,9 @@ public class LayoutEngineTests
     }
 
     [Theory]
-    [InlineData(LayoutMode.SplitHorizontal)]
-    [InlineData(LayoutMode.SplitVertical)]
-    public void Arrange_WithGapsExceedContainer_ClampsChildrenToZeroWithinBounds(LayoutMode layout)
+    [InlineData(Layout.SplitHorizontal)]
+    [InlineData(Layout.SplitVertical)]
+    public void Arrange_WithGapsExceedContainer_ClampsChildrenToZero(Layout layout)
     {
         var monitorBounds = new Rect(0, 0, 1000, 1000);
         var monitor = new Monitor(monitorBounds);
@@ -130,10 +131,10 @@ public class LayoutEngineTests
         workspace.AppendChild(w1);
         workspace.AppendChild(w2);
 
-        bool isHorizontal = layout == LayoutMode.SplitHorizontal;
+        bool isHorizontal = layout == Layout.SplitHorizontal;
 
         // Gaps exceed monitor bounds
-        new LayoutEngine(new GapConfig(Inner: 2000, Outer: 0)).Arrange(monitor);
+        new LayoutEngine(new Gaps(Inner: 2000, Outer: 0)).Arrange(monitor);
 
         workspace.Bounds.ShouldBe(monitorBounds);
 
@@ -221,7 +222,7 @@ public class LayoutEngineTests
     public void TabbedLayout_GivesEveryChildTheContentRectBelowOneTitleRow()
     {
         var monitor = new Monitor(new Rect(0, 0, 800, 600));
-        var workspace = new Workspace("1", LayoutMode.Tabbed);
+        var workspace = new Workspace("1", Layout.Tabbed);
         monitor.AppendChild(workspace);
         var w1 = new TilingWindow(new WindowId(1));
         var w2 = new TilingWindow(new WindowId(2));
@@ -241,7 +242,7 @@ public class LayoutEngineTests
     public void StackedLayout_ReservesOneTitleRowPerChild()
     {
         var monitor = new Monitor(new Rect(0, 0, 800, 600));
-        var workspace = new Workspace("1", LayoutMode.Stacked);
+        var workspace = new Workspace("1", Layout.Stacked);
         monitor.AppendChild(workspace);
         var w1 = new TilingWindow(new WindowId(1));
         var w2 = new TilingWindow(new WindowId(2));
@@ -263,7 +264,7 @@ public class LayoutEngineTests
     public void StackedLayout_WhenTitleStripExceedHeight_KeepsContentWithinBounds()
     {
         var monitor = new Monitor(new Rect(0, 0, 800, 600));
-        var workspace = new Workspace("1", LayoutMode.Stacked);
+        var workspace = new Workspace("1", Layout.Stacked);
         monitor.AppendChild(workspace);
         var w1 = new TilingWindow(new WindowId(1));
         var w2 = new TilingWindow(new WindowId(2));
@@ -272,7 +273,7 @@ public class LayoutEngineTests
         workspace.AppendChild(w2);
         workspace.AppendChild(w3);
 
-        new LayoutEngine(GapConfig.None, 250).Arrange(monitor);
+        new LayoutEngine(Gaps.None, 250).Arrange(monitor);
 
         // Three children -> strip = 3 * 250 = 750; exceeds monitor bounds,
         // clamped to ensure Y is within monitor bounds
@@ -286,12 +287,12 @@ public class LayoutEngineTests
     public void TabbedLayout_TitleBarHeightIsConfigurable()
     {
         var monitor = new Monitor(new Rect(0, 0, 800, 600));
-        var workspace = new Workspace("1", LayoutMode.Tabbed);
+        var workspace = new Workspace("1", Layout.Tabbed);
         monitor.AppendChild(workspace);
         var w1 = new TilingWindow(new WindowId(1));
         workspace.AppendChild(w1);
 
-        new LayoutEngine(GapConfig.None, 40).Arrange(monitor);
+        new LayoutEngine(Gaps.None, 40).Arrange(monitor);
 
         w1.Bounds.ShouldBe(new Rect(0, 40, 800, 560));
     }
@@ -303,7 +304,7 @@ public class LayoutEngineTests
         var workspace = new Workspace("1");
         monitor.AppendChild(workspace);
         var left = new TilingWindow(new WindowId(1));
-        var rightTabbed = new SplitContainer(LayoutMode.Tabbed);
+        var rightTabbed = new SplitContainer(Layout.Tabbed);
         workspace.AppendChild(left);
         workspace.AppendChild(rightTabbed);
         var w2 = new TilingWindow(new WindowId(2));
