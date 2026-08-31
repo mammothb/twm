@@ -1,6 +1,6 @@
-using Twm.Core.Geometry;
+using Twm.Domain.Geometry;
 
-namespace Twm.Core.Tree;
+namespace Twm.Domain.Tree;
 
 /// <summary>
 /// A physical display. Holds workspaces; only one workspace is shown at a time,

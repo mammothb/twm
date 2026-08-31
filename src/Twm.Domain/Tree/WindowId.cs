@@ -1,4 +1,4 @@
-namespace Twm.Core.Tree;
+namespace Twm.Domain.Tree;
 
 /// <summary>
 /// Opaque identifier for an OS window. The platform layer maps this to a native

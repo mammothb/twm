@@ -2,6 +2,7 @@
   <Folder Name="/src/">
     <Project Path="src/Twm.App/Twm.App.csproj" />
     <Project Path="src/Twm.Core/Twm.Core.csproj" />
+    <Project Path="src/Twm.Domain/Twm.Domain.csproj" />
     <Project Path="src/Twm.Platform.Windows/Twm.Platform.Windows.csproj" />
     <Project Path="src/Twm.Platform/Twm.Platform.csproj" />
   </Folder>

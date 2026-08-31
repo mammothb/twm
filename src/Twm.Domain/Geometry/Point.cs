@@ -1,4 +1,4 @@
-namespace Twm.Core.Geometry;
+namespace Twm.Domain.Geometry;
 
 /// <summary>
 /// An integer point in virtual-screen coordinates.

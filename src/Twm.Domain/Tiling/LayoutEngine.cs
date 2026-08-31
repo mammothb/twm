@@ -1,27 +1,27 @@
-using Twm.Core.Geometry;
-using Twm.Core.Tree;
+using Twm.Domain.Geometry;
+using Twm.Domain.Tree;
 
-namespace Twm.Core.Layout;
+namespace Twm.Domain.Tiling;
 
 /// <summary>
 /// Computes screen rectangles for a container tree. Pure and platform-free: it
 /// only reads the tree and writes each container's
 /// <see cref="Container.Bounds" />.
 /// </summary>
-public sealed class LayoutEngine(GapConfig gaps, int titleBarHeight)
+public sealed class LayoutEngine(Gaps gaps, int titleBarHeight)
 {
     /// <summary>
     /// Reserved strip per title row in a tabbed/stacked container (px).
     /// </summary>
     public const int DefaultTitleBarHeight = 24;
 
-    private readonly GapConfig _gaps = gaps;
-    private readonly int _titleBarHeight = titleBarHeight;
+    private readonly Gaps _gaps = gaps;
+    private readonly int _titleBarHeight = Math.Max(0, titleBarHeight);
 
     public LayoutEngine()
-        : this(GapConfig.None, DefaultTitleBarHeight) { }
+        : this(Gaps.None, DefaultTitleBarHeight) { }
 
-    public LayoutEngine(GapConfig gaps)
+    public LayoutEngine(Gaps gaps)
         : this(gaps, DefaultTitleBarHeight) { }
 
     /// <summary>Arranges every monitor under the root.</summary>
@@ -62,13 +62,13 @@ public sealed class LayoutEngine(GapConfig gaps, int titleBarHeight)
             return;
         }
 
-        if (split.Layout is LayoutMode.Tabbed or LayoutMode.Stacked)
+        if (split.Layout is Layout.Tabbed or Layout.Stacked)
         {
             // Reserve a title strip (tabbed = one row; stacked = one row per
             // child), then give every child the same content rect below it.
             // Only the focused child is shown (the reconciler cloaks the rest);
             // non-focused children still get valid bounds.
-            int rows = split.Layout == LayoutMode.Tabbed ? 1 : split.Children.Count;
+            int rows = split.Layout == Layout.Tabbed ? 1 : split.Children.Count;
             // Avoid content from being pushed to another container
             int strip = Math.Min(rect.Height, _titleBarHeight * rows);
             var content = new Rect(rect.X, rect.Y + strip, rect.Width, rect.Height - strip);
@@ -131,13 +131,11 @@ public sealed class LayoutEngine(GapConfig gaps, int titleBarHeight)
         return result;
     }
 
-    private static Rect Deflate(Rect rect, int amount)
-    {
-        return new Rect(
+    private static Rect Deflate(Rect rect, int amount) =>
+        new(
             rect.X + amount,
             rect.Y + amount,
             Math.Max(0, rect.Width - (2 * amount)),
             Math.Max(0, rect.Height - (2 * amount))
         );
-    }
 }

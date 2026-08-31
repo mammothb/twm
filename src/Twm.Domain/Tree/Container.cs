@@ -1,6 +1,7 @@
-using Twm.Core.Geometry;
+using System.Diagnostics;
+using Twm.Domain.Geometry;
 
-namespace Twm.Core.Tree;
+namespace Twm.Domain.Tree;
 
 /// <summary>
 /// A node in the layout tree. Concrete kinds are <see cref="RootContainer" />,
@@ -96,7 +97,7 @@ public abstract class Container
     {
         get
         {
-            var queue = new Queue<Container>();
+            Queue<Container> queue = [];
             foreach (Container child in _children)
             {
                 queue.Enqueue(child);
@@ -111,6 +112,22 @@ public abstract class Container
                     queue.Enqueue(child);
                 }
             }
+        }
+    }
+
+    /// <summary>
+    /// Records this container as most-recently-focused along its whole
+    /// ancestry, so that <see cref="LastFocusedDescendant" /> from any ancestor
+    /// reaches it.
+    /// </summary>
+    public void Focus()
+    {
+        Container curr = this;
+        while (curr.Parent is Container parent)
+        {
+            parent._childFocusOrder.Remove(curr);
+            parent._childFocusOrder.Insert(0, curr);
+            curr = parent;
         }
     }
 
@@ -138,6 +155,9 @@ public abstract class Container
         return false;
     }
 
+    /// <summary>Appends a detached child after the current children.</summary>
+    public void AppendChild(Container child) => InsertChild(_children.Count, child);
+
     /// <summary>Inserts a detached child at the given index.</summary>
     public void InsertChild(int index, Container child)
     {
@@ -158,6 +178,38 @@ public abstract class Container
         _children.Insert(index, child);
         _childFocusOrder.Add(child);
         child.Parent = this;
+    }
+
+    /// <summary>
+    /// Reorders an existing child to a new position in layout order (focus
+    /// order unchanged).
+    /// </summary>
+    public void MoveChildToIndex(Container child, int newIndex)
+    {
+        ArgumentNullException.ThrowIfNull(child);
+        int curr = _children.IndexOf(child);
+        if (curr < 0)
+        {
+            throw new InvalidOperationException("Container is not a child of this container.");
+        }
+
+        ArgumentOutOfRangeException.ThrowIfNegative(newIndex);
+        ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(newIndex, _children.Count);
+        _children.RemoveAt(curr);
+        _children.Insert(newIndex, child);
+    }
+
+    /// <summary>Detaches a direct child from this container.</summary>
+    public void RemoveChild(Container child)
+    {
+        ArgumentNullException.ThrowIfNull(child);
+        if (!_children.Remove(child))
+        {
+            throw new InvalidOperationException("Container is not a child of this container.");
+        }
+
+        _childFocusOrder.Remove(child);
+        child.Parent = null;
     }
 
     /// <summary>
@@ -198,70 +250,10 @@ public abstract class Container
         _children[childIndex] = newChild;
 
         int focusIndex = _childFocusOrder.IndexOf(oldChild);
-        if (focusIndex == -1)
-        {
-            _childFocusOrder.Insert(0, newChild);
-        }
-        else
-        {
-            _childFocusOrder[focusIndex] = newChild;
-        }
+        Debug.Assert(focusIndex >= 0, "focus order out of sync with children");
+        _childFocusOrder[focusIndex] = newChild;
 
         oldChild.Parent = null;
         newChild.Parent = this;
-    }
-
-    /// <summary>Appends a detached child after the current children.</summary>
-    public void AppendChild(Container child)
-    {
-        InsertChild(_children.Count, child);
-    }
-
-    /// <summary>Detaches a direct child from this container.</summary>
-    public void RemoveChild(Container child)
-    {
-        ArgumentNullException.ThrowIfNull(child);
-        if (!_children.Remove(child))
-        {
-            throw new InvalidOperationException("Container is not a child of this container.");
-        }
-
-        _childFocusOrder.Remove(child);
-        child.Parent = null;
-    }
-
-    /// <summary>
-    /// Reorders an existing child to a new position in layout order (focus
-    /// order unchanged).
-    /// </summary>
-    public void MoveChildToIndex(Container child, int newIndex)
-    {
-        ArgumentNullException.ThrowIfNull(child);
-        int curr = _children.IndexOf(child);
-        if (curr < 0)
-        {
-            throw new InvalidOperationException("Container is not a child of this container.");
-        }
-
-        ArgumentOutOfRangeException.ThrowIfNegative(newIndex);
-        ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(newIndex, _children.Count);
-        _children.RemoveAt(curr);
-        _children.Insert(newIndex, child);
-    }
-
-    /// <summary>
-    /// Records this container as most-recently-focused along its whole
-    /// ancestry, so that <see cref="LastFocusedDescendant" /> from any ancestor
-    /// reaches it.
-    /// </summary>
-    public void Focus()
-    {
-        Container curr = this;
-        while (curr.Parent is Container parent)
-        {
-            parent._childFocusOrder.Remove(curr);
-            parent._childFocusOrder.Insert(0, curr);
-            curr = parent;
-        }
     }
 }

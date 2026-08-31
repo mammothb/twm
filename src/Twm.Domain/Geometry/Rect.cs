@@ -1,4 +1,4 @@
-namespace Twm.Core.Geometry;
+namespace Twm.Domain.Geometry;
 
 /// <summary>
 /// An integer rectangle in virtual-screen coordinates, addressed by its
@@ -24,10 +24,8 @@ public readonly record struct Rect(int X, int Y, int Width, int Height)
     /// [<see cref="X" />, <see cref="Right" />) x [<see cref="Y" />,
     /// <see cref="Bottom" />).
     /// </summary>
-    public bool Contains(Point point)
-    {
-        return point.X >= X && point.X < Right && point.Y >= Y && point.Y < Bottom;
-    }
+    public bool Contains(Point point) =>
+        X <= point.X && point.X < Right && Y <= point.Y && point.Y < Bottom;
 
     /// <summary>
     /// Splits the rectangle into <paramref name="count" /> equal slices along
@@ -54,10 +52,10 @@ public readonly record struct Rect(int X, int Y, int Width, int Height)
     }
 
     /// <summary>
-    /// Splits the rectange along <paramref name="direction" /> in proportion to
-    /// <paramref name="weights" />. Each slice is floored to whoe pixels and
-    /// the rounding remainder goes to the last slice, so the slices tile the
-    /// rectangle exactly.
+    /// Splits the rectangle along <paramref name="direction" /> in proportion
+    /// to <paramref name="weights" />. Each slice is floored to whole pixels
+    /// and the rounding remainder goes to the last slice, so the slices tile
+    /// the rectangle exactly.
     /// </summary>
     public Rect[] Split(TilingDirection direction, IReadOnlyList<double> weights)
     {

@@ -1,4 +1,4 @@
-namespace Twm.Core.Tree;
+namespace Twm.Domain.Tree;
 
 /// <summary>A leaf container wrapping a single managed OS window.</summary>
 public sealed class TilingWindow(WindowId windowId) : Container

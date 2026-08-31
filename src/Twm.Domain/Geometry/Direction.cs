@@ -1,8 +1,6 @@
-namespace Twm.Core.Geometry;
+namespace Twm.Domain.Geometry;
 
-/// <summary>
-/// A cardinal direction for focus and move commands.
-/// </summary>
+/// <summary>A cardinal direction for focus and move commands.</summary>
 public enum Direction
 {
     Left,
@@ -11,14 +9,10 @@ public enum Direction
     Down,
 }
 
-/// <summary>
-/// Helpers for <see cref="Direction" />.
-/// </summary>
+/// <summary>Helpers for <see cref="Direction" />.</summary>
 public static class DirectionExtensions
 {
-    /// <summary>
-    /// The tiling axis the direction travels along.
-    /// </summary>
+    /// <summary>The tiling axis the direction travels along.</summary>
     public static TilingDirection Axis(this Direction direction)
     {
         return direction switch
@@ -29,9 +23,7 @@ public static class DirectionExtensions
         };
     }
 
-    /// <summary>
-    /// The direction pointing to opposite way.
-    /// </summary>
+    /// <summary>The direction pointing to opposite way.</summary>
     public static Direction Opposite(this Direction direction)
     {
         return direction switch

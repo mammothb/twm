@@ -1,4 +1,4 @@
-namespace Twm.Core.Geometry;
+namespace Twm.Domain.Geometry;
 
 /// <summary>
 /// The axis along which a split container lays its children out.
