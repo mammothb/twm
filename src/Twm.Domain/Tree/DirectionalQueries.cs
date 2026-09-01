@@ -114,4 +114,57 @@ public static class DirectionalQueries
         }
         return best;
     }
+
+    /// <summary>
+    /// The container focus should move to when travelling in
+    /// <paramref="direction" /> from <paramref="subject" />: the deepest
+    /// focusable neighbor within the tree, or, at a workspace edge, the
+    /// entry-edge window of the adjacent monitor's active workspace(falling
+    /// back to that workspace itself). Null if there is nowhere to go).
+    /// </summary>
+    public static Container? FocusTargetInDirection(this Container subject, Direction direction)
+    {
+        ArgumentNullException.ThrowIfNull(subject);
+        return FindInTree(subject, direction) ?? CrossMonitorTarget(subject, direction);
+    }
+
+    private static Container? FindInTree(Container subject, Direction direction)
+    {
+        TilingDirection axis = direction.Axis();
+        int delta = direction is Direction.Left or Direction.Up ? -1 : 1;
+
+        Container node = subject;
+        while (node.Parent is SplitContainer split)
+        {
+            if (split.Layout.Axis() == axis)
+            {
+                int neighborIndex = node.Index + delta;
+                if (0 <= neighborIndex && neighborIndex < split.Children.Count)
+                {
+                    return DeepestFocusable(split.Children[neighborIndex]);
+                }
+            }
+            node = split;
+        }
+        return null;
+    }
+
+    private static Container? CrossMonitorTarget(Container subject, Direction direction)
+    {
+        Container? activeWorkspace = subject
+            .MonitorOf()
+            ?.AdjacentMonitor(direction)
+            ?.LastFocusedChild;
+
+        return activeWorkspace?.EdgeWindow(direction, subject.Bounds.Center) ?? activeWorkspace;
+    }
+
+    private static Container DeepestFocusable(Container node)
+    {
+        if (node is TilingWindow)
+        {
+            return node;
+        }
+        return node.LastFocusedDescendant ?? node;
+    }
 }

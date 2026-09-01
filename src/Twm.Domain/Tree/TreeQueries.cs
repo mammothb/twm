@@ -11,6 +11,28 @@ public static class TreeQueries
     }
 
     /// <summary>
+    /// The monitor's active workspace, its most-recently-focused workspace, or
+    /// its first workspace if none has been focused. Null if the monitor has no
+    /// workspaces.
+    /// </summary>
+    public static Workspace? ActiveWorkspace(this Monitor monitor)
+    {
+        ArgumentNullException.ThrowIfNull(monitor);
+        if (monitor.LastFocusedChild is Workspace active)
+        {
+            return active;
+        }
+        foreach (Container child in monitor.Children)
+        {
+            if (child is Workspace workspace)
+            {
+                return workspace;
+            }
+        }
+        return null;
+    }
+
+    /// <summary>
     /// Finds a managed window by id anywhere under the container.
     /// </summary>
     public static TilingWindow? FindWindow(this Container container, WindowId id)
