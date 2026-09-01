@@ -1,16 +1,8 @@
+using Twm.Application.Config;
 using Twm.Application.OutboundPorts;
 using Twm.Domain.Geometry;
 
 namespace Twm.Application.Coordination;
-
-/// <summary>
-/// Which edge the status bar occupies (and thus which edge tiling area loses).
-/// </summary>
-public enum BarPosition
-{
-    Top,
-    Bottom,
-}
 
 /// <summary>
 /// An <see cref="IMonitorSystem" /> decorator that shrinks each monitor's
