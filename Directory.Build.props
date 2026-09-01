@@ -6,10 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <DebugType>embedded</DebugType>
-    <RestorePackagesWithLockFile>false</RestorePackagesWithLockFile>
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
     <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
-    <RestoreLockedMode
-      Condition="'$(ContinuousIntegrationBuild)' == 'true' or '$(RuntimeIdentifier)' == 'linux-x64'"
-      >true</RestoreLockedMode>
   </PropertyGroup>
 </Project>
