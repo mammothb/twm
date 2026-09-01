@@ -1,9 +1,9 @@
-using Twm.Core.Commands;
-using Twm.Core.Geometry;
-using Twm.Core.Layout;
-using Twm.Core.Tree;
+using Twm.Application.Commands;
+using Twm.Domain.Geometry;
+using Twm.Domain.Tiling;
+using Twm.Domain.Tree;
 
-namespace Twm.Core.Tests.Commands;
+namespace Twm.Application.Tests.Commands;
 
 public class SplitDirectionTests
 {
@@ -22,7 +22,7 @@ public class SplitDirectionTests
         );
 
         SplitContainer wrapper = w1.Parent.ShouldBeOfType<SplitContainer>();
-        wrapper.Layout.ShouldBe(LayoutMode.SplitVertical);
+        wrapper.Layout.ShouldBe(Layout.SplitVertical);
         // w1 is inside SplitContainer now
         wrapper.ShouldNotBeSameAs(ws);
         // SplitContainer parent is inside the workspace
@@ -45,7 +45,7 @@ public class SplitDirectionTests
         // No wrapper, the workspace itself is re-oriented, w1 stays a direct
         // child
         w1.Parent.ShouldBeSameAs(ws);
-        ws.Layout.ShouldBe(LayoutMode.SplitVertical);
+        ws.Layout.ShouldBe(Layout.SplitVertical);
     }
 
     [Fact]
@@ -68,7 +68,7 @@ public class SplitDirectionTests
         new AdoptWindowHandler(root, layout).Handle(new AdoptWindowCommand(windowId, monitor));
 
         SplitContainer wrapper = w1.Parent.ShouldBeOfType<SplitContainer>();
-        wrapper.Layout.ShouldBe(LayoutMode.SplitVertical);
+        wrapper.Layout.ShouldBe(Layout.SplitVertical);
         // w1 + new window
         wrapper.Children.Count.ShouldBe(2);
         root.FindWindow(windowId)!.Parent.ShouldBeSameAs(wrapper);

@@ -1,10 +1,11 @@
-using Twm.Core.Bussing;
-using Twm.Core.Commands;
-using Twm.Core.Geometry;
-using Twm.Core.Layout;
-using Twm.Core.Tree;
+using Twm.Application.Commands;
+using Twm.Application.Messaging;
+using Twm.Domain.Geometry;
+using Twm.Domain.Tiling;
+using Twm.Domain.Tree;
+using Twm.TestSupport.Assertions;
 
-namespace Twm.Core.Tests.Commands;
+namespace Twm.Application.Tests.Commands;
 
 public class RemoveWindowTests
 {
@@ -39,7 +40,7 @@ public class RemoveWindowTests
         monitor.AppendChild(ws);
         var w1 = new TilingWindow(new WindowId(1));
         ws.AppendChild(w1);
-        var right = new SplitContainer(LayoutMode.SplitVertical);
+        var right = new SplitContainer(Layout.SplitVertical);
         ws.AppendChild(right);
         var windowId = new WindowId(2);
         var w2 = new TilingWindow(windowId);

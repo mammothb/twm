@@ -1,9 +1,9 @@
-using Twm.Core.Commands;
-using Twm.Core.Geometry;
-using Twm.Core.Tests.Fixtures;
-using Twm.Core.Tree;
+using Twm.Application.Commands;
+using Twm.Domain.Geometry;
+using Twm.Domain.Tree;
+using Twm.TestSupport.Assertions;
 
-namespace Twm.Core.Tests.Scenarios;
+namespace Twm.Application.Tests.Fixtures;
 
 public class DualMonitorSessionTests
 {

@@ -17,7 +17,7 @@ public enum Layout
 }
 
 /// <summary>Helpers for <see cref="Layout" />.</summary>
-public static class LayoutModeExtensions
+public static class LayoutExtensions
 {
     /// <summary>
     /// The geometric axis focus and movement travel along: horizontal for

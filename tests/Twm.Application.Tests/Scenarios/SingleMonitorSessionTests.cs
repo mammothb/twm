@@ -1,9 +1,10 @@
-using Twm.Core.Commands;
-using Twm.Core.Geometry;
-using Twm.Core.Tests.Fixtures;
-using Twm.Core.Tree;
+using Twm.Application.Commands;
+using Twm.Application.Tests.Fixtures;
+using Twm.Domain.Geometry;
+using Twm.Domain.Tree;
+using Twm.TestSupport.Assertions;
 
-namespace Twm.Core.Tests.Scenarios;
+namespace Twm.Application.Tests.Scenarios;
 
 public class SingleMonitorSessionTests
 {
@@ -56,7 +57,7 @@ public class SingleMonitorSessionTests
 
         var w1 = new TilingWindow(new WindowId(1));
         ws.AppendChild(w1);
-        var right = new SplitContainer(LayoutMode.SplitVertical);
+        var right = new SplitContainer(Layout.SplitVertical);
         ws.AppendChild(right);
         var w2 = new TilingWindow(new WindowId(2));
         var w3 = new TilingWindow(new WindowId(3));

@@ -1,6 +1,6 @@
-using Twm.Core.Bussing;
+using Twm.Application.Messaging;
 
-namespace Twm.Core.Tests.Bussing;
+namespace Twm.Application.Tests.Messaging;
 
 public class BusTests
 {

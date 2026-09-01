@@ -1,9 +1,9 @@
-using Twm.Core.Commands;
-using Twm.Core.Geometry;
-using Twm.Core.Layout;
-using Twm.Core.Tree;
+using Twm.Application.Commands;
+using Twm.Domain.Geometry;
+using Twm.Domain.Tiling;
+using Twm.Domain.Tree;
 
-namespace Twm.Core.Tests.Commands;
+namespace Twm.Application.Tests.Commands;
 
 public class SetLayoutTests
 {
@@ -13,16 +13,16 @@ public class SetLayoutTests
         (RootContainer root, Workspace ws, LayoutEngine layout) = Desktop(3);
         root.FindWindow(new WindowId(1))!.Focus();
 
-        new SetLayoutHandler(root, layout).Handle(new SetLayoutCommand(LayoutMode.Tabbed));
+        new SetLayoutHandler(root, layout).Handle(new SetLayoutCommand(Layout.Tabbed));
 
-        ws.Layout.ShouldBe(LayoutMode.Tabbed);
+        ws.Layout.ShouldBe(Layout.Tabbed);
     }
 
     [Fact]
     public void FocusRight_InTabbedContainer_CyclesToNextTab()
     {
         (RootContainer root, Workspace ws, LayoutEngine layout) = Desktop(3);
-        ws.Layout = LayoutMode.Tabbed;
+        ws.Layout = Layout.Tabbed;
         root.FindWindow(new WindowId(1))!.Focus();
 
         new FocusInDirectionHandler(root, layout).Handle(
@@ -36,7 +36,7 @@ public class SetLayoutTests
     public void FocusDown_InStackedContainer_CyclesToNextItem()
     {
         (RootContainer root, Workspace ws, LayoutEngine layout) = Desktop(3);
-        ws.Layout = LayoutMode.Stacked;
+        ws.Layout = Layout.Stacked;
         root.FindWindow(new WindowId(1))!.Focus();
 
         new FocusInDirectionHandler(root, layout).Handle(
@@ -50,19 +50,19 @@ public class SetLayoutTests
     public void ToggleSplit_FromTabbed_ExistsToHorizontalSplit()
     {
         (RootContainer root, Workspace ws, LayoutEngine layout) = Desktop(2);
-        ws.Layout = LayoutMode.Tabbed;
+        ws.Layout = Layout.Tabbed;
         root.FindWindow(new WindowId(1))!.Focus();
 
         new ToggleSplitDirectionHandler(root, layout).Handle(new ToggleSplitDirectionCommand());
 
-        ws.Layout.ShouldBe(LayoutMode.SplitHorizontal);
+        ws.Layout.ShouldBe(Layout.SplitHorizontal);
     }
 
     [Fact]
     public void MoveRight_InTabbedContainer_ReordersTabs()
     {
         (RootContainer root, Workspace ws, LayoutEngine layout) = Desktop(3);
-        ws.Layout = LayoutMode.Tabbed;
+        ws.Layout = Layout.Tabbed;
         root.FindWindow(new WindowId(1))!.Focus();
 
         new MoveInDirectionHandler(root, layout).Handle(

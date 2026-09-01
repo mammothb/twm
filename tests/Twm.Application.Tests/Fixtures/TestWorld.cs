@@ -1,10 +1,10 @@
-using Twm.Core.Bussing;
-using Twm.Core.Commands;
-using Twm.Core.Geometry;
-using Twm.Core.Layout;
-using Twm.Core.Tree;
+using Twm.Application.Commands;
+using Twm.Application.Messaging;
+using Twm.Domain.Geometry;
+using Twm.Domain.Tiling;
+using Twm.Domain.Tree;
 
-namespace Twm.Core.Tests.Fixtures;
+namespace Twm.Application.Tests.Fixtures;
 
 /// <summary>
 /// A two-monitor desktop wired through the <see cref="Bussing.Bus" /> with

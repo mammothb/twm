@@ -1,9 +1,9 @@
-using Twm.Core.Commands;
-using Twm.Core.Geometry;
-using Twm.Core.Layout;
-using Twm.Core.Tree;
+using Twm.Application.Commands;
+using Twm.Domain.Geometry;
+using Twm.Domain.Tiling;
+using Twm.Domain.Tree;
 
-namespace Twm.Core.Tests.Commands;
+namespace Twm.Application.Tests.Commands;
 
 public class ToggleSplitDirectionTests
 {
@@ -25,7 +25,7 @@ public class ToggleSplitDirectionTests
             new ToggleSplitDirectionCommand()
         );
 
-        ws.Layout.ShouldBe(LayoutMode.SplitVertical);
+        ws.Layout.ShouldBe(Layout.SplitVertical);
         w1.Bounds.ShouldBe(new Rect(0, 0, 800, 300));
         w2.Bounds.ShouldBe(new Rect(0, 300, 800, 300));
     }

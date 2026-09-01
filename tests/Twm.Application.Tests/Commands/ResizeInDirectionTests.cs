@@ -1,9 +1,9 @@
-using Twm.Core.Commands;
-using Twm.Core.Geometry;
-using Twm.Core.Layout;
-using Twm.Core.Tree;
+using Twm.Application.Commands;
+using Twm.Domain.Geometry;
+using Twm.Domain.Tiling;
+using Twm.Domain.Tree;
 
-namespace Twm.Core.Tests.Commands;
+namespace Twm.Application.Tests.Commands;
 
 public class ResizeInDirectionTests
 {
@@ -61,7 +61,7 @@ public class ResizeInDirectionTests
         root.AppendChild(monitor);
         var ws = new Workspace("1");
         monitor.AppendChild(ws);
-        var left = new SplitContainer(LayoutMode.SplitVertical);
+        var left = new SplitContainer(Layout.SplitVertical);
         ws.AppendChild(left);
         var w1 = new TilingWindow(new WindowId(1));
         var w2 = new TilingWindow(new WindowId(2));
