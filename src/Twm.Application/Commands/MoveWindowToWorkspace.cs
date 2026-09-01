@@ -1,8 +1,8 @@
-using Twm.Core.Bussing;
-using Twm.Core.Layout;
-using Twm.Core.Tree;
+using Twm.Application.Messaging;
+using Twm.Domain.Tiling;
+using Twm.Domain.Tree;
 
-namespace Twm.Core.Commands;
+namespace Twm.Application.Commands;
 
 /// <summary>Moves the focused window to the named workspace.</summary>
 public sealed record MoveWindowToWorkspaceCommand(string WorkspaceName) : ICommand;
@@ -25,21 +25,11 @@ public sealed class MoveWindowToWorkspaceHandler(RootContainer root, LayoutEngin
             return CommandResult.Fail($"No workspace named '{command.WorkspaceName}'.");
         }
 
-        if (ReferenceEquals(subject.WorkspaceOf(), target))
+        if (subject.MoveToWorkspace(target))
         {
-            return CommandResult.Ok;
+            Rearrange();
         }
 
-        Container? oldParent = subject.Parent;
-        if (oldParent is null)
-        {
-            return CommandResult.Ok;
-        }
-
-        oldParent.RemoveChild(subject);
-        target.AppendChild(subject);
-        Cleanup(oldParent);
-        Rearrange();
         return CommandResult.Ok;
     }
 }

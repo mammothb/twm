@@ -1,4 +1,4 @@
-namespace Twm.Core.Bussing;
+namespace Twm.Application.Messaging;
 
 /// <summary>
 /// Marker for an event: a notification that something happened, fanned out

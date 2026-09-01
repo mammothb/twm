@@ -1,4 +1,4 @@
-namespace Twm.Core.Bussing;
+namespace Twm.Application.Messaging;
 
 /// <summary>
 /// Routes commands to a single handler each and fans events out to subscribers.

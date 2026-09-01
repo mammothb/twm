@@ -1,8 +1,8 @@
-using Twm.Core.Bussing;
-using Twm.Core.Layout;
-using Twm.Core.Tree;
+using Twm.Application.Messaging;
+using Twm.Domain.Tiling;
+using Twm.Domain.Tree;
 
-namespace Twm.Core.Commands;
+namespace Twm.Application.Commands;
 
 /// <summary>Activates and focuses the named workspace.</summary>
 public sealed record FocusWorkspaceCommand(string WorkspaceName) : ICommand;

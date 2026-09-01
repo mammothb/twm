@@ -1,8 +1,8 @@
-using Twm.Core.Bussing;
-using Twm.Core.Layout;
-using Twm.Core.Tree;
+using Twm.Application.Messaging;
+using Twm.Domain.Tiling;
+using Twm.Domain.Tree;
 
-namespace Twm.Core.Commands;
+namespace Twm.Application.Commands;
 
 /// <summary>
 /// Removes a managed window from the tree, e.g., when it is closed.
@@ -21,14 +21,7 @@ public sealed class RemoveWindowHandler(RootContainer root, LayoutEngine layout)
             return CommandResult.Ok;
         }
 
-        Container? parent = window.Parent;
-        if (parent is null)
-        {
-            return CommandResult.Ok;
-        }
-
-        parent.RemoveChild(window);
-        Cleanup(parent);
+        window.Remove();
         Rearrange();
         return CommandResult.Ok;
     }

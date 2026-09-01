@@ -1,4 +1,4 @@
-namespace Twm.Core.Bussing;
+namespace Twm.Application.Messaging;
 
 /// <summary>Handles a single command types.</summary>
 public interface ICommandHandler<in TCommand>

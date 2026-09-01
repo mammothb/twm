@@ -1,4 +1,4 @@
-namespace Twm.Core.Bussing;
+namespace Twm.Application.Messaging;
 
 /// <summary>The outcome of invoking a command.</summary>
 public readonly record struct CommandResult(bool Success, string? Error = null)

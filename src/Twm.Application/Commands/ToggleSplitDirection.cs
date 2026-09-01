@@ -1,9 +1,8 @@
-using Twm.Core.Bussing;
-using Twm.Core.Geometry;
-using Twm.Core.Layout;
-using Twm.Core.Tree;
+using Twm.Application.Messaging;
+using Twm.Domain.Tiling;
+using Twm.Domain.Tree;
 
-namespace Twm.Core.Commands;
+namespace Twm.Application.Commands;
 
 /// <summary>
 /// Toggles the tiling direction of the focused window's parent split.
@@ -16,20 +15,12 @@ public sealed class ToggleSplitDirectionHandler(RootContainer root, LayoutEngine
     public override CommandResult Handle(ToggleSplitDirectionCommand command)
     {
         ArgumentNullException.ThrowIfNull(command);
-
         if (Root.FocusedWindow()?.Parent is not SplitContainer split)
         {
             return CommandResult.Ok;
         }
 
-        // Flip split-horizontal <-> split-vertical; from tabbed/stacked, exit
-        // to a horizontal split (i3's "layout toggle split").
-        split.Layout = split.Layout switch
-        {
-            LayoutMode.SplitHorizontal => LayoutMode.SplitVertical,
-            LayoutMode.SplitVertical => LayoutMode.SplitHorizontal,
-            _ => LayoutMode.SplitHorizontal,
-        };
+        split.ToggleSplitDirection();
         Rearrange();
         return CommandResult.Ok;
     }

@@ -1,4 +1,4 @@
-namespace Twm.Core.Bussing;
+namespace Twm.Application.Messaging;
 
 /// <summary>
 /// Marker for a command: an intent to change tree state, dispatched through the
