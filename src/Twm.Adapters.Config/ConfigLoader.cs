@@ -1,7 +1,7 @@
 using System.Text;
 using VYaml.Serialization;
 
-namespace Twm.Platform.Config;
+namespace Twm.Adapters.Config;
 
 /// <summary>
 /// Outcome of loading config: the effective config plus any (non-fatal) parse

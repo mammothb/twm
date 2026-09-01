@@ -1,6 +1,6 @@
 using VYaml.Annotations;
 
-namespace Twm.Platform.Config;
+namespace Twm.Adapters.Config;
 
 /// <summary>
 /// The deserialized Twm config file. Every section is nullable so "absent" is

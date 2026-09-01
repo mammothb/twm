@@ -1,4 +1,4 @@
-namespace Twm.Platform.Config;
+namespace Twm.Adapters.Config;
 
 /// <summary>Where Twm looks for its config file.</summary>
 public static class ConfigPaths

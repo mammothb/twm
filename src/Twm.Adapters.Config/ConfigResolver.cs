@@ -1,17 +1,7 @@
 using System.Globalization;
-using Twm.Core.Layout;
+using Twm.Appliation.Config;
 
-namespace Twm.Platform.Config;
-
-/// <summary>
-/// The concrete inputs the WM consumes, resolved from a
-/// <see cref="TwmConfig" />.
-/// </summary>
-public sealed record ResolvedConfig(
-    WindowFilter Filter,
-    WorkspacesDto? Workspaces,
-    IReadOnlyList<string> Errors
-);
+namespace Twm.Adapters.Config;
 
 /// <summary>
 /// Turns a parsed <see cref="TwmConfig" /> into the concrete WM inputs,
@@ -26,6 +16,9 @@ public static class ConfigResolver
     {
         ArgumentNullException.ThrowIfNull(config);
         List<string> errors = [];
+
+        KeymapBuildResult keymapResult = KeymapBuilder.Build(config);
+        errors.AddRange(keymapResult.Errors);
 
         (IReadOnlyList<WindowRule> rules, IReadOnlyList<string> ruleErrors) = WindowRule.Compile(
             config.WindowRules
