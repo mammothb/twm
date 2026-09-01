@@ -1,7 +1,7 @@
-using Twm.Core.Geometry;
-using Twm.Core.Tree;
+using Twm.Domain.Geometry;
+using Twm.Domain.Tree;
 
-namespace Twm.Platform;
+namespace Twm.Application.Coordination;
 
 /// <summary>
 /// Chooses which <see cref="Monitor" /> a window belongs to by testing which

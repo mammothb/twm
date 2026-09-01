@@ -1,4 +1,4 @@
-namespace Twm.Platform.Diagnostics;
+namespace Twm.Application.Diagnostics;
 
 /// <summary>
 /// Minimal, opt-in diagnostic log. The app installs a sink (file and/or

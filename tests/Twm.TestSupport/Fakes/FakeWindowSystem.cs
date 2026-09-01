@@ -1,14 +1,15 @@
-using Twm.Core.Geometry;
-using Twm.Core.Tree;
+using Twm.Application.OutboundPorts;
+using Twm.Domain.Geometry;
+using Twm.Domain.Tree;
 
-namespace Twm.Platform.Tests.Fakes;
+namespace Twm.TestSupport.Fakes;
 
 /// <summary>
 /// An <see cref="IWindowSystem" /> that returns a fixed set of windows and
 /// records every call the reconciler makes, so tests can assert what Twm would
 /// push to the OS.
 /// </summary>
-internal sealed class FakeWindowSystem(params NativeWindowInfo[] windows) : IWindowSystem
+public sealed class FakeWindowSystem(params NativeWindowInfo[] windows) : IWindowSystem
 {
     private readonly IReadOnlyList<NativeWindowInfo> _windows = windows;
     public List<(WindowId Window, Rect Bounds)> Positioned { get; } = [];

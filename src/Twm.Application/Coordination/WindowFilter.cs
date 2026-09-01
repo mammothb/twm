@@ -1,7 +1,8 @@
 using System.Collections.Frozen;
-using Twm.Platform.Config;
+using Twm.Application.Config;
+using Twm.Application.OutboundPorts;
 
-namespace Twm.Platform;
+namespace Twm.Application.Coordination;
 
 /// <summary>
 /// Decides whether an OS window is a "managed window" Twm should tile, or an

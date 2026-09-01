@@ -1,7 +1,7 @@
-using Twm.Core.Geometry;
-using Twm.Core.Tree;
+using Twm.Domain.Geometry;
+using Twm.Domain.Tree;
 
-namespace Twm.Platform;
+namespace Twm.Application.OutboundPorts;
 
 /// <summary>
 /// A snapshot of one top-leve OS window at enumeration time. Pure data: the

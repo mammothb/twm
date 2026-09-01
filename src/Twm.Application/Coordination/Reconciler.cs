@@ -1,6 +1,7 @@
-using Twm.Core.Tree;
+using Twm.Application.OutboundPorts;
+using Twm.Domain.Tree;
 
-namespace Twm.Platform;
+namespace Twm.Application.Coordination;
 
 /// <summary>
 /// Pushes the container tree to the OS. Every window the tree says should be

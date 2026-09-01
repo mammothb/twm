@@ -1,6 +1,6 @@
-using Twm.Core.Geometry;
+using Twm.Domain.Geometry;
 
-namespace Twm.Platform;
+namespace Twm.Application.OutboundPorts;
 
 /// <summary>
 /// Opaque identifier for a display. The Win32 layer maps this to an

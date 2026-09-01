@@ -1,8 +1,10 @@
-using Twm.Core.Geometry;
-using Twm.Core.Tree;
-using Twm.Platform.Config;
+using Twm.Application.Config;
+using Twm.Application.Coordination;
+using Twm.Application.OutboundPorts;
+using Twm.Domain.Geometry;
+using Twm.Domain.Tree;
 
-namespace Twm.Platform.Tests;
+namespace Twm.Application.Tests.Coordination;
 
 public class DesktopBuilderTests
 {
@@ -136,7 +138,7 @@ public class DesktopBuilderTests
     {
         RootContainer root = DesktopBuilder.Build(
             [Mon(0, 0, 1920, 1080, primary: true), Mon(1920, 0, 1280, 1024, primary: false)],
-            new WorkspacesDto { PerMonitor = 2 }
+            new WorkspaceOptions { PerMonitor = 2 }
         );
 
         WorkspaceNames((Monitor)root.Children[0]).ShouldBe(["1", "3"]);
@@ -148,7 +150,7 @@ public class DesktopBuilderTests
     {
         RootContainer root = DesktopBuilder.Build(
             [Mon(0, 0, 1920, 1080, primary: true), Mon(1920, 0, 1280, 1024, primary: false)],
-            new WorkspacesDto { Names = ["a", "b", "c", "d", "e"] }
+            new WorkspaceOptions { Names = ["a", "b", "c", "d", "e"] }
         );
 
         WorkspaceNames((Monitor)root.Children[0]).ShouldBe(["a", "c", "e"]);
@@ -161,7 +163,7 @@ public class DesktopBuilderTests
         Should.Throw<ArgumentException>(() =>
             DesktopBuilder.Build(
                 [Mon(0, 0, 1920, 1080, primary: true), Mon(1920, 0, 1280, 1024, primary: false)],
-                new WorkspacesDto { Names = ["only-one"] }
+                new WorkspaceOptions { Names = ["only-one"] }
             )
         );
     }
@@ -172,7 +174,7 @@ public class DesktopBuilderTests
         Should.Throw<ArgumentException>(() =>
             DesktopBuilder.Build(
                 [Mon(0, 0, 1920, 1080, primary: true), Mon(1920, 0, 1280, 1024, primary: false)],
-                new WorkspacesDto { Names = ["same", "same", "diff"] }
+                new WorkspaceOptions { Names = ["same", "same", "diff"] }
             )
         );
     }

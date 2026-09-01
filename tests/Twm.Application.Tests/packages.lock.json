@@ -185,6 +185,7 @@
       "twm.testsupport": {
         "type": "Project",
         "dependencies": {
+          "Twm.Application": "[1.0.0, )",
           "Twm.Domain": "[1.0.0, )"
         }
       }

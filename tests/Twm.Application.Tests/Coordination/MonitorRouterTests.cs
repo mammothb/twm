@@ -1,7 +1,9 @@
-using Twm.Core.Geometry;
-using Twm.Core.Tree;
+using Twm.Application.Coordination;
+using Twm.Application.OutboundPorts;
+using Twm.Domain.Geometry;
+using Twm.Domain.Tree;
 
-namespace Twm.Platform.Tests;
+namespace Twm.Application.Tests.Coordination;
 
 public class MonitorRouterTests
 {

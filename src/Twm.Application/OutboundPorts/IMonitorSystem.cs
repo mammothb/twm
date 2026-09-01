@@ -1,4 +1,4 @@
-namespace Twm.Platform;
+namespace Twm.Application.OutboundPorts;
 
 /// <summary>
 /// The OS display topology. Implemented by the Win32 layer and faked in tests,

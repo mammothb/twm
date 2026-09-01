@@ -173,12 +173,19 @@
           "xunit.v3.runner.common": "[3.2.2]"
         }
       },
+      "twm.application": {
+        "type": "Project",
+        "dependencies": {
+          "Twm.Domain": "[1.0.0, )"
+        }
+      },
       "twm.domain": {
         "type": "Project"
       },
       "twm.testsupport": {
         "type": "Project",
         "dependencies": {
+          "Twm.Application": "[1.0.0, )",
           "Twm.Domain": "[1.0.0, )"
         }
       }

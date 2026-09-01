@@ -1,8 +1,9 @@
 using System.Globalization;
-using Twm.Core.Tree;
-using Twm.Platform.Config;
+using Twm.Application.Config;
+using Twm.Application.OutboundPorts;
+using Twm.Domain.Tree;
 
-namespace Twm.Platform;
+namespace Twm.Application.Coordination;
 
 /// <summary>
 /// Builds the initial container tree from the OS display topology: one
@@ -31,7 +32,7 @@ public static class DesktopBuilder
     /// unique and lets a single keystroke reach any monitor's workspace
     public static RootContainer Build(
         IReadOnlyList<MonitorInfo> monitors,
-        WorkspacesDto? workspaces = null
+        WorkspaceOptions? workspaces = null
     )
     {
         ArgumentNullException.ThrowIfNull(monitors);
@@ -42,7 +43,7 @@ public static class DesktopBuilder
 
         var root = new RootContainer();
 
-        List<MonitorInfo> ordered = OrderPrimaryFirst(monitors).ToList();
+        List<MonitorInfo> ordered = [.. OrderPrimaryFirst(monitors)];
         int monitorCount = ordered.Count;
         IReadOnlyList<string> names = ResolveNames(workspaces, monitorCount);
 
@@ -67,7 +68,10 @@ public static class DesktopBuilder
         return root;
     }
 
-    private static IReadOnlyList<string> ResolveNames(WorkspacesDto? workspaces, int monitorCount)
+    private static IReadOnlyList<string> ResolveNames(
+        WorkspaceOptions? workspaces,
+        int monitorCount
+    )
     {
         if (workspaces?.Names is { Count: > 0 } explicitNames)
         {
@@ -107,11 +111,9 @@ public static class DesktopBuilder
     /// left-to-right (then top-down). Public so the status bar can pair its
     /// per-monitor windows with the tree's monitors by index.
     /// </summary>
-    public static IEnumerable<MonitorInfo> OrderPrimaryFirst(IReadOnlyList<MonitorInfo> monitors)
-    {
-        return monitors
+    public static IEnumerable<MonitorInfo> OrderPrimaryFirst(IReadOnlyList<MonitorInfo> monitors) =>
+        monitors
             .OrderByDescending(monitor => monitor.IsPrimary)
             .ThenBy(monitor => monitor.Bounds.X)
             .ThenBy(monitor => monitor.Bounds.Y);
-    }
 }

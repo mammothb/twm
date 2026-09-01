@@ -1,10 +1,12 @@
-using Twm.Core.Bussing;
-using Twm.Core.Commands;
-using Twm.Core.Layout;
-using Twm.Core.Tree;
-using Twm.Platform.Diagnostics;
+using Twm.Application.Commands;
+using Twm.Application.Config;
+using Twm.Application.Diagnostics;
+using Twm.Application.Messaging;
+using Twm.Application.OutboundPorts;
+using Twm.Domain.Tiling;
+using Twm.Domain.Tree;
 
-namespace Twm.Platform;
+namespace Twm.Application.Coordination;
 
 /// <summary>
 /// The platform-neutral coordinator that binds the tested core to an OS. It
@@ -30,9 +32,9 @@ public sealed class WmSession
     public WmSession(
         IMonitorSystem monitors,
         IWindowSystem windows,
-        GapConfig gaps = default,
+        Gaps gaps = default,
         WindowFilter? filter = null,
-        Config.WorkspacesDto? workspaces = null,
+        WorkspaceOptions? workspaces = null,
         int titleBarHeight = LayoutEngine.DefaultTitleBarHeight
     )
     {

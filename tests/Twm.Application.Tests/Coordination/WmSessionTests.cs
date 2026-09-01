@@ -1,9 +1,11 @@
-using Twm.Core.Commands;
-using Twm.Core.Geometry;
-using Twm.Core.Tree;
-using Twm.Platform.Tests.Fakes;
+using Twm.Application.Commands;
+using Twm.Application.Coordination;
+using Twm.Application.OutboundPorts;
+using Twm.Domain.Geometry;
+using Twm.Domain.Tree;
+using Twm.TestSupport.Fakes;
 
-namespace Twm.Platform.Tests;
+namespace Twm.Application.Tests.Coordination;
 
 public class WmSessionTests
 {
@@ -249,7 +251,7 @@ public class WmSessionTests
         var session = new WmSession(new FakeMonitorSystem(Primary), windows);
         session.Start(); // w1, w2 on active workspace "1", w2 is focused
 
-        session.Execute(new SetLayoutCommand(LayoutMode.Tabbed));
+        session.Execute(new SetLayoutCommand(Layout.Tabbed));
 
         // w1 is non-focused tab (cloaked by Twm on the ACTIVE workspace), hide
         // is ignored

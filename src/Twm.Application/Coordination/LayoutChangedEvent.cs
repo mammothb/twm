@@ -1,6 +1,6 @@
-using Twm.Core.Bussing;
+using Twm.Application.Messaging;
 
-namespace Twm.Platform;
+namespace Twm.Application.Coordination;
 
 /// <summary>
 /// Fired whenever the layout the user can see may have changed, after every
