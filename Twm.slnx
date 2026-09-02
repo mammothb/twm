@@ -1,6 +1,7 @@
 <Solution>
   <Folder Name="/src/">
     <Project Path="src/Twm.Adapters.Config/Twm.Adapters.Config.csproj" />
+    <Project Path="src/Twm.Adapters.Ipc/Twm.Adapters.Ipc.csproj" />
     <Project Path="src/Twm.Application/Twm.Application.csproj" />
     <Project Path="src/Twm.Domain/Twm.Domain.csproj" />
   </Folder>
