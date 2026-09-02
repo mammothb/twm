@@ -22,13 +22,27 @@ public static class ConfigMapping
     /// (no <c>gaps:</c> section) -> see <see cref="Gaps.None" />; a missing
     /// inner/outer -> 0.
     /// </summary>
-    public static Gaps ToGaps(GapsDto? gaps)
+    public static Gaps MapGaps(GapsDto? dto)
     {
-        if (gaps is null)
+        if (dto is null)
         {
             return Gaps.None;
         }
-        return new Gaps(gaps.Inner ?? 0, gaps.Outer ?? 0);
+        return new Gaps(dto.Inner ?? 0, dto.Outer ?? 0);
+    }
+
+    /// <summary>
+    /// Maps a <see cref="WorkspacesDto" /> to the application
+    /// <see cref="WorkspaceOptions" /> model (null to null). Topology-dependent
+    /// name validation (too few/duplicate) is the resolver's concern.
+    /// </summary>
+    public static WorkspaceOptions? MapWorkspaces(WorkspacesDto? dto)
+    {
+        if (dto is null)
+        {
+            return null;
+        }
+        return new WorkspaceOptions { PerMonitor = dto.PerMonitor, Names = dto.Names };
     }
 
     /// <summary>

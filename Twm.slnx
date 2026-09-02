@@ -5,6 +5,7 @@
     <Project Path="src/Twm.Domain/Twm.Domain.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/Twm.Adapters.Config.Tests/Twm.Adapters.Config.Tests.csproj" />
     <Project Path="tests/Twm.Application.Tests/Twm.Application.Tests.csproj" />
     <Project Path="tests/Twm.Domain.Tests/Twm.Domain.Tests.csproj" />
     <Project Path="tests/Twm.TestSupport/Twm.TestSupport.csproj" />

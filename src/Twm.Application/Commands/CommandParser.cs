@@ -23,7 +23,7 @@ public static class CommandParser
     /// Grammar: <c>focus|move &lt;dir&gt;</c>,
     /// <c>resize &lt;dir&gt; [percent]</c>, <c>split h|v</c>,
     /// <c>toggle-split</c>,
-    /// <c>layout stacking|tabbed|splith|splitv|toggle-split</c>,
+    /// <c>layout stacked|tabbed|splith|splitv|toggle-split</c>,
     /// <c>workspace &lt;name&gt;</c>, <c>move-to-workspace &lt;name&gt;</c>,
     /// <c>close</c>, <c>exit</c>, <c>get-tree</c>.
     /// </summary>
