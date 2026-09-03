@@ -3,6 +3,7 @@
     <ProjectReference Include="..\Twm.Application\Twm.Application.csproj" />
     <ProjectReference Include="..\Twm.Shared.Ipc\Twm.Shared.Ipc.csproj" />
   </ItemGroup>
+
   <PropertyGroup>
     <IsAotCompatible>true</IsAotCompatible>
   </PropertyGroup>
