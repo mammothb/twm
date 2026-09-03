@@ -5,6 +5,7 @@
     <Project Path="src/Twm.Application/Twm.Application.csproj" />
     <Project Path="src/Twm.Domain/Twm.Domain.csproj" />
     <Project Path="src/Twm.Msg/Twm.Msg.csproj" />
+    <Project Path="src/Twm.Presentation/Twm.Presentation.csproj" />
     <Project Path="src/Twm.Shared.Ipc/Twm.Shared.Ipc.csproj" />
   </Folder>
   <Folder Name="/tests/">
