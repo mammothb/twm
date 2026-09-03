@@ -5,6 +5,7 @@
     <Project Path="src/Twm.Application/Twm.Application.csproj" />
     <Project Path="src/Twm.Domain/Twm.Domain.csproj" />
     <Project Path="src/Twm.Msg/Twm.Msg.csproj" />
+    <Project Path="src/Twm.Presentation/Twm.Presentation.csproj" />
     <Project Path="src/Twm.Shared.Ipc/Twm.Shared.Ipc.csproj" />
   </Folder>
   <Folder Name="/tests/">
@@ -12,6 +13,7 @@
     <Project Path="tests/Twm.Adapters.Ipc.Tests/Twm.Adapters.Ipc.Tests.csproj" />
     <Project Path="tests/Twm.Application.Tests/Twm.Application.Tests.csproj" />
     <Project Path="tests/Twm.Domain.Tests/Twm.Domain.Tests.csproj" />
+    <Project Path="tests/Twm.Presentation.Tests/Twm.Presentation.Tests.csproj" />
     <Project Path="tests/Twm.TestSupport/Twm.TestSupport.csproj" />
   </Folder>
 </Solution>
