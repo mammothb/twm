@@ -4,6 +4,7 @@
     <Project Path="src/Twm.Adapters.Ipc/Twm.Adapters.Ipc.csproj" />
     <Project Path="src/Twm.Application/Twm.Application.csproj" />
     <Project Path="src/Twm.Domain/Twm.Domain.csproj" />
+    <Project Path="src/Twm.Shared.Ipc/Twm.Shared.Ipc.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Twm.Adapters.Config.Tests/Twm.Adapters.Config.Tests.csproj" />

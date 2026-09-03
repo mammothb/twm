@@ -1,11 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
     <ProjectReference Include="..\Twm.Application\Twm.Application.csproj" />
-    <ProjectReference Include="..\Twm.Domain\Twm.Domain.csproj" />
+    <ProjectReference Include="..\Twm.Shared.Ipc\Twm.Shared.Ipc.csproj" />
   </ItemGroup>
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
+    <IsAotCompatible>true</IsAotCompatible>
   </PropertyGroup>
 </Project>
