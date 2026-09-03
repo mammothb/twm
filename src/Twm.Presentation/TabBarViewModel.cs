@@ -40,7 +40,7 @@ public static class TabBarViewModel
             var tabs = new List<TabItem>(split.Children.Count);
             foreach (Container child in split.Children)
             {
-                bool isFocused = ReferenceEquals(child, titleOf);
+                bool isFocused = ReferenceEquals(child, split.LastFocusedChild);
                 tabs.Add(new TabItem(RepresentativeTitle(child, titleOf), isFocused));
             }
 
