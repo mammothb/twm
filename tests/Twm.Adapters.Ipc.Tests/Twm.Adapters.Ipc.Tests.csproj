@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="../../src/Twm.Adapters.Ipc/Twm.Adapters.Ipc.csproj" />
+    <ProjectReference Include="../Twm.TestSupport/Twm.TestSupport.csproj" />
+  </ItemGroup>
+</Project>
