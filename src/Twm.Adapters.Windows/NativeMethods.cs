@@ -1,7 +1,7 @@
 using System.Runtime.InteropServices;
-using Twm.Core.Geometry;
+using Twm.Domain.Geometry;
 
-namespace Twm.Platform.Windows;
+namespace Twm.Adapters.Windows;
 
 /// <summary>
 /// Raw Win32 interop, source-generated via
@@ -44,11 +44,11 @@ internal static unsafe partial class NativeMethods
     // GW_OWNER
     private const uint GwOwner = 4;
 
-    // DWMWA_EXTENDED_FRAME_BOUNDS
-    private const uint DwmwaExtendedFrameBounds = 9;
-
     // DWMWA_CLOAKED
     private const uint DwmwaCloaked = 14;
+
+    // DWMWA_EXTENDED_FRAME_BOUNDS
+    private const uint DwmwaExtendedFrameBounds = 9;
 
     // MONITORINFOF_PRIMARY
     private const uint MonitorinfofPrimary = 0x00000001;
@@ -195,7 +195,7 @@ internal static unsafe partial class NativeMethods
 
     [LibraryImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
-    private static partial bool PostMessageW(nint hWnd, uint msg, nint wParam, nint lParam);
+    private static partial bool PostMessageW(nint hWnd, uint Msg, nint wParam, nint lParam);
 
     [LibraryImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
@@ -221,12 +221,12 @@ internal static unsafe partial class NativeMethods
     [return: MarshalAs(UnmanagedType.Bool)]
     private static partial bool ShowWindow(nint hWnd, int nCmdShow);
 
-    [LibraryImport("user32.dll", EntryPoint = "SystemParametersInfoW")]
+    [LibraryImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
-    private static partial bool SystemParametersInfoSetTimeout(
+    private static partial bool SystemParametersInfoW(
         uint uiAction,
         uint uiParam,
-        ref uint pvParam,
+        nint pvParam,
         uint fWinIni
     );
 
@@ -269,19 +269,19 @@ internal static unsafe partial class NativeMethods
     [LibraryImport("advapi32.dll", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static partial bool GetTokenInformation(
-        nint tokenHandle,
-        int tokenInformationClass,
-        byte* tokenInformation,
-        uint tokenInformationLength,
-        out uint returnLength
+        nint TokenHandle,
+        int TokenInformationClass,
+        byte* TokenInformation,
+        uint TokenInformationLength,
+        out uint ReturnLength
     );
 
     [LibraryImport("advapi32.dll", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static partial bool OpenProcessToken(
-        nint processHandle,
-        uint desiredAccess,
-        out nint tokenHandle
+        nint ProcessHandle,
+        uint DesiredAccess,
+        out nint TokenHandle
     );
 
     // ========================================================================
@@ -305,23 +305,23 @@ internal static unsafe partial class NativeMethods
     );
 
     [UnmanagedCallersOnly]
-    private static int CollectWindow(nint window, nint lParam)
+    private static int CollectWindow(nint hWnd, nint lParam)
     {
         GCHandle handle = GCHandle.FromIntPtr(lParam);
         if (handle.Target is List<nint> list)
         {
-            list.Add(window);
+            list.Add(hWnd);
         }
         return 1; // TRUE: continue enumeration
     }
 
     [UnmanagedCallersOnly]
-    private static int CollectMonitor(nint monitor, nint hdc, nint rect, nint lParam)
+    private static int CollectMonitor(nint hMonitor, nint hdcMonitor, nint lprcMonitor, nint dwData)
     {
-        GCHandle handle = GCHandle.FromIntPtr(lParam);
+        GCHandle handle = GCHandle.FromIntPtr(dwData);
         if (handle.Target is List<nint> list)
         {
-            list.Add(monitor);
+            list.Add(hMonitor);
         }
         return 1; // TRUE: continue enumeration
     }
@@ -415,12 +415,11 @@ internal static unsafe partial class NativeMethods
         }
     }
 
-    // TODO: check if this check is correct
     /// <summary>WS_CAPTION set: the window has a real title bar.</summary>
     internal static bool HasCaption(nint window)
     {
         long style = GetWindowLongPtrW(window, GwlStyle);
-        return (style & WsCaption) != 0;
+        return (style & WsCaption) == 0;
     }
 
     /// <summary>
@@ -511,11 +510,8 @@ internal static unsafe partial class NativeMethods
     // Setting the foreground lock timeout to 0 lets keyboard-driven
     // SetForegroundWindow actually activate the target window instead of only
     // flashing its taskbar button
-    internal static void DisableForegroundLockTimeout()
-    {
-        uint timeout = 0;
-        SystemParametersInfoSetTimeout(SpiSetForegroundLockTimeout, 0, ref timeout, SpifSendChange);
-    }
+    internal static void DisableForegroundLockTimeout() =>
+        SystemParametersInfoW(SpiSetForegroundLockTimeout, 0, 0, SpifSendChange);
 
     // DPI_AWARENESS_CONTEXT_PER_MONITOR_V2 = (HANDLE)-4
     internal static void EnablePerMonitorV2Dpi() => SetProcessDpiAwarenessContext((nint)(-4));
