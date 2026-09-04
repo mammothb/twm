@@ -1,6 +1,7 @@
-using Twm.Core.Geometry;
+using Twm.Application.OutboundPorts;
+using Twm.Domain.Geometry;
 
-namespace Twm.Platform.Windows;
+namespace Twm.Adapters.Windows;
 
 /// <summary>
 /// The Win32 <see cref="IMonitorSystem" />: enumerates displays via

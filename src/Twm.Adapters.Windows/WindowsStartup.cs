@@ -1,4 +1,4 @@
-namespace Twm.Platform.Windows;
+namespace Twm.Adapters.Windows;
 
 /// <summary>
 /// Process-wide Windows startup concerns that must run before any
