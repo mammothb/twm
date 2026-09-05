@@ -25,7 +25,7 @@ public sealed class WindowsWindowSystem : IWindowSystem
     /// Reads a fresh metadata snapshot for one window (used by the WinEvent
     /// hook).
     /// </summary>
-    public static NativeWindowInfo Describe(WindowId window)
+    public NativeWindowInfo Describe(WindowId window)
     {
         nint handle = window.Value;
         return new NativeWindowInfo(

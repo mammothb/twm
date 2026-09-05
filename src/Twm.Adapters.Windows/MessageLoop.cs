@@ -40,11 +40,12 @@ public static partial class MessageLoop
         public int PointY;
     }
 
-    [LibraryImport("user32.dll")]
-    private static partial nint DispatchMessageW(in NativeMessage lpMsg);
+    // ========================================================================
+    // user32.dll
+    // ========================================================================
 
     [LibraryImport("user32.dll")]
-    private static partial uint GetCurrentThreadId();
+    private static partial nint DispatchMessageW(in NativeMessage lpMsg);
 
     [LibraryImport("user32.dll")]
     private static partial int GetMessageW(
@@ -81,6 +82,13 @@ public static partial class MessageLoop
     [LibraryImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static partial bool TranslateMessage(in NativeMessage lpMsg);
+
+    // ========================================================================
+    // kernel32.dll
+    // ========================================================================
+
+    [LibraryImport("kernel32.dll")]
+    private static partial uint GetCurrentThreadId();
 
     /// <summary>
     /// The id of the calling thread, for posting wake messages back to the
