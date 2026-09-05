@@ -13,6 +13,7 @@ using Twm.Presentation;
 
 bool dump = args.Contains("--dump");
 bool cloakTest = args.Contains("--cloak-test");
+bool cloakProbe = args.Contains("--cloak-probe");
 bool useConsole = args.Contains("--console");
 
 if (!OperatingSystem.IsWindows())
@@ -21,7 +22,7 @@ if (!OperatingSystem.IsWindows())
     return 1;
 }
 
-if (dump || cloakTest)
+if (dump || cloakTest || cloakProbe)
 {
     WindowsStartup.AttachParentConsole();
 }
@@ -78,6 +79,32 @@ if (cloakTest)
     return DiagnosticModes.CloakTest(windows, filter);
 }
 
+if (cloakProbe)
+{
+    int probeIndex = Array.IndexOf(args, "--cloak-probe");
+    if (probeIndex >= 0 && probeIndex < args.Length - 1)
+    {
+        string probeText = args[probeIndex + 1];
+        if (probeText.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
+        {
+            probeText = probeText[2..];
+        }
+        if (
+            nint.TryParse(
+                probeText,
+                System.Globalization.NumberStyles.HexNumber,
+                null,
+                out nint probeHwnd
+            )
+        )
+        {
+            return DiagnosticModes.CloakProbe(windows, probeHwnd);
+        }
+    }
+    Console.WriteLine("--cloak-probe needs a hex HWND, e.g. --cloak-probe 0x1234.");
+    return 1;
+}
+
 using var mutex = new Mutex(initiallyOwned: true, "Twm.SingleInstance", out bool isOnlyInstance);
 if (!isOnlyInstance)
 {
@@ -126,7 +153,7 @@ if (borderOptions.Enabled)
     session.Subscribe<LayoutChangedEvent>(_ => UpdateBorder());
 }
 
-TabBarManager tabBar = new TabBarManager(
+var tabBar = new TabBarManager(
     config.Tabs.Background,
     config.Tabs.Foreground,
     config.Tabs.ActiveBackground,

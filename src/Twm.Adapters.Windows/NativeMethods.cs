@@ -379,16 +379,20 @@ internal static unsafe partial class NativeMethods
         return (style & WindowStyle.Child) != 0;
     }
 
-    internal static bool IsCloaked(nint window)
-    {
-        return DwmGetWindowAttribute(
-                window,
-                DwmWindowAttribute.Cloaked,
-                out int cloaked,
-                sizeof(int)
-            ) == 0
-            && cloaked != 0;
-    }
+    internal static bool IsCloaked(nint window) =>
+        DwmGetWindowAttribute(window, DwmWindowAttribute.Cloaked, out int cloaked, sizeof(int)) == 0
+        && cloaked != 0;
+
+    /// <summary>
+    /// The full DWMWA_CLOAKED value: 0 uncloaked, 1 cloaked by the app, 2
+    /// cloaked by the shell, 4 inherited from a cloaked owner. IsCloaked
+    /// collapses these to a bool; the full value distinguishes a cascade from
+    /// Twm's own cloak. Returns 0 when the attribute cannot be read.
+    /// </summary>
+    internal static int GetCloakValue(nint window) =>
+        DwmGetWindowAttribute(window, DwmWindowAttribute.Cloaked, out int cloaked, sizeof(int)) == 0
+            ? cloaked
+            : 0;
 
     /// <summary>
     /// Whether the window's process runs at a strictly higher integrity level
@@ -424,6 +428,17 @@ internal static unsafe partial class NativeMethods
         }
         var style = (WindowStyle)GetWindowLongPtrW(window, GetWindowLong.Style);
         return (style & WindowStyle.Caption) == 0;
+    }
+
+    /// <summary>
+    /// The HWND of this window's owner (GW_OWNER), or null when it has none.
+    /// Owned windows (modal dialogs, popups) are hidden by DWM when their
+    /// owner is cloaked (DWM_CLOAKED_INHERITED).
+    /// </summary>
+    internal static nint? GetOwner(nint window)
+    {
+        nint owner = GetWindow(window, GwOwner);
+        return owner == 0 ? null : owner;
     }
 
     internal static bool IsMinimized(nint window) => IsIconic(window);

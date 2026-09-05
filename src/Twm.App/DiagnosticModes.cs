@@ -1,6 +1,7 @@
 using System.Threading;
 using Twm.Application.Coordination;
 using Twm.Application.OutboundPorts;
+using Twm.Domain.Tree;
 
 namespace Twm.App;
 
@@ -20,7 +21,9 @@ internal static class DiagnosticModes
         }
 
         Console.WriteLine("\n== Windows ==");
-        foreach (NativeWindowInfo window in windows.EnumerateWindows())
+        List<NativeWindowInfo> all = [.. windows.EnumerateWindows()];
+        Dictionary<WindowId, string> titleByWindow = all.ToDictionary(w => w.Id, w => w.Title);
+        foreach (NativeWindowInfo window in all)
         {
             string decision = filter.IsManageable(window) ? "MANAGE" : "ignore";
             string[] candidates =
@@ -38,9 +41,63 @@ internal static class DiagnosticModes
             ];
             string flags = string.Join(',', candidates.Where(f => f.Length > 0));
             string suffix = flags.Length > 0 ? $"  {{{flags}}}" : "";
-            Console.WriteLine($"  [{decision}] {window.ClassName, -28} \"{window.Title}\"{suffix}");
+            string ownerText = window.Owner is WindowId owner
+                ? $"0x{owner.Value:X}"
+                    + (
+                        titleByWindow.TryGetValue(owner, out string? ownerTitle)
+                            ? $" (\"{ownerTitle}\")"
+                            : ""
+                    )
+                : "-";
+            Console.WriteLine(
+                $"  [{decision}] {window.ClassName, -28} \"{window.Title}\" 0x{window.Id.Value:X} owner={ownerText} cloak={window.CloakValue}{suffix}"
+            );
         }
 
+        return 0;
+    }
+
+    /// <summary>
+    /// Cloaks the given owner window and reports the before/after cloak value
+    /// of every top-level window it owns, to confirm whether DWM cloak cascades
+    /// to owned windows (DWM_CLOAKED_INHERITED == 4). Read-only except for the
+    /// temporary cloak of the target.
+    /// </summary>
+    public static int CloakProbe(IWindowSystem windows, nint ownerHwnd)
+    {
+        WindowId ownerId = new(ownerHwnd);
+        List<NativeWindowInfo> owned =
+        [
+            .. windows.EnumerateWindows().Where(w => w.Owner == ownerId),
+        ];
+
+        Console.WriteLine($"Owner 0x{ownerHwnd:X} owns {owned.Count} top-level window(s):");
+        foreach (NativeWindowInfo w in owned)
+        {
+            Console.WriteLine($"  [before] 0x{w.Id.Value:X} \"{w.Title}\" cloak={w.CloakValue}");
+        }
+
+        if (owned.Count == 0)
+        {
+            Console.WriteLine("  (none — GW_OWNER may differ, or the target owns no windows)");
+            return 0;
+        }
+
+        Console.WriteLine("Cloaking owner for 3s...");
+        windows.Hide(ownerId);
+        Thread.Sleep(3000);
+
+        Dictionary<WindowId, int> cloakById = windows
+            .EnumerateWindows()
+            .ToDictionary(w => w.Id, w => w.CloakValue);
+        foreach (NativeWindowInfo w in owned)
+        {
+            int after = cloakById.GetValueOrDefault(w.Id);
+            Console.WriteLine($"  [after]  0x{w.Id.Value:X} \"{w.Title}\" cloak={after}");
+        }
+
+        windows.Show(ownerId);
+        Console.WriteLine("Uncloaked owner.");
         return 0;
     }
 
