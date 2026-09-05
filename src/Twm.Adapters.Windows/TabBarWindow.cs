@@ -253,8 +253,7 @@ public sealed unsafe partial class TabBarWindow : IDisposable
             fixed (char* text = tab.Title)
             {
                 Rect32 textRect = cell;
-                textRect.Left = RowTextPad;
-                DrawTextW(hdc, text, tab.Title.Length, ref textRect, DtRow);
+                DrawTextW(hdc, text, tab.Title.Length, ref textRect, DtTab);
             }
         }
 
