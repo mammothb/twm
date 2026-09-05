@@ -1,0 +1,65 @@
+mod: alt
+gaps:
+  inner: 1
+  outer: 1
+workspaces:
+  perMonitor: 4
+bindings:
+  "$mod+h": focus left
+  "$mod+j": focus down
+  "$mod+k": focus up
+  "$mod+l": focus right
+  "$mod+shift+h": move left
+  "$mod+shift+j": move down
+  "$mod+shift+k": move up
+  "$mod+shift+l": move right
+  "$mod+ctrl+h": resize left
+  "$mod+ctrl+j": resize down
+  "$mod+ctrl+k": resize up
+  "$mod+ctrl+l": resize right
+  "$mod+s": layout stacked
+  "$mod+w": layout tabbed
+  "$mod+e": layout toggle-split
+  "$mod+backslash": split h
+  "$mod+minus": split v
+  "$mod+1": workspace 1
+  "$mod+2": workspace 2
+  "$mod+3": workspace 3
+  "$mod+4": workspace 4
+  "$mod+5": workspace 5
+  "$mod+6": workspace 6
+  "$mod+7": workspace 7
+  "$mod+8": workspace 8
+  "$mod+shift+1": move-to-workspace 1
+  "$mod+shift+2": move-to-workspace 2
+  "$mod+shift+3": move-to-workspace 3
+  "$mod+shift+4": move-to-workspace 4
+  "$mod+shift+5": move-to-workspace 5
+  "$mod+shift+6": move-to-workspace 6
+  "$mod+shift+7": move-to-workspace 7
+  "$mod+shift+8": move-to-workspace 8
+  "$mod+shift+q": close
+  "$mod+shift+e": exit
+windowRules:
+  - class: TaskManagerWindow
+    action: ignore
+  - title: Picture in picture
+    action: ignore
+bar:
+  enabled: true
+  position: top
+  height: 20
+  background: "#303030"
+  foreground: "#e0e0e0"
+  activeBackground: "#285577"
+  showTitle: true
+  showClock: true
+border:
+  enabled: true
+  color: "#00ff00"
+  width: 2
+tabs:
+  height: 20
+  background: "#303030"
+  foreground: "#e0e0e0"
+  activeBackground: "#285577"
