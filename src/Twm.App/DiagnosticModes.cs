@@ -41,14 +41,14 @@ internal static class DiagnosticModes
             ];
             string flags = string.Join(',', candidates.Where(f => f.Length > 0));
             string suffix = flags.Length > 0 ? $"  {{{flags}}}" : "";
-            string ownerText = window.Owner is WindowId owner
-                ? $"0x{owner.Value:X}"
-                    + (
-                        titleByWindow.TryGetValue(owner, out string? ownerTitle)
-                            ? $" (\"{ownerTitle}\")"
-                            : ""
-                    )
-                : "-";
+            string ownerText = "";
+            if (window.Owner is WindowId owner)
+            {
+                string ownerSuffix = titleByWindow.TryGetValue(owner, out string? ownerTitle)
+                    ? $" (\"{ownerTitle}\")"
+                    : "";
+                ownerText = $"0x{owner.Value:X}{ownerSuffix}";
+            }
             Console.WriteLine(
                 $"  [{decision}] {window.ClassName, -28} \"{window.Title}\" 0x{window.Id.Value:X} owner={ownerText}{suffix}"
             );
