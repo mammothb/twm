@@ -264,6 +264,45 @@ public class WmSessionTests
     }
 
     [Fact]
+    public void HandleCloaked_VisibleWindow_IsNeverRemoved()
+    {
+        var windows = new FakeWindowSystem(Win(1, 100, 100));
+        var session = new WmSession(new FakeMonitorSystem(Primary), windows);
+        session.Start(); // win 1 on active workspace "1", focused + visible
+
+        // a cloak is never a user action: it is Twm's own cloak or the DWM
+        // cascade to an owned dialog, so it must not remove the window
+        session.HandleCloaked(new WindowId(1)).ShouldBeFalse();
+        session.IsManaged(new WindowId(1)).ShouldBeTrue();
+    }
+
+    [Fact]
+    public void HandleMinimized_VisibleWindow_IsRemoved()
+    {
+        var windows = new FakeWindowSystem(Win(1, 100, 100));
+        var session = new WmSession(new FakeMonitorSystem(Primary), windows);
+        session.Start(); // win 1 on active workspace "1", visible
+
+        // the user minimized a visible tiled window: drop it so no ghost tile
+        session.HandleMinimized(new WindowId(1)).ShouldBeTrue();
+        session.IsManaged(new WindowId(1)).ShouldBeFalse();
+    }
+
+    [Fact]
+    public void HandleMinimized_NonVisibleWindow_IsIgnored()
+    {
+        var windows = new FakeWindowSystem(Win(1, 100, 100), Win(2, 200, 200));
+        var session = new WmSession(new FakeMonitorSystem(Primary), windows);
+        session.Start(); // w1, w2 on active workspace, w2 focused
+        session.Execute(new SetLayoutCommand(Layout.Tabbed));
+
+        // w1 is a non-focused tab (hidden by Twm); a minimize of it is not a
+        // user action
+        session.HandleMinimized(new WindowId(1)).ShouldBeFalse();
+        session.IsManaged(new WindowId(1)).ShouldBeTrue();
+    }
+
+    [Fact]
     public void IsManaged_ReflectsWhetherWindowIsInTree()
     {
         var windows = new FakeWindowSystem(Win(1, 100, 100));

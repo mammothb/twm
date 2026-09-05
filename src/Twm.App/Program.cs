@@ -196,12 +196,19 @@ hook.Install(
                 }
                 break;
             case WindowEventKind.Hidden:
-            case WindowEventKind.Minimized:
-            case WindowEventKind.Cloaked:
                 if (session.HandleHidden(id))
                 {
                     Console.WriteLine($"unmanaged ({session.ManagedWindowCount} tiled)");
                 }
+                break;
+            case WindowEventKind.Minimized:
+                if (session.HandleMinimized(id))
+                {
+                    Console.WriteLine($"unmanaged ({session.ManagedWindowCount} tiled)");
+                }
+                break;
+            case WindowEventKind.Cloaked:
+                session.HandleCloaked(id);
                 break;
             case WindowEventKind.Foreground:
                 session.SyncFocus(id);
