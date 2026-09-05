@@ -25,16 +25,31 @@ public sealed class Reconciler(IWindowSystem windows)
 
         var windows = root.Descendants.OfType<TilingWindow>().ToList();
 
-        // Pass 1: position + show every window that should be visible, and
-        // foreground the focused one. This happens BEFORE any cloak. Cloaking
-        // the window that is currently foreground makes Windows auto-activate
-        // some other (possibly cloaked) window, firing a spurious foreground
-        // event that SyncFocus would react to, in a tabbed/stacked container
-        // that oscillates endlessly. Foregrounding the target first guarantees
-        // the windows we cloak next are never the foreground one.
+        // Owners of currently-visible windows must stay uncloaked: DWM cloak
+        // cascades owner→owned, so a cloaked owner keeps its owned dialog
+        // hidden (and cloaking an owner under a visible dialog feeds an
+        // adopt/unmanage loop). Such owners are shown underneath their dialog
+        // and never hidden.
+        var visibleOwners = new HashSet<WindowId>();
         foreach (TilingWindow window in windows)
         {
-            if (!window.IsEffectivelyVisible())
+            if (window.IsEffectivelyVisible() && window.Owner is WindowId owner)
+            {
+                visibleOwners.Add(owner);
+            }
+        }
+
+        // Pass 1: position + show every window that should be visible — itself,
+        // or the owner of a visible window — and foreground the focused one.
+        // This happens BEFORE any cloak. Cloaking the window that is currently
+        // foreground makes Windows auto-activate some other (possibly cloaked)
+        // window, firing a spurious foreground event that SyncFocus would react
+        // to, in a tabbed/stacked container that oscillates endlessly.
+        // Foregrounding the target first guarantees the windows we cloak next
+        // are never the foreground one.
+        foreach (TilingWindow window in windows)
+        {
+            if (!window.IsEffectivelyVisible() && !visibleOwners.Contains(window.WindowId))
             {
                 continue;
             }
@@ -63,20 +78,7 @@ public sealed class Reconciler(IWindowSystem windows)
         }
 
         // Pass 2: cloak everything that should not be visible (now that the
-        // focused window holds the foreground). A window that owns a
-        // currently-visible window must NOT be cloaked: DWM cloak cascades
-        // owner→owned, so cloaking an owner hides its modal dialog out from
-        // under it (and the resulting cloak event feeds an adopt/unmanage
-        // loop). Leave such owners shown underneath their dialog instead.
-        var visibleOwners = new HashSet<WindowId>();
-        foreach (TilingWindow window in windows)
-        {
-            if (window.IsEffectivelyVisible() && window.Owner is WindowId owner)
-            {
-                visibleOwners.Add(owner);
-            }
-        }
-
+        // focused window holds the foreground).
         foreach (TilingWindow window in windows)
         {
             if (window.IsEffectivelyVisible() || visibleOwners.Contains(window.WindowId))
