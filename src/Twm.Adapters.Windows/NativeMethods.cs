@@ -47,7 +47,7 @@ internal static unsafe partial class NativeMethods
     private static readonly Lazy<int> s_ourIntegrityRid = new(ComputeOurIntegrityRid);
 
     [StructLayout(LayoutKind.Sequential)]
-    private struct Rect32
+    internal struct Rect32
     {
         public int Left;
         public int Top;
@@ -153,7 +153,7 @@ internal static unsafe partial class NativeMethods
 
     [LibraryImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
-    private static partial bool ShowWindow(nint hWnd, ShowWindowCommand nCmdShow);
+    internal static partial bool ShowWindow(nint hWnd, ShowWindowCommand nCmdShow);
 
     [LibraryImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]

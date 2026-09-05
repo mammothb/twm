@@ -5,13 +5,13 @@ namespace Twm.Adapters.Windows;
 internal static unsafe partial class NativeMethods
 {
     // TRANSPARENT
-    private const int BkModeTransparent = 1;
+    internal const int BkModeTransparent = 1;
 
     /// DEFAULT_GUI_FONT
-    private const int DefaultGuiFont = 17;
+    internal const int DefaultGuiFont = 17;
 
     [StructLayout(LayoutKind.Sequential)]
-    private struct PaintStruct
+    internal struct PaintStruct
     {
         public nint Hdc;
         public int Erase;
@@ -22,7 +22,7 @@ internal static unsafe partial class NativeMethods
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    private struct WndClassExW
+    internal struct WndClassExW
     {
         public uint CbSize;
         public uint Style;
@@ -42,10 +42,10 @@ internal static unsafe partial class NativeMethods
     // user32.dll
     // ========================================================================
     [LibraryImport("user32.dll")]
-    private static partial nint BeginPaint(nint hWnd, out PaintStruct lpPaint);
+    internal static partial nint BeginPaint(nint hWnd, out PaintStruct lpPaint);
 
     [LibraryImport("user32.dll")]
-    private static partial nint CreateWindowExW(
+    internal static partial nint CreateWindowExW(
         ExtendedWindowStyle dwExStyle,
         char* lpClassName,
         char* lpWindowName,
@@ -61,31 +61,35 @@ internal static unsafe partial class NativeMethods
     );
 
     [LibraryImport("user32.dll")]
-    private static partial nint DefWindowProcW(nint hWnd, uint Msg, nint wParam, nint lParam);
+    internal static partial nint DefWindowProcW(nint hWnd, uint Msg, nint wParam, nint lParam);
 
     [LibraryImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
-    private static partial bool DestroyWindow(nint hWnd);
+    internal static partial bool DestroyWindow(nint hWnd);
 
     [LibraryImport("user32.dll")]
-    private static partial int DrawTextW(
+    internal static partial int DrawTextW(
         nint hdc,
         char* lpchText,
         int cchText,
         ref Rect32 lprc,
-        uint format
+        DrawTextFormat format
     );
 
     [LibraryImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
-    private static partial bool EndPaint(nint hWnd, in PaintStruct lpPaint);
+    internal static partial bool EndPaint(nint hWnd, in PaintStruct lpPaint);
 
     [LibraryImport("user32.dll")]
-    private static partial int FillRect(nint hdc, in Rect32 lprc, nint hbr);
+    internal static partial int FillRect(nint hdc, in Rect32 lprc, nint hbr);
 
     [LibraryImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
-    private static partial bool InvalidateRect(
+    internal static partial bool GetClientRect(nint hWnd, out Rect32 lpRect);
+
+    [LibraryImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    internal static partial bool InvalidateRect(
         nint hWnd,
         nint lpRect,
         [MarshalAs(UnmanagedType.Bool)] bool bErase
@@ -93,7 +97,7 @@ internal static unsafe partial class NativeMethods
 
     [LibraryImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
-    private static partial bool MoveWindow(
+    internal static partial bool MoveWindow(
         nint hWnd,
         int x,
         int y,
@@ -103,50 +107,50 @@ internal static unsafe partial class NativeMethods
     );
 
     [LibraryImport("user32.dll")]
-    private static partial int SetWindowRgn(
+    internal static partial int SetWindowRgn(
         nint hWnd,
         nint hRgn,
         [MarshalAs(UnmanagedType.Bool)] bool bRedraw
     );
 
     [LibraryImport("user32.dll")]
-    private static partial ushort RegisterClassExW(in WndClassExW lpwcx);
+    internal static partial ushort RegisterClassExW(in WndClassExW lpwcx);
 
     [LibraryImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
-    private static partial bool UnregisterClassW(char* lpClassName, nint hInstance);
+    internal static partial bool UnregisterClassW(char* lpClassName, nint hInstance);
 
     // ========================================================================
     // gdi32.dll
     // ========================================================================
     [LibraryImport("gdi32.dll")]
-    private static partial nint CombineRgn(nint hrgnDst, nint hrgnSrc1, nint hrgnSrc2, int iMode);
+    internal static partial nint CombineRgn(nint hrgnDst, nint hrgnSrc1, nint hrgnSrc2, int iMode);
 
     [LibraryImport("gdi32.dll")]
-    private static partial nint CreateRectRgn(int x1, int y1, int x2, int y2);
+    internal static partial nint CreateRectRgn(int x1, int y1, int x2, int y2);
 
     [LibraryImport("gdi32.dll")]
-    private static partial nint CreateSolidBrush(uint color);
+    internal static partial nint CreateSolidBrush(uint color);
 
     [LibraryImport("gdi32.dll")]
-    private static partial nint GetStockObject(int i);
+    internal static partial nint GetStockObject(int i);
 
     [LibraryImport("gdi32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
-    private static partial bool DeleteObject(nint ho);
+    internal static partial bool DeleteObject(nint ho);
 
     [LibraryImport("gdi32.dll")]
-    private static partial nint SelectObject(nint hdc, nint h);
+    internal static partial nint SelectObject(nint hdc, nint h);
 
     [LibraryImport("gdi32.dll")]
-    private static partial nint SetBkMode(nint hdc, int mode);
+    internal static partial nint SetBkMode(nint hdc, int mode);
 
     [LibraryImport("gdi32.dll")]
-    private static partial nint SetTextColor(nint hdc, uint color);
+    internal static partial nint SetTextColor(nint hdc, uint color);
 
     // ========================================================================
     // kernel32.dll
     // ========================================================================
     [LibraryImport("kernel32.dll")]
-    private static partial nint GetModuleHandleW(char* lpModuleName);
+    internal static partial nint GetModuleHandleW(char* lpModuleName);
 }

@@ -66,4 +66,15 @@ internal static partial class NativeMethods
         ExtendedFrameBounds = 9, // DWMWA_EXTENDED_FRAME_BOUNDS
         Cloaked = 14, // DWMWA_CLOAKED
     }
+
+    /// <summary>DrawText flags.</summary>
+    internal enum DrawTextFormat : uint
+    {
+        Center = 0x0001, // DT_CENTER
+        Right = 0x0002, // DT_RIGHT
+        VCenter = 0x0004, // DT_VCENTER
+        SingleLine = 0x0020, // DT_SINGLELINE
+        NoPrefix = 0x0800, // DT_NOPREFIX
+        EndEllipsis = 0x8000, // DT_END_ELLIPSIS
+    }
 }
