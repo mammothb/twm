@@ -126,4 +126,68 @@ public class ReconcilerTests
         second.Shown.ShouldContain(new WindowId(2));
         second.Hidden.ShouldContain(new WindowId(1));
     }
+
+    [Fact]
+    public void TabbedWorkspace_DoesNotCloakTheOwnerOfTheFocusedDialog()
+    {
+        var root = new RootContainer();
+        var monitor = new Monitor(new Rect(0, 0, 1920, 1080));
+        var ws = new Workspace("1", Layout.Tabbed);
+        monitor.AppendChild(ws);
+        root.AppendChild(monitor);
+
+        var owner = new TilingWindow(new WindowId(1));
+        var dialog = new TilingWindow(new WindowId(2), owner: new WindowId(1));
+        var other = new TilingWindow(new WindowId(3));
+        ws.AppendChild(owner);
+        ws.AppendChild(dialog);
+        ws.AppendChild(other);
+        dialog.Focus();
+        new LayoutEngine().Arrange(root);
+
+        var windows = new FakeWindowSystem();
+        new Reconciler(windows).Apply(root);
+
+        // the owner of the focused dialog must NOT be cloaked (cloak cascades
+        // owner→owned and would hide the dialog); an unrelated non-focused tab
+        // still is
+        windows.Shown.ShouldContain(new WindowId(2));
+        windows.Hidden.ShouldNotContain(new WindowId(1));
+        windows.Hidden.ShouldContain(new WindowId(3));
+    }
+
+    [Fact]
+    public void TabbedWorkspace_UncloaksTheOwnerWhenItsDialogBecomesFocused()
+    {
+        var root = new RootContainer();
+        var monitor = new Monitor(new Rect(0, 0, 1920, 1080));
+        var ws = new Workspace("1", Layout.Tabbed);
+        monitor.AppendChild(ws);
+        root.AppendChild(monitor);
+
+        var owner = new TilingWindow(new WindowId(1));
+        var dialog = new TilingWindow(new WindowId(2), owner: new WindowId(1));
+        var other = new TilingWindow(new WindowId(3));
+        ws.AppendChild(owner);
+        ws.AppendChild(dialog);
+        ws.AppendChild(other);
+
+        // Pass 1: focus the unrelated window — the owner becomes a non-focused
+        // tab and is cloaked (it owns no visible window at this point)
+        other.Focus();
+        new LayoutEngine().Arrange(root);
+        var first = new FakeWindowSystem();
+        new Reconciler(first).Apply(root);
+        first.Hidden.ShouldContain(new WindowId(1));
+
+        // Pass 2: focus the dialog — the owner must be uncloaked (shown), not
+        // just left un-hidden, so DWM doesn't keep the dialog hidden through
+        // the owner relationship
+        dialog.Focus();
+        new LayoutEngine().Arrange(root);
+        var second = new FakeWindowSystem();
+        new Reconciler(second).Apply(root);
+        second.Shown.ShouldContain(new WindowId(2));
+        second.Shown.ShouldContain(new WindowId(1));
+    }
 }

@@ -1,6 +1,7 @@
 using System.Threading;
 using Twm.Application.Coordination;
 using Twm.Application.OutboundPorts;
+using Twm.Domain.Tree;
 
 namespace Twm.App;
 
@@ -20,7 +21,9 @@ internal static class DiagnosticModes
         }
 
         Console.WriteLine("\n== Windows ==");
-        foreach (NativeWindowInfo window in windows.EnumerateWindows())
+        List<NativeWindowInfo> all = [.. windows.EnumerateWindows()];
+        Dictionary<WindowId, string> titleByWindow = all.ToDictionary(w => w.Id, w => w.Title);
+        foreach (NativeWindowInfo window in all)
         {
             string decision = filter.IsManageable(window) ? "MANAGE" : "ignore";
             string[] candidates =
@@ -38,7 +41,17 @@ internal static class DiagnosticModes
             ];
             string flags = string.Join(',', candidates.Where(f => f.Length > 0));
             string suffix = flags.Length > 0 ? $"  {{{flags}}}" : "";
-            Console.WriteLine($"  [{decision}] {window.ClassName, -28} \"{window.Title}\"{suffix}");
+            string ownerText = "";
+            if (window.Owner is WindowId owner)
+            {
+                string ownerSuffix = titleByWindow.TryGetValue(owner, out string? ownerTitle)
+                    ? $" (\"{ownerTitle}\")"
+                    : "";
+                ownerText = $"0x{owner.Value:X}{ownerSuffix}";
+            }
+            Console.WriteLine(
+                $"  [{decision}] {window.ClassName, -28} \"{window.Title}\" 0x{window.Id.Value:X} owner={ownerText}{suffix}"
+            );
         }
 
         return 0;

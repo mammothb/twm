@@ -27,5 +27,10 @@ public sealed record NativeWindowInfo(
     // WS_CAPTION|WS_EX_WINDOWEDGE). Default true so fakes/tests read as normal
     // windows; only the Win32 backend sets them per-window
     bool HasCaption = true,
-    bool HasWindowEdge = true
+    bool HasWindowEdge = true,
+    // The HWND of this window's owner (GW_OWNER), or null. Owned windows
+    // (modal dialogs, popups) are hidden by DWM when their owner is cloaked
+    // (their cloak becomes DWM_CLOAKED_SHELL). Read-only; only the Win32
+    // backend sets it.
+    WindowId? Owner = null
 );

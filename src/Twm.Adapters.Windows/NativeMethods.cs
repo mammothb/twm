@@ -379,16 +379,9 @@ internal static unsafe partial class NativeMethods
         return (style & WindowStyle.Child) != 0;
     }
 
-    internal static bool IsCloaked(nint window)
-    {
-        return DwmGetWindowAttribute(
-                window,
-                DwmWindowAttribute.Cloaked,
-                out int cloaked,
-                sizeof(int)
-            ) == 0
-            && cloaked != 0;
-    }
+    internal static bool IsCloaked(nint window) =>
+        DwmGetWindowAttribute(window, DwmWindowAttribute.Cloaked, out int cloaked, sizeof(int)) == 0
+        && cloaked != 0;
 
     /// <summary>
     /// Whether the window's process runs at a strictly higher integrity level
@@ -424,6 +417,17 @@ internal static unsafe partial class NativeMethods
         }
         var style = (WindowStyle)GetWindowLongPtrW(window, GetWindowLong.Style);
         return (style & WindowStyle.Caption) == 0;
+    }
+
+    /// <summary>
+    /// The HWND of this window's owner (GW_OWNER), or null when it has none.
+    /// Owned windows (modal dialogs, popups) are hidden by DWM when their
+    /// owner is cloaked (DWM_CLOAKED_INHERITED).
+    /// </summary>
+    internal static nint? GetOwner(nint window)
+    {
+        nint owner = GetWindow(window, GwOwner);
+        return owner == 0 ? null : owner;
     }
 
     internal static bool IsMinimized(nint window) => IsIconic(window);

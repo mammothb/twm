@@ -168,11 +168,13 @@ public sealed class WmSession
     }
 
     /// <summary>
-    /// Handles a hide/cloak/minimize event. A window the tree says should be
+    /// Handles a hide event (ObjectHide). A window the tree says should be
     /// <b>hidden</b> (an inactive workspace, or a non-focused tab) is one Twm
     /// itself cloaked -> ignored. A window the tree says should be
-    /// <b>visible</b> was hidden/minimized by the user -> removed from tiling
-    /// (otherwise it leaves a ghost tile). Returns whether it was removed.
+    /// <b>visible</b> was hidden by the user -> removed from tiling (otherwise
+    /// it leaves a ghost tile). Phase 4 tightens this to verify OS state.
+    /// Returns whether it was removed.
+    /// </summary>
     public bool HandleHidden(WindowId window)
     {
         TilingWindow? target = Root.FindWindow(window);
@@ -183,9 +185,47 @@ public sealed class WmSession
 
         bool removed = target.IsEffectivelyVisible() && Remove(window);
         Log.Line(
-            $"hidden 0x{window.Value:X}: {(removed ? "removed(user)" : "ignored (Twm cloak")}"
+            $"hidden 0x{window.Value:X}: {(removed ? "removed (user)" : "ignored (Twm cloak)")}"
         );
         return removed;
+    }
+
+    /// <summary>
+    /// Handles a minimize event (SystemMinimizeStart). A visible window the
+    /// user minimized is removed from tiling (otherwise it leaves a ghost
+    /// tile); a window Twm itself hid is ignored. Returns whether it was
+    /// removed.
+    /// </summary>
+    public bool HandleMinimized(WindowId window)
+    {
+        TilingWindow? target = Root.FindWindow(window);
+        if (target is null)
+        {
+            return false;
+        }
+
+        bool removed = target.IsEffectivelyVisible() && Remove(window);
+        Log.Line(
+            $"minimized 0x{window.Value:X}: {(removed ? "removed (user)" : "ignored (not visible)")}"
+        );
+        return removed;
+    }
+
+    /// <summary>
+    /// Handles a cloak event (ObjectCloaked). A cloak is never a user action:
+    /// it is Twm's own cloak of a non-visible window, or DWM cascading the
+    /// cloak to an owned window (e.g. the Eden Configuration dialog). Never
+    /// removes. Returns false.
+    /// </summary>
+    public bool HandleCloaked(WindowId window)
+    {
+        if (Root.FindWindow(window) is null)
+        {
+            return false;
+        }
+
+        Log.Line($"cloaked 0x{window.Value:X}: ignored (never remove on cloak)");
+        return false;
     }
 
     /// <summary>
@@ -237,7 +277,7 @@ public sealed class WmSession
     private void Adopt(NativeWindowInfo window)
     {
         Monitor monitor = MonitorRouter.Pick(Root, window.Bounds);
-        _bus.Invoke(new AdoptWindowCommand(window.Id, monitor));
+        _bus.Invoke(new AdoptWindowCommand(window.Id, monitor, window.Owner));
     }
 
     private void Apply()

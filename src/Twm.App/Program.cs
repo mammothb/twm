@@ -126,7 +126,7 @@ if (borderOptions.Enabled)
     session.Subscribe<LayoutChangedEvent>(_ => UpdateBorder());
 }
 
-TabBarManager tabBar = new TabBarManager(
+var tabBar = new TabBarManager(
     config.Tabs.Background,
     config.Tabs.Foreground,
     config.Tabs.ActiveBackground,
@@ -173,6 +173,15 @@ hook.Install(
                 {
                     Console.WriteLine($"unmanaged ({session.ManagedWindowCount} tiled)");
                 }
+                break;
+            case WindowEventKind.Minimized:
+                if (session.HandleMinimized(id))
+                {
+                    Console.WriteLine($"unmanaged ({session.ManagedWindowCount} tiled)");
+                }
+                break;
+            case WindowEventKind.Cloaked:
+                session.HandleCloaked(id);
                 break;
             case WindowEventKind.Foreground:
                 session.SyncFocus(id);

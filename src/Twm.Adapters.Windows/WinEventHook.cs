@@ -21,10 +21,21 @@ public enum WindowEventKind
     Destroyed,
 
     /// <summary>
-    /// A window was hidden, cloaked, or minimized, remove only if the user did
-    /// it.
+    /// A window was hidden (ObjectHide), remove only if the user did it.
     /// </summary>
     Hidden,
+
+    /// <summary>
+    /// A window was minimized (SystemMinimizeStart). A genuine user minimize
+    /// should remove the window from tiling.
+    /// </summary>
+    Minimized,
+
+    /// <summary>
+    /// A window was cloaked (ObjectCloaked) — Twm's own cloak or the DWM
+    /// cascade to owned windows; never a user action.
+    /// </summary>
+    Cloaked,
 
     /// <summary>
     /// The foreground window changed, sync tree focus to it.
@@ -94,8 +105,9 @@ public sealed unsafe partial class WinEventHook : IDisposable
             or WinEvent.ObjectUncloaked
             or WinEvent.SystemMinimizeEnd => WindowEventKind.Appeared,
             WinEvent.ObjectDestroy => WindowEventKind.Destroyed,
-            WinEvent.ObjectHide or WinEvent.ObjectCloaked or WinEvent.SystemMinimizeStart =>
-                WindowEventKind.Hidden,
+            WinEvent.ObjectHide => WindowEventKind.Hidden,
+            WinEvent.ObjectCloaked => WindowEventKind.Cloaked,
+            WinEvent.SystemMinimizeStart => WindowEventKind.Minimized,
             WinEvent.SystemForeground => WindowEventKind.Foreground,
             _ => null,
         };
