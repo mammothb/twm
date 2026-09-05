@@ -9,7 +9,7 @@ public class KeyChordParserTests
     [InlineData("$mod+shift+h", ModifierKeys.Alt | ModifierKeys.Shift, 'H')]
     [InlineData("$mod+ctrl+l", ModifierKeys.Alt | ModifierKeys.Control, 'L')]
     [InlineData("$mod+1", ModifierKeys.Alt, '1')]
-    [InlineData("ctrl+shift+f", ModifierKeys.Control | ModifierKeys.Alt, 'F')]
+    [InlineData("ctrl+shift+f", ModifierKeys.Control | ModifierKeys.Shift, 'F')]
     public void TryParse_ValidChord_WithAltMod(string chord, ModifierKeys mods, char key)
     {
         bool ok = KeyChordParser.TryParse(chord, ModifierKeys.Alt, out KeyBinding binding, out _);
