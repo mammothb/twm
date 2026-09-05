@@ -44,8 +44,7 @@ public sealed class WindowsWindowSystem : IWindowSystem
             IsLayered: NativeMethods.IsLayered(handle),
             HasCaption: NativeMethods.HasCaption(handle),
             HasWindowEdge: NativeMethods.HasWindowEdge(handle),
-            Owner: NativeMethods.GetOwner(handle) is nint owner ? new WindowId(owner) : null,
-            CloakValue: NativeMethods.GetCloakValue(handle)
+            Owner: NativeMethods.GetOwner(handle) is nint owner ? new WindowId(owner) : null
         );
     }
 

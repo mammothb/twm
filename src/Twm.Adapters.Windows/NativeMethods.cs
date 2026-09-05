@@ -384,17 +384,6 @@ internal static unsafe partial class NativeMethods
         && cloaked != 0;
 
     /// <summary>
-    /// The full DWMWA_CLOAKED value: 0 uncloaked, 1 cloaked by the app, 2
-    /// cloaked by the shell, 4 inherited from a cloaked owner. IsCloaked
-    /// collapses these to a bool; the full value distinguishes a cascade from
-    /// Twm's own cloak. Returns 0 when the attribute cannot be read.
-    /// </summary>
-    internal static int GetCloakValue(nint window) =>
-        DwmGetWindowAttribute(window, DwmWindowAttribute.Cloaked, out int cloaked, sizeof(int)) == 0
-            ? cloaked
-            : 0;
-
-    /// <summary>
     /// Whether the window's process runs at a strictly higher integrity level
     /// than Twm (so we can't reposition it), or whose integrity we cannot read
     /// (assumed higher). Comparing against our own level means an elevated Twm
