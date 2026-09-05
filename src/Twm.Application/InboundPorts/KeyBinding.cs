@@ -11,7 +11,7 @@ public enum ModifierKeys
     None = 0,
     Alt = 1, // MOD_ALT
     Control = 2, // MOD_CONTROL
-    Shift = 3, // MOD_SHIFT
+    Shift = 4, // MOD_SHIFT
     Windows = 8, // MOD_WIN
 }
 
