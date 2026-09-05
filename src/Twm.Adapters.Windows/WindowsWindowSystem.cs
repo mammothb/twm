@@ -1,7 +1,8 @@
-using Twm.Core.Geometry;
-using Twm.Core.Tree;
+using Twm.Application.OutboundPorts;
+using Twm.Domain.Geometry;
+using Twm.Domain.Tree;
 
-namespace Twm.Platform.Windows;
+namespace Twm.Adapters.Windows;
 
 /// <summary>
 /// The Win32 <see cref="IWindowSystem" />: enumerates top-level windows with

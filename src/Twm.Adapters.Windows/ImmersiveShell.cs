@@ -1,7 +1,7 @@
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
 
-namespace Twm.Platform.Windows;
+namespace Twm.Adapters.Windows;
 
 // Undocumented Windows shell COM used to cloak/uncloak foreign windows.
 //

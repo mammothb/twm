@@ -11,7 +11,7 @@ public sealed record WorkspaceItem(string Name, bool Active, bool Occupied);
 public sealed record MonitorBarView(
     int Index,
     IReadOnlyList<WorkspaceItem> Workspaces,
-    string? FocusedTile
+    string? FocusedTitle
 );
 
 /// <summary>The complete render model for all bars at a moment.</summary>

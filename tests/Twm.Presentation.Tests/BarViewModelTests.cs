@@ -80,11 +80,11 @@ public class BarViewModelTests
         MonitorBarView primary = snapshot.Monitors[0];
         primary.Workspaces.Single(w => w.Name == "1").Occupied.ShouldBeTrue();
         primary.Workspaces.Single(w => w.Name == "3").Occupied.ShouldBeFalse();
-        primary.FocusedTile.ShouldBe("win2");
+        primary.FocusedTitle.ShouldBe("win2");
 
         MonitorBarView secondary = snapshot.Monitors[1];
         secondary.Workspaces.Single(w => w.Name == "2").Occupied.ShouldBeTrue();
-        secondary.FocusedTile.ShouldBe("win3");
+        secondary.FocusedTitle.ShouldBe("win3");
     }
 
     [Fact]
@@ -103,6 +103,6 @@ public class BarViewModelTests
         WorkspaceItem empty = primary.Workspaces.Single(w => w.Name == "3");
         empty.Active.ShouldBeTrue();
         empty.Occupied.ShouldBeFalse();
-        primary.FocusedTile.ShouldBeNull();
+        primary.FocusedTitle.ShouldBeNull();
     }
 }

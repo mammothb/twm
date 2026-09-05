@@ -1,6 +1,6 @@
 using System.Runtime.InteropServices;
 
-namespace Twm.Platform.Windows;
+namespace Twm.Adapters.Windows;
 
 /// <summary>
 /// The Win32 message pump for the WM thread. A thread-message is sufficient,
@@ -56,7 +56,7 @@ public static partial class MessageLoop
 
     [LibraryImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
-    private static partial bool KillTimer(nint hWnd, nuint uIdEvent);
+    private static partial bool KillTimer(nint hWnd, nuint uIDEvent);
 
     [LibraryImport("user32.dll")]
     private static partial void PostQuitMessage(int nExitCode);
@@ -65,7 +65,7 @@ public static partial class MessageLoop
     [return: MarshalAs(UnmanagedType.Bool)]
     private static partial bool PostThreadMessageW(
         uint idThread,
-        uint msg,
+        uint Msg,
         nint wParam,
         nint lParam
     );
@@ -73,7 +73,7 @@ public static partial class MessageLoop
     [LibraryImport("user32.dll")]
     private static partial nuint SetTimer(
         nint hWnd,
-        nuint nIdEvent,
+        nuint nIDEvent,
         uint uElapse,
         nint lpTimerFunc
     );
