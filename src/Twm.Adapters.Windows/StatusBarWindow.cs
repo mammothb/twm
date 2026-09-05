@@ -130,6 +130,8 @@ public sealed unsafe partial class StatusBarWindow : IDisposable
             wc.ClassName = cls;
             RegisterClassExW(in wc);
         }
+
+        s_classRegistered = true;
     }
 
     [UnmanagedCallersOnly]

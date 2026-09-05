@@ -28,7 +28,7 @@ internal static unsafe partial class NativeMethods
         public uint Style;
         public delegate* unmanaged<nint, uint, nint, nint, nint> WndProc;
         public int ClsExtra;
-        public nint WndExtra;
+        public int WndExtra;
         public nint Instance;
         public nint Icon;
         public nint Cursor;
