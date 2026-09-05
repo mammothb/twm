@@ -196,6 +196,8 @@ hook.Install(
                 }
                 break;
             case WindowEventKind.Hidden:
+            case WindowEventKind.Minimized:
+            case WindowEventKind.Cloaked:
                 if (session.HandleHidden(id))
                 {
                     Console.WriteLine($"unmanaged ({session.ManagedWindowCount} tiled)");
