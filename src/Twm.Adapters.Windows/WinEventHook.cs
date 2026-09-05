@@ -41,6 +41,7 @@ public enum WindowEventKind
 /// </summary>
 public sealed unsafe partial class WinEventHook : IDisposable
 {
+    private static WinEventHook? s_owner;
     private static Action<WindowEventKind, WindowId>? s_handler;
 
     private readonly List<nint> _hooks = [];
@@ -112,6 +113,13 @@ public sealed unsafe partial class WinEventHook : IDisposable
     public void Install(Action<WindowEventKind, WindowId> handler)
     {
         ArgumentNullException.ThrowIfNull(handler);
+        // The WinEvent callback is static, so the handler is process-wide, only
+        // one hook set may be installed at a time
+        if (s_owner is not null)
+        {
+            throw new InvalidOperationException("A WinEventHook is already installed");
+        }
+        s_owner = this;
         s_handler = handler;
 
         const WinEventFlags flags = WinEventFlags.OutOfContext | WinEventFlags.SkipOwnProcess;
@@ -168,7 +176,13 @@ public sealed unsafe partial class WinEventHook : IDisposable
         }
 
         _hooks.Clear();
-        s_handler = null;
+        // Only the installing instance clears the shared handler/owner, so a
+        // stray Dispose on a non-owner can't disable live hooks
+        if (ReferenceEquals(s_owner, this))
+        {
+            s_owner = null;
+            s_handler = null;
+        }
     }
 
     /// <summary>WinEvent constants this hook subscribes to.</summary>

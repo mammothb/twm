@@ -29,13 +29,4 @@ hooks = [
     files = "\\.cs$",
     pass_filenames = false,
   },
-  {
-    id = "roslynator",
-    name = "roslynator analyze",
-    language = "system",
-    entry = "dotnet",
-    args = ["roslynator", "analyze", "Twm.slnx", "--severity-level", "warning", "--ignore-compiler-diagnostics"],
-    files = "\\.cs$",
-    pass_filenames = false,
-  },
 ]
