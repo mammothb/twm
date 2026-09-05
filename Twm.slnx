@@ -3,6 +3,7 @@
     <Project Path="src/Twm.Adapters.Config/Twm.Adapters.Config.csproj" />
     <Project Path="src/Twm.Adapters.Ipc/Twm.Adapters.Ipc.csproj" />
     <Project Path="src/Twm.Adapters.Windows/Twm.Adapters.Windows.csproj" />
+    <Project Path="src/Twm.App/Twm.App.csproj" />
     <Project Path="src/Twm.Application/Twm.Application.csproj" />
     <Project Path="src/Twm.Domain/Twm.Domain.csproj" />
     <Project Path="src/Twm.Msg/Twm.Msg.csproj" />

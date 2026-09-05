@@ -48,7 +48,7 @@ public sealed class WindowsWindowSystem : IWindowSystem
     }
 
     /// <summary>The current title text of a window.</summary>
-    public static string GetTitle(WindowId window) => NativeMethods.GetWindowText(window.Value);
+    public string GetTitle(WindowId window) => NativeMethods.GetWindowText(window.Value);
 
     public void Close(WindowId window) => NativeMethods.Close(window.Value);
 
