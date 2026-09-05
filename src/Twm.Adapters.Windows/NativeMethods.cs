@@ -14,82 +14,11 @@ namespace Twm.Adapters.Windows;
 /// </summary>
 internal static unsafe partial class NativeMethods
 {
-    // GetWindowLongPtr index for the base style
-    private const int GwlStyle = -16;
-
-    // GetWindowLongPtr index for the extended style
-    private const int GwlExStyle = -20;
-
-    // WS_CAPTION (has a title bar)
-    private const long WsCaption = 0x00C00000;
-
-    // WS_CHILD
-    private const long WsChild = 0x40000000;
-
-    // WS_EX_LAYERED
-    private const long WsExLayered = 0x00080000;
-
-    // WS_EX_NO_ACTIVATE
-    private const long WsExNoActivate = 0x08000000;
-
-    // WS_EX_TOOLWINDOW
-    private const long WsExToolWindow = 0x00000080;
-
-    // WS_EX_TOPMOST
-    private const long WsExTopmost = 0x00000008;
-
-    // WS_EX_WINDOWEDGE (normal top-level app frame)
-    private const long WsExWindowEdge = 0x00000100;
-
     // GW_OWNER
     private const uint GwOwner = 4;
 
-    // DWMWA_CLOAKED
-    private const uint DwmwaCloaked = 14;
-
-    // DWMWA_EXTENDED_FRAME_BOUNDS
-    private const uint DwmwaExtendedFrameBounds = 9;
-
     // MONITORINFOF_PRIMARY
     private const uint MonitorinfofPrimary = 0x00000001;
-
-    // SWP_FRAMECHANGED
-    private const uint SwpFrameChanged = 0x0020;
-
-    // SWP_NOACTIVATE
-    private const uint SwpNoActivate = 0x0010;
-
-    // SWP_NOCOPYBITS
-    private const uint SwpNoCopyBits = 0x0100;
-
-    // SWP_NOMOVE
-    private const uint SwpNoMove = 0x0002;
-
-    // SWP_NOOWNERZORDER
-    private const uint SwpNoOwnerZorder = 0x0200;
-
-    // SWP_NOSENDCHANGING
-    private const uint SwpNoSendChanging = 0x0400;
-
-    // SWP_NOSIZE
-    private const uint SwpNoSize = 0x0001;
-
-    // SWP_NOZORDER
-    private const uint SwpNoZorder = 0x0004;
-
-    private const uint SwpTileFlags =
-        SwpFrameChanged
-        | SwpNoActivate
-        | SwpNoCopyBits
-        | SwpNoOwnerZorder
-        | SwpNoSendChanging
-        | SwpNoZorder;
-
-    // SW_RESTORE
-    private const int SwRestore = 9;
-
-    // WM_CLOSE
-    private const uint WmClose = 0x0010;
 
     // SPI_SETFOREGROUNDLOCKTIMEOUT
     private const uint SpiSetForegroundLockTimeout = 0x2001;
@@ -118,7 +47,7 @@ internal static unsafe partial class NativeMethods
     private static readonly Lazy<int> s_ourIntegrityRid = new(ComputeOurIntegrityRid);
 
     [StructLayout(LayoutKind.Sequential)]
-    private struct Rectangle
+    private struct Rect32
     {
         public int Left;
         public int Top;
@@ -130,8 +59,8 @@ internal static unsafe partial class NativeMethods
     private struct MonitorInfoData
     {
         public int CbSize;
-        public Rectangle Monitor;
-        public Rectangle Work;
+        public Rect32 Monitor;
+        public Rect32 Work;
         public uint Flags;
     }
 
@@ -169,11 +98,11 @@ internal static unsafe partial class NativeMethods
     private static partial nint GetWindow(nint hWnd, uint uCmd);
 
     [LibraryImport("user32.dll")]
-    private static partial nint GetWindowLongPtrW(nint hWnd, int nIndex);
+    private static partial nint GetWindowLongPtrW(nint hWnd, GetWindowLong nIndex);
 
     [LibraryImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
-    private static partial bool GetWindowRect(nint hWnd, out Rectangle lpRect);
+    private static partial bool GetWindowRect(nint hWnd, out Rect32 lpRect);
 
     [LibraryImport("user32.dll")]
     private static partial int GetWindowTextW(nint hWnd, char* lpString, int nMaxCount);
@@ -195,7 +124,12 @@ internal static unsafe partial class NativeMethods
 
     [LibraryImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
-    private static partial bool PostMessageW(nint hWnd, uint Msg, nint wParam, nint lParam);
+    private static partial bool PostMessageW(
+        nint hWnd,
+        WindowMessage Msg,
+        nint wParam,
+        nint lParam
+    );
 
     [LibraryImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
@@ -214,12 +148,12 @@ internal static unsafe partial class NativeMethods
         int y,
         int cx,
         int cy,
-        uint uFlags
+        SetWindowPosFlags uFlags
     );
 
     [LibraryImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
-    private static partial bool ShowWindow(nint hWnd, int nCmdShow);
+    private static partial bool ShowWindow(nint hWnd, ShowWindowCommand nCmdShow);
 
     [LibraryImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
@@ -291,7 +225,7 @@ internal static unsafe partial class NativeMethods
     [LibraryImport("dwmapi.dll")]
     private static partial int DwmGetWindowAttribute(
         nint hWnd,
-        uint dwAttribute,
+        DwmWindowAttribute dwAttribute,
         out int pvAttribute,
         int cbAttribute
     );
@@ -299,8 +233,8 @@ internal static unsafe partial class NativeMethods
     [LibraryImport("dwmapi.dll", EntryPoint = "DwmGetWindowAttribute")]
     private static partial int DwmGetWindowFrameBounds(
         nint hWnd,
-        uint dwAttribute,
-        out Rectangle pvAttribute,
+        DwmWindowAttribute dwAttribute,
+        out Rect32 pvAttribute,
         int cbAttribute
     );
 
@@ -380,7 +314,7 @@ internal static unsafe partial class NativeMethods
     }
 
     internal static Rect GetBounds(nint window) =>
-        GetWindowRect(window, out Rectangle rect) ? ToRect(rect) : default;
+        GetWindowRect(window, out Rect32 rect) ? ToRect(rect) : default;
 
     internal static string GetClassName(nint window)
     {
@@ -406,20 +340,28 @@ internal static unsafe partial class NativeMethods
 
     internal static void ClearTopmostIfSet(nint window)
     {
-        long exStyle = GetWindowLongPtrW(window, GwlExStyle);
-        if ((exStyle & WsExTopmost) != 0)
+        var exStyle = (ExtendedWindowStyle)GetWindowLongPtrW(window, GetWindowLong.ExStyle);
+        if ((exStyle & ExtendedWindowStyle.Topmost) != 0)
         {
             // HWND_NOTOPMOST == (HWND)-2; keep activation/position/size, only
             // change the z-band
-            SetWindowPos(window, (nint)(-2), 0, 0, 0, 0, SwpNoActivate | SwpNoMove | SwpNoSize);
+            SetWindowPos(
+                window,
+                (nint)(-2),
+                0,
+                0,
+                0,
+                0,
+                SetWindowPosFlags.NoActivate | SetWindowPosFlags.NoMove | SetWindowPosFlags.NoSize
+            );
         }
     }
 
     /// <summary>WS_CAPTION set: the window has a real title bar.</summary>
     internal static bool HasCaption(nint window)
     {
-        long style = GetWindowLongPtrW(window, GwlStyle);
-        return (style & WsCaption) == 0;
+        var style = (WindowStyle)GetWindowLongPtrW(window, GetWindowLong.Style);
+        return (style & WindowStyle.Caption) == WindowStyle.Caption;
     }
 
     /// <summary>
@@ -427,19 +369,24 @@ internal static unsafe partial class NativeMethods
     /// </summary>
     internal static bool HasWindowEdge(nint window)
     {
-        long exStyle = GetWindowLongPtrW(window, GwlExStyle);
-        return (exStyle & WsExWindowEdge) != 0;
+        var exStyle = (ExtendedWindowStyle)GetWindowLongPtrW(window, GetWindowLong.ExStyle);
+        return (exStyle & ExtendedWindowStyle.WindowEdge) != 0;
     }
 
     internal static bool IsChildWindow(nint window)
     {
-        long style = GetWindowLongPtrW(window, GwlStyle);
-        return (style & WsChild) != 0;
+        var style = (WindowStyle)GetWindowLongPtrW(window, GetWindowLong.Style);
+        return (style & WindowStyle.Child) != 0;
     }
 
     internal static bool IsCloaked(nint window)
     {
-        return DwmGetWindowAttribute(window, DwmwaCloaked, out int cloaked, sizeof(int)) == 0
+        return DwmGetWindowAttribute(
+                window,
+                DwmWindowAttribute.Cloaked,
+                out int cloaked,
+                sizeof(int)
+            ) == 0
             && cloaked != 0;
     }
 
@@ -461,8 +408,8 @@ internal static unsafe partial class NativeMethods
     /// </summary>
     internal static bool IsLayered(nint window)
     {
-        long exStyle = GetWindowLongPtrW(window, GwlExStyle);
-        return (exStyle & WsExLayered) != 0;
+        var exStyle = (ExtendedWindowStyle)GetWindowLongPtrW(window, GetWindowLong.ExStyle);
+        return (exStyle & ExtendedWindowStyle.Layered) != 0;
     }
 
     /// <summary>
@@ -475,22 +422,22 @@ internal static unsafe partial class NativeMethods
         {
             return false;
         }
-        long style = GetWindowLongPtrW(window, GwlStyle);
-        return (style & WsCaption) != 0;
+        var style = (WindowStyle)GetWindowLongPtrW(window, GetWindowLong.Style);
+        return (style & WindowStyle.Caption) == 0;
     }
 
     internal static bool IsMinimized(nint window) => IsIconic(window);
 
     internal static bool IsNoActivate(nint window)
     {
-        long exStyle = GetWindowLongPtrW(window, GwlExStyle);
-        return (exStyle & WsExNoActivate) != 0;
+        var exStyle = (ExtendedWindowStyle)GetWindowLongPtrW(window, GetWindowLong.ExStyle);
+        return (exStyle & ExtendedWindowStyle.NoActivate) != 0;
     }
 
     internal static bool IsToolWindow(nint window)
     {
-        long exStyle = GetWindowLongPtrW(window, GwlExStyle);
-        return (exStyle & WsExToolWindow) != 0;
+        var exStyle = (ExtendedWindowStyle)GetWindowLongPtrW(window, GetWindowLong.ExStyle);
+        return (exStyle & ExtendedWindowStyle.ToolWindow) != 0;
     }
 
     internal static bool IsVisible(nint window) => IsWindowVisible(window);
@@ -505,7 +452,7 @@ internal static unsafe partial class NativeMethods
     // AttachConsole fails and we ignore it
     internal static void AttachParentConsole() => AttachConsole(AttachParentProcess);
 
-    internal static void Close(nint window) => PostMessageW(window, WmClose, 0, 0);
+    internal static void Close(nint window) => PostMessageW(window, WindowMessage.Close, 0, 0);
 
     // Setting the foreground lock timeout to 0 lets keyboard-driven
     // SetForegroundWindow actually activate the target window instead of only
@@ -532,7 +479,7 @@ internal static unsafe partial class NativeMethods
         // via SetWindowPos; restore it to a normal window first
         if (IsZoomed(window))
         {
-            ShowWindow(window, SwRestore);
+            ShowWindow(window, ShowWindowCommand.Restore);
         }
 
         // GetWindowRect includes the invisible DWM resize border;
@@ -540,12 +487,12 @@ internal static unsafe partial class NativeMethods
         // target by their difference so adjacent windows' visible edges align
         // instead of gapping/overlapping
         if (
-            GetWindowRect(window, out Rectangle outer)
+            GetWindowRect(window, out Rect32 outer)
             && DwmGetWindowFrameBounds(
                 window,
-                DwmwaExtendedFrameBounds,
-                out Rectangle visible,
-                sizeof(Rectangle)
+                DwmWindowAttribute.ExtendedFrameBounds,
+                out Rect32 visible,
+                sizeof(Rect32)
             ) == 0
         )
         {
@@ -561,7 +508,7 @@ internal static unsafe partial class NativeMethods
                 y: bounds.Y - top,
                 cx: bounds.Width + left + right,
                 cy: bounds.Height + top + bottom,
-                uFlags: SwpTileFlags
+                uFlags: SetWindowPosFlags.Tile
             );
             return;
         }
@@ -572,7 +519,7 @@ internal static unsafe partial class NativeMethods
             y: bounds.Y,
             cx: bounds.Width,
             cy: bounds.Height,
-            uFlags: SwpTileFlags
+            uFlags: SetWindowPosFlags.Tile
         );
     }
 
@@ -659,6 +606,5 @@ internal static unsafe partial class NativeMethods
         }
     }
 
-    private static Rect ToRect(Rectangle r) =>
-        new(r.Left, r.Top, r.Right - r.Left, r.Bottom - r.Top);
+    private static Rect ToRect(Rect32 r) => new(r.Left, r.Top, r.Right - r.Left, r.Bottom - r.Top);
 }
