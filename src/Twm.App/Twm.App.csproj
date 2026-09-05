@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\Twm.Domain\Twm.Domain.csproj" />
+    <ProjectReference Include="..\Twm.Application\Twm.Application.csproj" />
+    <ProjectReference Include="..\Twm.Presentation\Twm.Presentation.csproj" />
+    <ProjectReference Include="..\Twm.Adapters.Config\Twm.Adapters.Config.csproj" />
+    <ProjectReference Include="..\Twm.Adapters.Windows\Twm.Adapters.Windows.csproj" />
+    <ProjectReference Include="..\Twm.Adapters.Ipc\Twm.Adapters.Ipc.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <AssemblyName>twm</AssemblyName>
+    <Version>0.1.0</Version>
+    <Product>Twm</Product>
+    <AssemblyTitle>Twm - tiling window manager</AssemblyTitle>
+    <EnableAotAnalyzer>true</EnableAotAnalyzer>
+    <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+    <EnableSingleFileAnalyzer>true</EnableSingleFileAnalyzer>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <WarningsNotAsErrors>$(WarningsNotAsErrors);IL2104;IL3053</WarningsNotAsErrors>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <TrimmerRootAssembly Include="VYaml" />
+    <TrimmerRootAssembly Include="Twm.Adapters.Config" />
+  </ItemGroup>
+</Project>
