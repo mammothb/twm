@@ -108,10 +108,11 @@ public sealed unsafe partial class StatusBarWindow : IDisposable
 
         fixed (char* cls = ClassName)
         {
-            UnregisterClassW(cls, GetModuleHandleW(null));
+            if (UnregisterClassW(cls, GetModuleHandleW(null)))
+            {
+                s_classRegistered = false;
+            }
         }
-
-        s_classRegistered = false;
     }
 
     private static void EnsureClassRegistered()
