@@ -7,7 +7,8 @@ namespace Twm.Application.Commands;
 /// <summary>
 /// Brings a new OS window under management on the given monitor.
 /// </summary>
-public sealed record AdoptWindowCommand(WindowId WindowId, Monitor Monitor) : ICommand;
+public sealed record AdoptWindowCommand(WindowId WindowId, Monitor Monitor, WindowId? Owner = null)
+    : ICommand;
 
 public sealed class AdoptWindowHandler(RootContainer root, LayoutEngine layout)
     : TreeCommandHandler<AdoptWindowCommand>(root, layout)
@@ -21,7 +22,7 @@ public sealed class AdoptWindowHandler(RootContainer root, LayoutEngine layout)
             return CommandResult.Fail("Monitor has no workspace to adopt into.");
         }
 
-        TilingWindow window = workspace.Adopt(command.WindowId);
+        TilingWindow window = workspace.Adopt(command.WindowId, command.Owner);
         window.Focus();
         Rearrange();
         return CommandResult.Ok;

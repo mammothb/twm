@@ -277,7 +277,7 @@ public sealed class WmSession
     private void Adopt(NativeWindowInfo window)
     {
         Monitor monitor = MonitorRouter.Pick(Root, window.Bounds);
-        _bus.Invoke(new AdoptWindowCommand(window.Id, monitor));
+        _bus.Invoke(new AdoptWindowCommand(window.Id, monitor, window.Owner));
     }
 
     private void Apply()

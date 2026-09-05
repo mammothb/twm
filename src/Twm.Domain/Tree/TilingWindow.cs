@@ -1,10 +1,18 @@
 namespace Twm.Domain.Tree;
 
 /// <summary>A leaf container wrapping a single managed OS window.</summary>
-public sealed class TilingWindow(WindowId windowId) : Container
+public sealed class TilingWindow(WindowId windowId, WindowId? owner = null) : Container
 {
     /// <summary>The identity of the wrapped OS window.</summary>
     public WindowId WindowId { get; } = windowId;
+
+    /// <summary>
+    /// The id of this window's owner (GW_OWNER on Windows), or null. The
+    /// reconciler uses it to avoid cloaking a window that owns a visible one —
+    /// DWM cloak cascades owner→owned, so cloaking an owner would hide its
+    /// modal dialog too.
+    /// </summary>
+    public WindowId? Owner { get; } = owner;
 
     /// <summary>
     /// Whether this window should currently be shown on screen: it is on its

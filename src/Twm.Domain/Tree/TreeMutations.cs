@@ -96,10 +96,14 @@ public static class TreeMutations
     /// window or filling the workspace when empty. Returns the new window (not
     /// yet focused).
     /// </summary>
-    public static TilingWindow Adopt(this Workspace workspace, WindowId windowId)
+    public static TilingWindow Adopt(
+        this Workspace workspace,
+        WindowId windowId,
+        WindowId? owner = null
+    )
     {
         ArgumentNullException.ThrowIfNull(workspace);
-        var window = new TilingWindow(windowId);
+        var window = new TilingWindow(windowId, owner);
 
         // Open next to the workspace's focused window, i3-style; otherwise fill
         // the workspace
