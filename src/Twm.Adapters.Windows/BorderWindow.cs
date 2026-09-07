@@ -60,8 +60,13 @@ public sealed unsafe partial class BorderWindow : IDisposable
     /// </summary>
     public void MoveTo(Rect frame)
     {
-        if (_hWnd == 0 || frame.Width <= 0 || frame.Height <= 0)
+        if (_hWnd == 0)
         {
+            return;
+        }
+        if (frame.Width <= 0 || frame.Height <= 0)
+        {
+            Hide();
             return;
         }
 
@@ -136,10 +141,12 @@ public sealed unsafe partial class BorderWindow : IDisposable
 
         // Premultiplied BGRA. Alpha 255 -> RGB unchanged; the COLORREF is
         // 0x00BBGGRR.
+        byte* px = (byte*)bits;
+        NativeMemory.Clear(px, (nuint)width * (nuint)height * 4);
+
         byte b = (byte)((_color >> 16) & 0xFF);
         byte g = (byte)((_color >> 8) & 0xFF);
         byte r = (byte)(_color & 0xFF);
-        byte* px = (byte*)bits;
         for (int i = 0; i < height; i++)
         {
             bool isEdgeRow = i < band || i >= height - band;
