@@ -28,6 +28,7 @@ public sealed class WindowsWindowSystem : IWindowSystem
     public NativeWindowInfo Describe(WindowId window)
     {
         nint handle = window.Value;
+        nint? owner = NativeMethods.GetOwner(handle);
         return new NativeWindowInfo(
             Id: window,
             Title: NativeMethods.GetWindowText(handle),
@@ -44,7 +45,12 @@ public sealed class WindowsWindowSystem : IWindowSystem
             IsLayered: NativeMethods.IsLayered(handle),
             HasCaption: NativeMethods.HasCaption(handle),
             HasWindowEdge: NativeMethods.HasWindowEdge(handle),
-            Owner: NativeMethods.GetOwner(handle) is nint owner ? new WindowId(owner) : null
+            Owner: owner is nint o ? new WindowId(o) : null,
+            IsDlgModalFrame: NativeMethods.IsDlgModalFrame(handle),
+            ProcessId: (int)NativeMethods.GetProcessId(handle),
+            ProcessName: NativeMethods.GetProcessName(handle),
+            OwnerClass: owner is nint oc ? NativeMethods.GetClassName(oc) : null,
+            OwnerProcessName: owner is nint op ? NativeMethods.GetProcessName(op) : null
         );
     }
 

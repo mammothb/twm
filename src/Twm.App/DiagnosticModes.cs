@@ -22,7 +22,7 @@ internal static class DiagnosticModes
 
         Console.WriteLine("\n== Windows ==");
         List<NativeWindowInfo> all = [.. windows.EnumerateWindows()];
-        Dictionary<WindowId, string> titleByWindow = all.ToDictionary(w => w.Id, w => w.Title);
+        Dictionary<WindowId, NativeWindowInfo> byWindow = all.ToDictionary(w => w.Id);
         foreach (NativeWindowInfo window in all)
         {
             string decision = filter.IsManageable(window) ? "MANAGE" : "ignore";
@@ -30,8 +30,9 @@ internal static class DiagnosticModes
             [
                 !window.HasCaption ? "nocaption" : "",
                 !window.HasWindowEdge ? "nowindowedge" : "",
+                window.IsDlgModalFrame ? "dlgmodalframe" : "",
                 window.IsLayered ? "layered" : "",
-                window.IsToolWindow ? "noactivate" : "",
+                window.IsToolWindow ? "tool" : "",
                 window.IsChild ? "child" : "",
                 window.IsNoActivate ? "noactivate" : "",
                 window.IsMenuPopup ? "menu" : "",
@@ -40,17 +41,32 @@ internal static class DiagnosticModes
                 window.IsElevated ? "elevated" : "",
             ];
             string flags = string.Join(',', candidates.Where(f => f.Length > 0));
-            string suffix = flags.Length > 0 ? $"  {{{flags}}}" : "";
+            string flagSuffix = flags.Length > 0 ? $"  {{{flags}}}" : "";
+            string exeSuffix = window.ProcessName is not null
+                ? $"  pid={window.ProcessId} exe={window.ProcessName}"
+                : "";
             string ownerText = "";
             if (window.Owner is WindowId owner)
             {
-                string ownerSuffix = titleByWindow.TryGetValue(owner, out string? ownerTitle)
-                    ? $" (\"{ownerTitle}\")"
-                    : "";
-                ownerText = $"0x{owner.Value:X}{ownerSuffix}";
+                string ownerTitle = "";
+                string ownerExe = "";
+                string ownerClass = "";
+                if (byWindow.TryGetValue(owner, out NativeWindowInfo? ownerInfo))
+                {
+                    ownerTitle = ownerInfo.Title;
+                    if (ownerInfo.ProcessName is not null)
+                    {
+                        ownerExe = $" exe={ownerInfo.ProcessName}";
+                    }
+                    if (ownerInfo.ClassName is not null)
+                    {
+                        ownerClass = $" class={ownerInfo.ClassName}";
+                    }
+                }
+                ownerText = $"0x{owner.Value:X} (\"{ownerTitle}\"{ownerExe}{ownerClass})";
             }
             Console.WriteLine(
-                $"  [{decision}] {window.ClassName, -28} \"{window.Title}\" 0x{window.Id.Value:X} owner={ownerText}{suffix}"
+                $"  [{decision}] {window.ClassName, -28} \"{window.Title}\" 0x{window.Id.Value:X} owner={ownerText}{exeSuffix}{flagSuffix}"
             );
         }
 

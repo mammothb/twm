@@ -32,5 +32,22 @@ public sealed record NativeWindowInfo(
     // (modal dialogs, popups) are hidden by DWM when their owner is cloaked
     // (their cloak becomes DWM_CLOAKED_SHELL). Read-only; only the Win32
     // backend sets it.
-    WindowId? Owner = null
+    WindowId? Owner = null,
+    // WS_EX_DLGMODALFRAME: thin/double dialog border. Komorebi treats this as
+    // ineligible for tiling; twm currently does not. Surface it so the
+    // divergence is diagnosable in `twm --dump`. Default false for test fakes.
+    bool IsDlgModalFrame = false,
+    // The owning process's PID. 0 when the Win32 backend couldn't resolve it.
+    int ProcessId = 0,
+    // The owning process's exe basename (e.g. "KeePass.exe"), or null when
+    // the backend couldn't open the process (elevated, etc.). Default null
+    // for test fakes; the Win32 backend fills it via QueryFullProcessImageName.
+    string? ProcessName = null,
+    // Owner's window class name, or null when there's no owner or the Win32
+    // backend couldn't resolve it. Read by `twm --dump` to correlate
+    // owner/owned pairs at a glance.
+    string? OwnerClass = null,
+    // Owner's exe basename, or null when there's no owner or the backend
+    // couldn't resolve it. Companion to OwnerClass.
+    string? OwnerProcessName = null
 );

@@ -190,6 +190,15 @@ internal static unsafe partial class NativeMethods
         uint dwProcessId
     );
 
+    [LibraryImport("kernel32.dll", EntryPoint = "QueryFullProcessImageNameW")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool QueryFullProcessImageNameW(
+        nint hProcess,
+        uint dwFlags,
+        char* lpExeName,
+        ref uint lpdwSize
+    );
+
     // ========================================================================
     // advapi32.dll
     // ========================================================================
@@ -442,6 +451,75 @@ internal static unsafe partial class NativeMethods
     {
         var exStyle = (ExtendedWindowStyle)GetWindowLongPtrW(window, GetWindowLong.ExStyle);
         return (exStyle & ExtendedWindowStyle.ToolWindow) != 0;
+    }
+
+    /// <summary>
+    /// WS_EX_DLGMODALFRAME: a thin/double border typical of dialog templates and
+    /// WinForms <c>FormBorderStyle.FixedDialog|Fixed3D|FixedSingle</c>. Komorebi
+    /// treats this as ineligible for tiling; twm currently does not check it,
+    /// which is why some apps (e.g. KeePass's document form) tile under twm but
+    /// float under komorebi. Surface it in <c>--dump</c> so the divergence is
+    /// diagnosable.
+    /// </summary>
+    internal static bool IsDlgModalFrame(nint window)
+    {
+        var exStyle = (ExtendedWindowStyle)GetWindowLongPtrW(window, GetWindowLong.ExStyle);
+        return (exStyle & ExtendedWindowStyle.DlgModalFrame) != 0;
+    }
+
+    /// <summary>
+    /// The PID of the process that owns this window (via
+    /// <c>GetWindowThreadProcessId</c>), or 0 if the call fails.
+    /// </summary>
+    internal static uint GetProcessId(nint window)
+    {
+        GetWindowThreadProcessId(window, out uint pid);
+        return pid;
+    }
+
+    /// <summary>
+    /// The exe basename of the process that owns this window (e.g.
+    /// <c>"KeePass.exe"</c>), or null if the PID can't be opened
+    /// (elevated/process exited). Uses <c>QueryFullProcessImageNameW</c>
+    /// rather than <see cref="System.Diagnostics.Process"/> so the lookup
+    /// doesn't keep a process handle around and doesn't race the process
+    /// exiting between calls.
+    /// </summary>
+    internal static string? GetProcessName(nint window)
+    {
+        GetWindowThreadProcessId(window, out uint processId);
+        if (processId == 0)
+        {
+            return null;
+        }
+
+        nint handle = OpenProcess(ProcessQueryLimitedInformation, false, processId);
+        if (handle == 0)
+        {
+            return null;
+        }
+
+        try
+        {
+            const int maxPath = 256;
+            Span<char> buffer = stackalloc char[maxPath];
+            uint size = maxPath;
+            fixed (char* p = buffer)
+            {
+                if (!QueryFullProcessImageNameW(handle, 0, p, ref size))
+                {
+                    return null;
+                }
+            }
+
+            string fullPath = new(buffer[..(int)size]);
+            int lastSlash = Math.Max(fullPath.LastIndexOf('\\'), fullPath.LastIndexOf('/'));
+            return lastSlash >= 0 ? fullPath[(lastSlash + 1)..] : fullPath;
+        }
+        finally
+        {
+            CloseHandle(handle);
+        }
     }
 
     internal static bool IsVisible(nint window) => IsWindowVisible(window);
