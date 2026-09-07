@@ -181,13 +181,7 @@ public sealed unsafe partial class StatusBarWindow : IDisposable
         nint accent = CreateSolidBrush(options.ActiveBackground);
         foreach (WorkspaceItem workspace in state.View.Workspaces)
         {
-            var chip = new Rect32
-            {
-                Left = x,
-                Top = 0,
-                Right = x + ChipWidth,
-                Bottom = client.Bottom,
-            };
+            var chip = new Rect32(x, 0, x + ChipWidth, client.Bottom);
             if (workspace.Active)
             {
                 FillRect(hdc, in chip, accent);
@@ -216,13 +210,12 @@ public sealed unsafe partial class StatusBarWindow : IDisposable
         {
             clockReserve = ClockWidth + RightPadding;
             SetTextColor(hdc, options.Foreground);
-            var clockRect = new Rect32
-            {
-                Left = client.Right - ClockWidth,
-                Top = 0,
-                Right = client.Right - RightPadding,
-                Bottom = client.Bottom,
-            };
+            var clockRect = new Rect32(
+                client.Right - ClockWidth,
+                0,
+                client.Right - RightPadding,
+                client.Bottom
+            );
             fixed (char* clock = state.Clock)
             {
                 DrawTextW(hdc, clock, state.Clock.Length, ref clockRect, DtClock);
@@ -231,13 +224,12 @@ public sealed unsafe partial class StatusBarWindow : IDisposable
 
         if (options.ShowTitle && !string.IsNullOrEmpty(state.View.FocusedTitle))
         {
-            var titleRect = new Rect32
-            {
-                Left = x + TitleGap,
-                Top = 0,
-                Right = client.Right - (clockReserve == 0 ? RightPadding : clockReserve),
-                Bottom = client.Bottom,
-            };
+            var titleRect = new Rect32(
+                x + TitleGap,
+                0,
+                client.Right - (clockReserve == 0 ? RightPadding : clockReserve),
+                client.Bottom
+            );
             SetTextColor(hdc, options.Foreground);
             fixed (char* title = state.View.FocusedTitle)
             {

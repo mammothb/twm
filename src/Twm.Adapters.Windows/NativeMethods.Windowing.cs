@@ -7,8 +7,48 @@ internal static unsafe partial class NativeMethods
     // TRANSPARENT
     internal const int BkModeTransparent = 1;
 
-    /// DEFAULT_GUI_FONT
+    // DEFAULT_GUI_FONT
     internal const int DefaultGuiFont = 17;
+
+    // DIB_RGB_COLORS
+    internal const uint DibRgbColors = 0;
+
+    // BI_RGB (uncompressed)
+    internal const uint BiRgb = 0;
+
+    // AC_SRC_OVER
+    internal const byte AcSrcOver = 0x00;
+
+    // AC_SRC_ALPHA (source as per-pixel alpha)
+    internal const byte AcSrcAlpha = 0x01;
+
+    // ULW_ALPHA
+    internal const uint UlwAlpha = 0x02;
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct BitmapInfoHeader
+    {
+        public uint Size;
+        public int Width;
+        public int Height;
+        public ushort Planes;
+        public ushort BitCount;
+        public uint Compression;
+        public uint SizeImage;
+        public int XPelsPerMeter;
+        public int YPelsPerMeter;
+        public uint ClrUsed;
+        public uint ClrImportant;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct BlendFunction
+    {
+        public byte BlendOp;
+        public byte BlendFlags;
+        public byte SourceConstantAlpha;
+        public byte AlphaFormat;
+    }
 
     [StructLayout(LayoutKind.Sequential)]
     internal struct PaintStruct
@@ -19,6 +59,20 @@ internal static unsafe partial class NativeMethods
         public int Restore;
         public int IncUpdate;
         public fixed byte Reserved[32];
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct Point32
+    {
+        public int X;
+        public int Y;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct Size32
+    {
+        public int Cx;
+        public int Cy;
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -88,6 +142,9 @@ internal static unsafe partial class NativeMethods
     internal static partial bool GetClientRect(nint hWnd, out Rect32 lpRect);
 
     [LibraryImport("user32.dll")]
+    internal static partial nint GetDC(nint hWnd);
+
+    [LibraryImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
     internal static partial bool InvalidateRect(
         nint hWnd,
@@ -117,6 +174,23 @@ internal static unsafe partial class NativeMethods
     internal static partial ushort RegisterClassExW(in WndClassExW lpwcx);
 
     [LibraryImport("user32.dll")]
+    internal static partial int ReleaseDC(nint hWnd, nint hDC);
+
+    [LibraryImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    internal static partial bool UpdateLayeredWindow(
+        nint hWnd,
+        nint hdcDst,
+        in Point32 pptDst,
+        in Size32 psize,
+        nint hdcSrc,
+        in Point32 pptSrc,
+        uint crKey,
+        in BlendFunction pblend,
+        uint dwFlags
+    );
+
+    [LibraryImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
     internal static partial bool UnregisterClassW(char* lpClassName, nint hInstance);
 
@@ -127,17 +201,34 @@ internal static unsafe partial class NativeMethods
     internal static partial nint CombineRgn(nint hrgnDst, nint hrgnSrc1, nint hrgnSrc2, int iMode);
 
     [LibraryImport("gdi32.dll")]
+    internal static partial nint CreateCompatibleDC(nint hdc);
+
+    [LibraryImport("gdi32.dll")]
+    internal static partial nint CreateDIBSection(
+        nint hdc,
+        in BitmapInfoHeader pbmi,
+        uint usage,
+        out nint ppvBits,
+        nint hSection,
+        uint offset
+    );
+
+    [LibraryImport("gdi32.dll")]
     internal static partial nint CreateRectRgn(int x1, int y1, int x2, int y2);
 
     [LibraryImport("gdi32.dll")]
     internal static partial nint CreateSolidBrush(uint color);
 
     [LibraryImport("gdi32.dll")]
-    internal static partial nint GetStockObject(int i);
+    [return: MarshalAs(UnmanagedType.Bool)]
+    internal static partial bool DeleteDC(nint hdc);
 
     [LibraryImport("gdi32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
     internal static partial bool DeleteObject(nint ho);
+
+    [LibraryImport("gdi32.dll")]
+    internal static partial nint GetStockObject(int i);
 
     [LibraryImport("gdi32.dll")]
     internal static partial nint SelectObject(nint hdc, nint h);
