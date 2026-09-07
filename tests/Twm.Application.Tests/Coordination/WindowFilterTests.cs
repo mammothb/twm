@@ -115,6 +115,23 @@ public class WindowFilterTests
     }
 
     [Fact]
+    public void DlgModalFrameWindow_IsIgnored()
+    {
+        // A window with WS_EX_DLGMODALFRAME (WinForms
+        // FixedDialog/Fixed3D/FixedSingle, native dialog templates, KeePass's
+        // document form) is not a tiled app window.
+        s_filter.IsManageable(Manageable() with { IsDlgModalFrame = true }).ShouldBeFalse();
+    }
+
+    [Fact]
+    public void DlgModalFrameWindow_WithManageRule_IsRescued()
+    {
+        var filter = new WindowFilter([new WindowRule("Notepad", null, WindowRuleAction.Manage)]);
+
+        filter.IsManageable(Manageable() with { IsDlgModalFrame = true }).ShouldBeTrue();
+    }
+
+    [Fact]
     public void BorderlessWindow_WithManageRule_IsRescued()
     {
         var filter = new WindowFilter([new WindowRule("Notepad", null, WindowRuleAction.Manage)]);

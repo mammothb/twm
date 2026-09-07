@@ -95,6 +95,14 @@ public sealed class WindowFilter(IReadOnlyList<WindowRule>? rules = null)
             return false;
         }
 
+        // WS_EX_DLGMODALFRAME: thin/double dialog border set by WinForms
+        // FormBorderStyle.FixedDialog|Fixed3D|FixedSingle and by native
+        // dialog templates (e.g. KeePass's "Open Database" document form
+        if (window.IsDlgModalFrame)
+        {
+            return false;
+        }
+
         // An elevated window (higher integrity than Twm) can't be repositioned
         // by an unelevated Twm (UIPI); adopting it would leave a ghost tile.
         // Detected on Windows via integrity level; always false in Linux tests.
