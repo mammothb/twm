@@ -5,16 +5,18 @@ using static Twm.Adapters.Windows.NativeMethods;
 namespace Twm.Adapters.Windows;
 
 /// <summary>
-/// A thin colored border drawn around the focused window, using raw GDI.
+/// A thin colored border drawn around the focused window, using
+/// <c>WS_EX_LAYERED</c>.
+///
+/// <para>
+///
+/// The window is composited by DWM from a 32bpp premultiplied-BGRA bitmap: the
+/// border band is opaque, the interior is fully transparent. Because the
+/// interior is transparent.
 /// </summary>
 public sealed unsafe partial class BorderWindow : IDisposable
 {
     private const string ClassName = "TwmBorder";
-
-    private const int RgnDiff = 4; // CombineRgn mode: hrgnSrc1 minus hrgnSrc2
-    private const uint DefaultColor = 0x0000FF00;
-
-    private static readonly Dictionary<nint, uint> s_colors = [];
 
     private static bool s_classRegistered;
 
@@ -34,7 +36,8 @@ public sealed unsafe partial class BorderWindow : IDisposable
                 dwExStyle: ExtendedWindowStyle.ToolWindow
                     | ExtendedWindowStyle.Topmost
                     | ExtendedWindowStyle.NoActivate
-                    | ExtendedWindowStyle.Transparent,
+                    | ExtendedWindowStyle.Transparent
+                    | ExtendedWindowStyle.Layered,
                 lpClassName: cls,
                 lpWindowName: null,
                 dwStyle: WindowStyle.Popup,
@@ -48,8 +51,6 @@ public sealed unsafe partial class BorderWindow : IDisposable
                 lpParam: 0
             );
         }
-
-        s_colors[_hWnd] = _color;
     }
 
     /// <summary>
@@ -59,15 +60,13 @@ public sealed unsafe partial class BorderWindow : IDisposable
     /// </summary>
     public void MoveTo(Rect frame)
     {
-        if (_hWnd == 0)
+        if (_hWnd == 0 || frame.Width <= 0 || frame.Height <= 0)
         {
             return;
         }
 
-        MoveWindow(_hWnd, frame.X, frame.Y, frame.Width, frame.Height, bRepaint: false);
-        ApplyBandRegion(frame.Width, frame.Height);
+        Render(frame.X, frame.Y, frame.Width, frame.Height);
         ShowWindow(_hWnd, ShowWindowCommand.ShowNoActivate);
-        InvalidateRect(_hWnd, 0, bErase: false);
     }
 
     public void Hide()
@@ -82,7 +81,7 @@ public sealed unsafe partial class BorderWindow : IDisposable
     {
         if (_hWnd != 0)
         {
-            DestroyWindow(_hWnd); // WM_DESTROY drops the color entry
+            DestroyWindow(_hWnd);
             _hWnd = 0;
         }
     }
@@ -104,18 +103,79 @@ public sealed unsafe partial class BorderWindow : IDisposable
         }
     }
 
-    // Clips the window to a hollow band: the full client rect minus an inset
-    // rect. The system takes ownership of the region passed to SetWindowRgn
-    // (and frees the previous one), so only the temporary inner region is
-    // deleted here.
-    private void ApplyBandRegion(int width, int height)
+    // Builds a 32bpp premultipled-BGRA bitmap
+    private void Render(int x, int y, int width, int height)
     {
-        int inset = Math.Min(_width, Math.Min(width, height) / 2);
-        nint outer = CreateRectRgn(0, 0, width, height);
-        nint inner = CreateRectRgn(inset, inset, width - inset, height - inset);
-        CombineRgn(outer, outer, inner, RgnDiff);
-        DeleteObject(inner);
-        SetWindowRgn(_hWnd, outer, bRedraw: true);
+        int band = Math.Min(_width, Math.Min(width, height) / 2);
+        if (band <= 0)
+        {
+            return;
+        }
+
+        BitmapInfoHeader header = default;
+        header.Size = (uint)sizeof(BitmapInfoHeader);
+        header.Width = width;
+        header.Height = -height;
+        header.Planes = 1;
+        header.BitCount = 32;
+        header.Compression = BiRgb;
+
+        nint screenDc = GetDC(0);
+        nint memDc = CreateCompatibleDC(screenDc);
+        nint dib = CreateDIBSection(screenDc, in header, DibRgbColors, out nint bits, 0, 0);
+        if (dib == 0 || bits == 0)
+        {
+            if (dib != 0)
+            {
+                DeleteObject(dib);
+            }
+            DeleteDC(memDc);
+            _ = ReleaseDC(0, screenDc);
+            return;
+        }
+
+        // Premultiplied BGRA. Alpha 255 -> RGB unchanged; the COLORREF is
+        // 0x00BBGGRR.
+        byte b = (byte)((_color >> 16) & 0xFF);
+        byte g = (byte)((_color >> 8) & 0xFF);
+        byte r = (byte)(_color & 0xFF);
+        byte* px = (byte*)bits;
+        for (int i = 0; i < height; i++)
+        {
+            bool isEdgeRow = i < band || i >= height - band;
+            byte* line = px + ((nint)i * width * 4);
+            for (int j = 0; j < width; j++)
+            {
+                if (isEdgeRow || j < band || j >= width - band)
+                {
+                    line[0] = b;
+                    line[1] = g;
+                    line[2] = r;
+                    line[3] = 255;
+                }
+                line += 4;
+            }
+        }
+
+        nint oldBitmap = SelectObject(memDc, dib);
+
+        var src = new Point32 { X = 0, Y = 0 };
+        var dst = new Point32 { X = x, Y = y };
+        var size = new Size32 { Cx = width, Cy = height };
+        var blend = new BlendFunction
+        {
+            BlendOp = AcSrcOver,
+            BlendFlags = 0,
+            SourceConstantAlpha = 255,
+            AlphaFormat = AcSrcAlpha,
+        };
+
+        UpdateLayeredWindow(_hWnd, screenDc, in dst, in size, memDc, in src, 0, in blend, UlwAlpha);
+
+        SelectObject(memDc, oldBitmap);
+        DeleteObject(dib);
+        DeleteDC(memDc);
+        _ = ReleaseDC(0, screenDc);
     }
 
     private static void EnsureClassRegistered()
@@ -139,33 +199,6 @@ public sealed unsafe partial class BorderWindow : IDisposable
     }
 
     [UnmanagedCallersOnly]
-    private static nint WndProc(nint hWnd, uint uMsg, nint wParam, nint lParam)
-    {
-        switch ((WindowMessage)uMsg)
-        {
-            case WindowMessage.Paint:
-                Paint(hWnd);
-                return 0;
-            case WindowMessage.Destroy:
-                s_colors.Remove(hWnd);
-                return 0;
-            default:
-                return DefWindowProcW(hWnd, uMsg, wParam, lParam);
-        }
-    }
-
-    private static void Paint(nint hWnd)
-    {
-        nint hdc = BeginPaint(hWnd, out PaintStruct ps);
-        GetClientRect(hWnd, out Rect32 client);
-
-        uint color = s_colors.TryGetValue(hWnd, out uint c) ? c : DefaultColor;
-        nint brush = CreateSolidBrush(color);
-        // The window region already clips painting to the band, so filling the
-        // whole client paints only the border
-        FillRect(hdc, in client, brush);
-        DeleteObject(brush);
-
-        EndPaint(hWnd, in ps);
-    }
+    private static nint WndProc(nint hWnd, uint uMsg, nint wParam, nint lParam) =>
+        DefWindowProcW(hWnd, uMsg, wParam, lParam);
 }
