@@ -47,6 +47,7 @@ internal static partial class NativeMethods
     }
 
     /// <summary>SetWindowPos flags.<summary>
+    [Flags]
     internal enum SetWindowPosFlags : uint
     {
         NoSize = 0x0001, // SWP_NOSIZE
@@ -68,6 +69,7 @@ internal static partial class NativeMethods
     }
 
     /// <summary>DrawText flags.</summary>
+    [Flags]
     internal enum DrawTextFormat : uint
     {
         Center = 0x0001, // DT_CENTER

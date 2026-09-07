@@ -47,12 +47,12 @@ internal static unsafe partial class NativeMethods
     private static readonly Lazy<int> s_ourIntegrityRid = new(ComputeOurIntegrityRid);
 
     [StructLayout(LayoutKind.Sequential)]
-    internal struct Rect32
+    internal readonly struct Rect32(int left, int top, int right, int bottom)
     {
-        public int Left;
-        public int Top;
-        public int Right;
-        public int Bottom;
+        public readonly int Left = left;
+        public readonly int Top = top;
+        public readonly int Right = right;
+        public readonly int Bottom = bottom;
     }
 
     [StructLayout(LayoutKind.Sequential)]

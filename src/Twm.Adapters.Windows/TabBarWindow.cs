@@ -7,7 +7,7 @@ namespace Twm.Adapters.Windows;
 
 /// <summary>
 /// A single tabbed/stacked container's bar, drawn with raw GDI.
-///
+/// <para>
 /// Tabbed -> a horizontal row of equal cells across the container's top strip.
 /// Stacked -> a vertical list of title-bar rows. The focused entry is drawn
 /// with the accent background.
@@ -197,13 +197,12 @@ public sealed unsafe partial class TabBarWindow : IDisposable
         nint accent = CreateSolidBrush(state.Accent);
         for (int i = 0; i < state.View.Tabs.Count; i++)
         {
-            var row = new Rect32
-            {
-                Left = client.Left,
-                Top = client.Top + (i * state.RowHeight),
-                Right = client.Right,
-                Bottom = client.Top + ((i + 1) * state.RowHeight),
-            };
+            var row = new Rect32(
+                client.Left,
+                client.Top + (i * state.RowHeight),
+                client.Right,
+                client.Top + ((i + 1) * state.RowHeight)
+            );
             TabItem tab = state.View.Tabs[i];
             if (tab.Focused)
             {
@@ -213,8 +212,7 @@ public sealed unsafe partial class TabBarWindow : IDisposable
             SetTextColor(hdc, state.Foreground);
             fixed (char* text = tab.Title)
             {
-                Rect32 textRect = row;
-                textRect.Left = RowTextPad;
+                var textRect = new Rect32(row.Left + RowTextPad, row.Top, row.Right, row.Bottom);
                 DrawTextW(hdc, text, tab.Title.Length, ref textRect, DtRow);
             }
         }
@@ -236,13 +234,7 @@ public sealed unsafe partial class TabBarWindow : IDisposable
         {
             int x = client.Left + (int)((long)width * i / count);
             int nextX = client.Left + (int)((long)width * (i + 1) / count);
-            var cell = new Rect32
-            {
-                Left = x,
-                Top = client.Top,
-                Right = nextX,
-                Bottom = client.Bottom,
-            };
+            var cell = new Rect32(x, client.Top, nextX, client.Bottom);
             TabItem tab = state.View.Tabs[i];
             if (tab.Focused)
             {

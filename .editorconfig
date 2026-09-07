@@ -159,28 +159,13 @@ csharp_space_between_method_declaration_parameter_list_parentheses = false
 csharp_space_between_parentheses = false
 csharp_space_between_square_brackets = false
 
-# Xml project files
-[*.{csproj,vbproj,vcxproj,vcxproj.filters,proj,nativeproj,locproj}]
-indent_size = 2
-
-# Xml files
-[*.{ruleset,slnx,stylecop,xml}]
-indent_size = 2
-
-# Xml config files
-[*.{props,targets,config,nuspec}]
-indent_size = 2
-
-# Data serialization
-[*.{json,yaml,yml}]
-indent_size = 2
-
 # Roslynator — match existing style preferences
 roslynator_max_line_length = 100
 roslynator_use_var = never
 
 # Roslynator — promote high-signal quality rules to warning
 # (default severity in parens; CLI --severity-level warning only reports >= warning)
+dotnet_diagnostic.RCS1075.severity = none   # Reconciler intentional use empty catches
 
 # Correctness / bug-prone
 dotnet_diagnostic.RCS1047.severity = warning   # non-async method name should not end with 'Async' (suggestion)
@@ -209,6 +194,23 @@ dotnet_diagnostic.RCS1221.severity = warning   # use pattern matching (as + null
 dotnet_diagnostic.RCS1225.severity = warning   # make class sealed (suggestion)
 dotnet_diagnostic.RCS1229.severity = warning   # use async/await when necessary (suggestion)
 dotnet_diagnostic.RCS1236.severity = warning   # use exception filter (suggestion)
+
+# Xml project files
+[*.{csproj,vbproj,vcxproj,vcxproj.filters,proj,nativeproj,locproj}]
+indent_size = 2
+
+# Xml files
+[*.{ruleset,slnx,stylecop,xml}]
+indent_size = 2
+
+# Xml config files
+[*.{props,targets,config,nuspec}]
+indent_size = 2
+
+# Data serialization
+[*.{json,yaml,yml}]
+indent_size = 2
+
 
 # Shell scripts
 [*.sh]

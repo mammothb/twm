@@ -32,10 +32,7 @@ public sealed record WindowRule(string? ClassName, string? TitleSubstring, Windo
 
         if (
             TitleSubstring is not null
-            && (
-                window.Title is null
-                || !window.Title.Contains(TitleSubstring, StringComparison.OrdinalIgnoreCase)
-            )
+            && window.Title?.Contains(TitleSubstring, StringComparison.OrdinalIgnoreCase) == false
         )
         {
             return false;
