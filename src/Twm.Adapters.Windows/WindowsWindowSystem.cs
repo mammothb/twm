@@ -1,3 +1,4 @@
+using Twm.Adapters.Windows.Diagnostics;
 using Twm.Application.OutboundPorts;
 using Twm.Domain.Geometry;
 using Twm.Domain.Tree;
@@ -46,12 +47,35 @@ public sealed class WindowsWindowSystem : IWindowSystem
             HasCaption: NativeMethods.HasCaption(handle),
             HasWindowEdge: NativeMethods.HasWindowEdge(handle),
             Owner: owner is nint o ? new WindowId(o) : null,
-            IsDlgModalFrame: NativeMethods.IsDlgModalFrame(handle),
-            ProcessId: (int)NativeMethods.GetProcessId(handle),
-            ProcessName: NativeMethods.GetProcessName(handle),
-            OwnerClass: owner is nint oc ? NativeMethods.GetClassName(oc) : null,
-            OwnerProcessName: owner is nint op ? NativeMethods.GetProcessName(op) : null
+            IsDlgModalFrame: NativeMethods.IsDlgModalFrame(handle)
         );
+    }
+
+    /// <summary>
+    /// Diagnostic projection: owning process PID + exe basename, plus the
+    /// owner's class and exe when present. Costs one
+    /// <c>OpenProcess</c>+<c>QueryFullProcessImageName</c> per top-level
+    /// window (and a second for owned windows' owners). Not part of
+    /// <see cref="IWindowSystem" />, only <c>twm --dump</c> calls this, so
+    /// the WinEvent-driven filter path never pays the cost.
+    /// </summary>
+    public IReadOnlyList<WindowDiagnostic> DescribeDiagnostics()
+    {
+        List<WindowDiagnostic> result = [];
+        foreach (nint window in NativeMethods.TopLevelWindows())
+        {
+            nint? owner = NativeMethods.GetOwner(window);
+            result.Add(
+                new WindowDiagnostic(
+                    Id: new WindowId(window),
+                    ProcessId: (int)NativeMethods.GetProcessId(window),
+                    ProcessName: NativeMethods.GetProcessName(window),
+                    OwnerClass: owner is nint oc ? NativeMethods.GetClassName(oc) : null,
+                    OwnerProcessName: owner is nint op ? NativeMethods.GetProcessName(op) : null
+                )
+            );
+        }
+        return result;
     }
 
     /// <summary>The current title text of a window.</summary>
