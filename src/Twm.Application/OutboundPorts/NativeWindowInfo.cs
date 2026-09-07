@@ -32,5 +32,9 @@ public sealed record NativeWindowInfo(
     // (modal dialogs, popups) are hidden by DWM when their owner is cloaked
     // (their cloak becomes DWM_CLOAKED_SHELL). Read-only; only the Win32
     // backend sets it.
-    WindowId? Owner = null
+    WindowId? Owner = null,
+    // WS_EX_DLGMODALFRAME: thin/double dialog border. Komorebi treats this as
+    // ineligible for tiling; twm does too (see WindowFilter). Default false
+    // for test fakes; the Win32 backend fills it from GWL_EXSTYLE.
+    bool IsDlgModalFrame = false
 );

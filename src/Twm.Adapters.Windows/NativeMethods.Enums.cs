@@ -22,6 +22,7 @@ internal static partial class NativeMethods
     [Flags]
     internal enum ExtendedWindowStyle : uint
     {
+        DlgModalFrame = 0x00000001, // WS_EX_DLGMODALFRAME
         Topmost = 0x00000008, // WS_EX_TOPMOST
         Transparent = 0x00000020, // WS_EX_TRANSPARENT
         ToolWindow = 0x00000080, // WS_EX_TOOLWINDOW
