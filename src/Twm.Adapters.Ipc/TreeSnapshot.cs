@@ -1,6 +1,11 @@
 namespace Twm.Adapters.Ipc;
 
 /// <summary>
+/// A serializable rectangle mirroring <c>Twm.Domain.Geometry.Rect</c>.
+/// </summary>
+public readonly record struct BoundsDto(int X, int Y, int Width, int Height);
+
+/// <summary>
 /// A serializable snapshot of one node in the container tree, for
 /// <c>twm-msg get-tree</c>. Built by <see cref="TreeSnapshotMapper" /> and
 /// serialized via the source-generated <see cref="TwmJsonContext" />.
@@ -55,8 +60,3 @@ public sealed record TreeNode
     /// </summary>
     public IReadOnlyList<TreeNode>? Children { get; init; }
 }
-
-/// <summary>
-/// A serializable rectangle mirroring <c>Twm.Domain.Geometry.Rect</c>.
-/// </summary>
-public readonly record struct BoundsDto(int X, int Y, int Width, int Height);

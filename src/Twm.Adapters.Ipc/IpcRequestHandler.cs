@@ -40,6 +40,9 @@ public sealed class IpcRequestHandler(
             case ExitRequest:
                 onExit();
                 return "ok";
+            case ReconcileRequest:
+                session.ReconcileDisplays();
+                return "ok";
             default:
                 return "err unhandled request";
         }
