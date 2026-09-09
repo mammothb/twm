@@ -12,5 +12,6 @@
 
   <ItemGroup>
     <PackageReference Include="Roslynator.Analyzers" PrivateAssets="all" />
+    <PackageReference Include="StyleCop.Analyzers" PrivateAssets="all" />
   </ItemGroup>
 </Project>

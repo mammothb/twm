@@ -40,7 +40,8 @@ csharp_indent_labels = one_less_than_current
 dotnet_diagnostic.IDE0011.severity = error
 
 # Modifier preferences
-csharp_preferred_modifier_order = public,private,protected,internal,file,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,required,volatile,async:suggestion
+csharp_preferred_modifier_order = public,protected,internal,private,new,abstract,virtual,override,sealed,static,readonly,extern,unsafe,volatile,async:suggestion
+dotnet_diagnostic.IDE0036.severity = warning
 
 # avoid this. unless absolutely necessary
 dotnet_style_qualification_for_field = false:suggestion
@@ -112,7 +113,7 @@ dotnet_style_prefer_conditional_expression_over_return = true:silent
 csharp_prefer_simple_default_expression = true:suggestion
 
 # Expression-bodied members
-csharp_style_expression_bodied_methods = true:silent
+csharp_style_expression_bodied_methods = when_on_single_line:suggestion
 csharp_style_expression_bodied_constructors = true:silent
 csharp_style_expression_bodied_operators = true:silent
 csharp_style_expression_bodied_properties = true:silent
@@ -134,6 +135,9 @@ csharp_style_conditional_delegate_call = true:suggestion
 csharp_style_prefer_index_operator = true:suggestion
 csharp_style_prefer_range_operator = true:suggestion
 csharp_style_pattern_local_over_anonymous_function = false:none
+
+dotnet_analyzer_diagnostic.category-StyleCop.CSharp.DocumentationRules.severity = none
+dotnet_diagnostic.SA0001.severity = none
 
 # Space preferences
 csharp_space_after_cast = false
