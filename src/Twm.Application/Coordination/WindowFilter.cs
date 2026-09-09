@@ -10,7 +10,7 @@ namespace Twm.Application.Coordination;
 /// dialogs without a title, etc.). Pure function of the
 /// <see cref="NativeWindowInfo" /> snapshot, so it is fully unit-testable on
 /// Linux.
-///
+/// <para>
 /// Config <see cref="WindowRule" />s are layered on top of the built-in field
 /// predicate: the first matching rule decides (an <c>ignore</c> rule drops a
 /// window the defaults would keep; a <c>manage</c> rule rescues one they would
@@ -18,8 +18,6 @@ namespace Twm.Application.Coordination;
 /// </summary>
 public sealed class WindowFilter(IReadOnlyList<WindowRule>? rules = null)
 {
-    private readonly IReadOnlyList<WindowRule> _rules = rules ?? [];
-
     private static readonly FrozenSet<string> s_ignoredClasses = new[]
     {
         "Shell_TrayWnd", // primary taskbar
@@ -29,6 +27,8 @@ public sealed class WindowFilter(IReadOnlyList<WindowRule>? rules = null)
         "Window.UI.Core.CoreWindow", // Start menu, Search, Action Center shells
         "TaskManagerWindow", // Task Manager (elevated)
     }.ToFrozenSet(StringComparer.Ordinal);
+
+    private readonly IReadOnlyList<WindowRule> _rules = rules ?? [];
 
     /// <summary>
     /// Whether the given window should be tiled by Twm. Config rules win first
@@ -44,6 +44,7 @@ public sealed class WindowFilter(IReadOnlyList<WindowRule>? rules = null)
                 return rule.Action == WindowRuleAction.Manage;
             }
         }
+
         return IsManageableByDefaults(window);
     }
 

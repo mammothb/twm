@@ -94,6 +94,8 @@ public static class CommandParser
                 return TryNoArg(tokens, new CloseRequest(), out request, out error);
             case "exit":
                 return TryNoArg(tokens, new ExitRequest(), out request, out error);
+            case "reconcile-displays":
+                return TryNoArg(tokens, new ReconcileRequest(), out request, out error);
             case "get-tree":
                 return TryNoArg(tokens, new GetTreeRequest(), out request, out error);
             default:
@@ -133,7 +135,7 @@ public static class CommandParser
         error = null;
         if (tokens.Length is < 2 or > 3)
         {
-            error = $"usage: resize <left|right|up|down> [percent]";
+            error = "usage: resize <left|right|up|down> [percent]";
             return false;
         }
 
@@ -171,7 +173,7 @@ public static class CommandParser
         error = null;
         if (tokens.Length != 2)
         {
-            error = $"usage: split <h|v|horizontal|vertical>";
+            error = "usage: split <h|v|horizontal|vertical>";
             return false;
         }
 
@@ -201,7 +203,7 @@ public static class CommandParser
         error = null;
         if (tokens.Length != 2)
         {
-            error = $"usage: layout <stacked|tabbed|splith|splitv|toggle-split>";
+            error = "usage: layout <stacked|tabbed|splith|splitv|toggle-split>";
             return false;
         }
 

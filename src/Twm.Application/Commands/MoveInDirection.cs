@@ -30,6 +30,7 @@ public sealed class MoveInDirectionHandler(RootContainer root, LayoutEngine layo
         {
             Rearrange();
         }
+
         return CommandResult.Ok;
     }
 }

@@ -3,14 +3,6 @@ using System.Threading;
 
 namespace Twm.Application.Coordination;
 
-/// <summary>
-/// Marshals IPC requests from a background thread (the pipe reader) onto the
-/// WM's single message-loop thread, so <see cref="WmSession" />
-/// (single-threaded) and all Win32 calls un on that one thread. The background
-/// thread enqueues a request and asks the loop to wake (via the injected
-/// <c>wake</c> delegate); the loop later calls <see cref="Drain" /> to run the
-/// queued work and hand each response back.
-/// </summary>
 public sealed class WmThreadDispatcher
 {
     private static readonly TimeSpan s_defaultResponseTimeout = TimeSpan.FromSeconds(5);
@@ -20,6 +12,14 @@ public sealed class WmThreadDispatcher
     private readonly TimeSpan _responseTimeout;
     private readonly ConcurrentQueue<WorkItem> _queue = [];
 
+    /// <summary>
+    /// Marshals IPC requests from a background thread (the pipe reader) onto the
+    /// WM's single message-loop thread, so <see cref="WmSession" />
+    /// (single-threaded) and all Win32 calls un on that one thread. The background
+    /// thread enqueues a request and asks the loop to wake (via the injected
+    /// <c>wake</c> delegate); the loop later calls <see cref="Drain" /> to run the
+    /// queued work and hand each response back.
+    /// </summary>
     /// <param name="wake">Singles the WM thread to call <see cref="Drain" />;
     /// returns false if it could not.</param>
     /// <param name="handleOnWmThread">Runs one request and produces its
@@ -91,7 +91,9 @@ public sealed class WmThreadDispatcher
     private sealed class WorkItem(string request)
     {
         public string Request { get; } = request;
+
         public string Response { get; set; } = "";
+
         public ManualResetEventSlim Done { get; } = new(false);
     }
 }

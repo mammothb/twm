@@ -44,66 +44,24 @@ public static class DesktopBuilder
         var root = new RootContainer();
 
         List<MonitorInfo> ordered = [.. OrderPrimaryFirst(monitors)];
-        int monitorCount = ordered.Count;
-        IReadOnlyList<string> names = ResolveNames(workspaces, monitorCount);
+        IReadOnlyList<IReadOnlyList<string>> plan = PlanWorkspaceNames(workspaces, ordered.Count);
 
-        for (int i = 0; i < monitorCount; i++)
+        for (int i = 0; i < ordered.Count; i++)
         {
             var monitor = new Monitor(ordered[i].WorkArea);
 
-            // Round-robin: this monitor gets names at indices index,
-            // index+monitorCount, ... (preserving order), so the first appended
-            // is its active workspace
-            for (int j = i; j < names.Count; j += monitorCount)
+            // this monitor's round robin slice, first append is active
+            foreach (string name in plan[i])
             {
-                monitor.AppendChild(new Workspace(names[j]));
+                monitor.AppendChild(new Workspace(name));
             }
 
             root.AppendChild(monitor);
         }
 
-        // No explicit Focus() needed: append order already makes each monitor's
-        // first workspace its active (LastFocused) child, and the primary
-        // (appended first) the focused monitor
+        // No Focus() needed: append order makes each monitor's first workspace
+        // active, and the primary (appended first) the focused monitor
         return root;
-    }
-
-    private static IReadOnlyList<string> ResolveNames(
-        WorkspaceOptions? workspaces,
-        int monitorCount
-    )
-    {
-        if (workspaces?.Names is { Count: > 0 } explicitNames)
-        {
-            var seen = new HashSet<string>(explicitNames.Count, StringComparer.Ordinal);
-            foreach (string name in explicitNames)
-            {
-                if (!seen.Add(name))
-                {
-                    throw new ArgumentException(
-                        $"Duplicate workspace name detected: '{name}'. Workspace names must be unique."
-                    );
-                }
-            }
-
-            if (explicitNames.Count < monitorCount)
-            {
-                throw new ArgumentException(
-                    $"workspaces.names has {explicitNames.Count} entries but there are {monitorCount} monitors; provide at least one name per monitor."
-                );
-            }
-            return explicitNames;
-        }
-        int perMonitor =
-            workspaces?.PerMonitor is int count && count > 0 ? count : WorkspacesPerMonitor;
-        int total = perMonitor * monitorCount;
-        var generated = new List<string>(total);
-        for (int number = 1; number <= total; number++)
-        {
-            generated.Add(number.ToString(CultureInfo.InvariantCulture));
-        }
-
-        return generated;
     }
 
     /// <summary>
@@ -116,4 +74,75 @@ public static class DesktopBuilder
             .OrderByDescending(monitor => monitor.IsPrimary)
             .ThenBy(monitor => monitor.Bounds.X)
             .ThenBy(monitor => monitor.Bounds.Y);
+
+    /// <summary>
+    /// Per-monitor workspace-name assignment for
+    /// <paramref name="monitorCount" /> monitors: element <c>i</c> is the name
+    /// list for the monitor at canonical index <c>i</c> (see
+    /// <see cref="OrderPrimaryFirst" />), sliced round-robin from
+    /// <see cref="ResolveNames" />
+    /// (<c>name[j] -> monitor[j % monitorCount]</c>).
+    /// </summary>
+    internal static IReadOnlyList<IReadOnlyList<string>> PlanWorkspaceNames(
+        WorkspaceOptions? workspaces,
+        int monitorCount
+    )
+    {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(monitorCount);
+        IReadOnlyList<string> names = ResolveNames(workspaces, monitorCount);
+
+        var perMonitor = new List<IReadOnlyList<string>>(monitorCount);
+        for (int i = 0; i < monitorCount; i++)
+        {
+            List<string> slice = [];
+            for (int j = i; j < names.Count; j += monitorCount)
+            {
+                slice.Add(names[j]);
+            }
+
+            perMonitor.Add(slice);
+        }
+
+        return perMonitor;
+    }
+
+    private static IReadOnlyList<string> ResolveNames(
+        WorkspaceOptions? workspaces,
+        int monitorCount
+    )
+    {
+        if (workspaces?.Names is { Count: > 0 } explicitNames)
+        {
+            if (explicitNames.Count < monitorCount)
+            {
+                throw new ArgumentException(
+                    $"workspaces.names has {explicitNames.Count} entries but there are {monitorCount} monitors; provide at least one name per monitor."
+                );
+            }
+
+            var seen = new HashSet<string>(explicitNames.Count, StringComparer.Ordinal);
+            foreach (string name in explicitNames)
+            {
+                if (!seen.Add(name))
+                {
+                    throw new ArgumentException(
+                        $"Duplicate workspace name detected: '{name}'. Workspace names must be unique."
+                    );
+                }
+            }
+
+            return explicitNames;
+        }
+
+        int perMonitor =
+            workspaces?.PerMonitor is int count && count > 0 ? count : WorkspacesPerMonitor;
+        int total = perMonitor * monitorCount;
+        var generated = new List<string>(total);
+        for (int number = 1; number <= total; number++)
+        {
+            generated.Add(number.ToString(CultureInfo.InvariantCulture));
+        }
+
+        return generated;
+    }
 }

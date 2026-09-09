@@ -10,27 +10,18 @@ namespace Twm.Application.Commands;
 /// tree-restructuring operations themselves live in the domain
 /// <see cref="TreeMutations" />.
 /// </summary>
-public abstract class TreeCommandHandler<TCommand> : ICommandHandler<TCommand>
+public abstract class TreeCommandHandler<TCommand>(RootContainer root, LayoutEngine engine)
+    : ICommandHandler<TCommand>
     where TCommand : ICommand
 {
-#pragma warning disable IDE0290 // Abstract types should not have public constructors
-    protected TreeCommandHandler(RootContainer root, LayoutEngine layout)
-    {
-        Root = root;
-        Layout = layout;
-    }
-#pragma warning restore IDE0290
+    protected RootContainer Root { get; } = root;
 
-    protected RootContainer Root { get; }
-    protected LayoutEngine Layout { get; }
+    protected LayoutEngine Engine { get; } = engine;
 
     public abstract CommandResult Handle(TCommand command);
 
     /// <summary>
     /// Recomputes bounds for the whole tree after a mutation.
     /// </summary>
-    protected void Rearrange()
-    {
-        Layout.Arrange(Root);
-    }
+    protected void Rearrange() => Engine.Arrange(Root);
 }
