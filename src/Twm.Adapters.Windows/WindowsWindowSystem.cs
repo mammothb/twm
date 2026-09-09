@@ -12,15 +12,7 @@ namespace Twm.Adapters.Windows;
 /// </summary>
 public sealed class WindowsWindowSystem : IWindowSystem
 {
-    public IReadOnlyList<NativeWindowInfo> EnumerateWindows()
-    {
-        List<NativeWindowInfo> result = [];
-        foreach (nint window in NativeMethods.TopLevelWindows())
-        {
-            result.Add(Describe(new WindowId(window)));
-        }
-        return result;
-    }
+    public void Close(WindowId window) => NativeMethods.Close(window.Value);
 
     /// <summary>
     /// Reads a fresh metadata snapshot for one window (used by the WinEvent
@@ -75,13 +67,23 @@ public sealed class WindowsWindowSystem : IWindowSystem
                 )
             );
         }
+
+        return result;
+    }
+
+    public IReadOnlyList<NativeWindowInfo> EnumerateWindows()
+    {
+        List<NativeWindowInfo> result = [];
+        foreach (nint window in NativeMethods.TopLevelWindows())
+        {
+            result.Add(Describe(new WindowId(window)));
+        }
+
         return result;
     }
 
     /// <summary>The current title text of a window.</summary>
     public string GetTitle(WindowId window) => NativeMethods.GetWindowText(window.Value);
-
-    public void Close(WindowId window) => NativeMethods.Close(window.Value);
 
     // "Hide" for workspace switching = cloak, not ShowWindow(SW_HIDE): a
     // cloaked window stays in the taskbar so its icon can be clicked to

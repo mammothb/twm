@@ -88,15 +88,6 @@ internal partial interface IApplicationView
 /// </summary>
 internal static partial class ImmersiveShell
 {
-    private static readonly Guid s_clsidImmersiveShell = new(
-        "C2F03A33-21F5-47FA-B4BB-156362A2F239"
-    );
-    private static readonly Guid s_iidServiceProvider = new("6D5140C1-7436-11CE-8034-00AA006009FA");
-    private static readonly Guid s_iidApplicationViewCollection = new(
-        "1841C6D7-4F9D-42C0-AF41-8747538F10E5"
-    );
-    private static readonly StrategyBasedComWrappers s_comWrappers = new();
-
     // CLSCTX_LOCAL_SERVER
     private const uint ClsctxLocalServer = 0x4;
 
@@ -107,19 +98,18 @@ internal static partial class ImmersiveShell
     private const int CloakFlagCloak = 2;
     private const int CloakFlagUncloak = 0;
 
-    private static IApplicationViewCollection? s_collection;
-
-    [LibraryImport("ole32.dll")]
-    private static partial int CoInitializeEx(nint pvReserved, uint dwCoInit);
-
-    [LibraryImport("ole32.dll")]
-    private static partial int CoCreateInstance(
-        in Guid rclsid,
-        nint pUnkOuter,
-        uint dwClsContext,
-        in Guid riid,
-        out nint ppv
+    private static readonly Guid s_clsidImmersiveShell = new(
+        "C2F03A33-21F5-47FA-B4BB-156362A2F239"
     );
+
+    private static readonly Guid s_iidServiceProvider = new("6D5140C1-7436-11CE-8034-00AA006009FA");
+    private static readonly Guid s_iidApplicationViewCollection = new(
+        "1841C6D7-4F9D-42C0-AF41-8747538F10E5"
+    );
+
+    private static readonly StrategyBasedComWrappers s_comWrappers = new();
+
+    private static IApplicationViewCollection? s_collection;
 
     internal static void Cloak(nint window) => SetCloak(window, CloakFlagCloak);
 
@@ -161,6 +151,7 @@ internal static partial class ImmersiveShell
         {
             return null;
         }
+
         var provider = (IShellServiceProvider)
             s_comWrappers.GetOrCreateObjectForComInstance(providerPtr, CreateObjectFlags.None);
         Marshal.Release(providerPtr);
@@ -180,4 +171,16 @@ internal static partial class ImmersiveShell
         s_collection = collection;
         return collection;
     }
+
+    [LibraryImport("ole32.dll")]
+    private static partial int CoInitializeEx(nint pvReserved, uint dwCoInit);
+
+    [LibraryImport("ole32.dll")]
+    private static partial int CoCreateInstance(
+        in Guid rclsid,
+        nint pUnkOuter,
+        uint dwClsContext,
+        in Guid riid,
+        out nint ppv
+    );
 }

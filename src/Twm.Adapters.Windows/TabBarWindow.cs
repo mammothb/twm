@@ -24,15 +24,17 @@ public sealed unsafe partial class TabBarWindow : IDisposable
         | DrawTextFormat.SingleLine
         | DrawTextFormat.EndEllipsis
         | DrawTextFormat.NoPrefix;
+
     private const DrawTextFormat DtRow =
         DrawTextFormat.VCenter
         | DrawTextFormat.SingleLine
         | DrawTextFormat.EndEllipsis
         | DrawTextFormat.NoPrefix;
+
     private const int RowTextPad = 6;
     private const uint DefaultBackground = 0x00303030;
 
-    private static readonly Dictionary<nint, TabBarRenderState> s_renderState = [];
+    private static readonly Dictionary<nint, TabBarRenderState> s_hWndToRenderState = [];
 
     private static bool s_classRegistered;
 
@@ -72,6 +74,25 @@ public sealed unsafe partial class TabBarWindow : IDisposable
         }
     }
 
+    /// <summary>
+    /// Unregisteres the shared window class once every tab bar is gone.
+    /// </summary>
+    public static void UnregisterSharedClass()
+    {
+        if (!s_classRegistered)
+        {
+            return;
+        }
+
+        fixed (char* cls = ClassName)
+        {
+            if (UnregisterClassW(cls, GetModuleHandleW(null)))
+            {
+                s_classRegistered = false;
+            }
+        }
+    }
+
     public void Render(TabBarView view)
     {
         ArgumentNullException.ThrowIfNull(view);
@@ -83,7 +104,7 @@ public sealed unsafe partial class TabBarWindow : IDisposable
         int rowCount = view.Layout == Layout.Stacked ? Math.Max(1, view.Tabs.Count) : 1;
         int height = _rowHeight * rowCount;
 
-        s_renderState[_hWnd] = new TabBarRenderState(
+        s_hWndToRenderState[_hWnd] = new TabBarRenderState(
             view,
             _background,
             _foreground,
@@ -101,25 +122,6 @@ public sealed unsafe partial class TabBarWindow : IDisposable
         {
             DestroyWindow(_hWnd); // WM_DESTORY drops the render state
             _hWnd = 0;
-        }
-    }
-
-    /// <summary>
-    /// Unregisteres the shared window class once every tab bar is gone.
-    /// </summary>
-    public static void UnregisterSharedClass()
-    {
-        if (!s_classRegistered)
-        {
-            return;
-        }
-
-        fixed (char* cls = ClassName)
-        {
-            if (UnregisterClassW(cls, GetModuleHandleW(null)))
-            {
-                s_classRegistered = false;
-            }
         }
     }
 
@@ -152,7 +154,7 @@ public sealed unsafe partial class TabBarWindow : IDisposable
                 Paint(hWnd);
                 return 0;
             case WindowMessage.Destroy:
-                s_renderState.Remove(hWnd);
+                s_hWndToRenderState.Remove(hWnd);
                 return 0;
             default:
                 return DefWindowProcW(hWnd, uMsg, wParam, lParam);
@@ -164,7 +166,7 @@ public sealed unsafe partial class TabBarWindow : IDisposable
         nint hdc = BeginPaint(hWnd, out PaintStruct ps);
         GetClientRect(hWnd, out Rect32 client);
 
-        if (!s_renderState.TryGetValue(hWnd, out TabBarRenderState? state))
+        if (!s_hWndToRenderState.TryGetValue(hWnd, out TabBarRenderState? state))
         {
             nint blank = CreateSolidBrush(DefaultBackground);
             FillRect(hdc, in client, blank);

@@ -25,73 +25,6 @@ internal static unsafe partial class NativeMethods
     // ULW_ALPHA
     internal const uint UlwAlpha = 0x02;
 
-    [StructLayout(LayoutKind.Sequential)]
-    internal struct BitmapInfoHeader
-    {
-        public uint Size;
-        public int Width;
-        public int Height;
-        public ushort Planes;
-        public ushort BitCount;
-        public uint Compression;
-        public uint SizeImage;
-        public int XPelsPerMeter;
-        public int YPelsPerMeter;
-        public uint ClrUsed;
-        public uint ClrImportant;
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
-    internal struct BlendFunction
-    {
-        public byte BlendOp;
-        public byte BlendFlags;
-        public byte SourceConstantAlpha;
-        public byte AlphaFormat;
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
-    internal struct PaintStruct
-    {
-        public nint Hdc;
-        public int Erase;
-        public Rect32 Paint;
-        public int Restore;
-        public int IncUpdate;
-        public fixed byte Reserved[32];
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
-    internal struct Point32
-    {
-        public int X;
-        public int Y;
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
-    internal struct Size32
-    {
-        public int Cx;
-        public int Cy;
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
-    internal struct WndClassExW
-    {
-        public uint CbSize;
-        public uint Style;
-        public delegate* unmanaged<nint, uint, nint, nint, nint> WndProc;
-        public int ClsExtra;
-        public int WndExtra;
-        public nint Instance;
-        public nint Icon;
-        public nint Cursor;
-        public nint Background;
-        public char* MenuName;
-        public char* ClassName;
-        public nint IconSm;
-    }
-
     // ========================================================================
     // user32.dll
     // ========================================================================
@@ -244,4 +177,71 @@ internal static unsafe partial class NativeMethods
     // ========================================================================
     [LibraryImport("kernel32.dll")]
     internal static partial nint GetModuleHandleW(char* lpModuleName);
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct BitmapInfoHeader
+    {
+        public uint Size;
+        public int Width;
+        public int Height;
+        public ushort Planes;
+        public ushort BitCount;
+        public uint Compression;
+        public uint SizeImage;
+        public int XPelsPerMeter;
+        public int YPelsPerMeter;
+        public uint ClrUsed;
+        public uint ClrImportant;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct BlendFunction
+    {
+        public byte BlendOp;
+        public byte BlendFlags;
+        public byte SourceConstantAlpha;
+        public byte AlphaFormat;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct PaintStruct
+    {
+        public nint Hdc;
+        public int Erase;
+        public Rect32 Paint;
+        public int Restore;
+        public int IncUpdate;
+        public fixed byte Reserved[32];
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct Point32
+    {
+        public int X;
+        public int Y;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct Size32
+    {
+        public int Cx;
+        public int Cy;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct WndClassExW
+    {
+        public uint CbSize;
+        public uint Style;
+        public delegate* unmanaged<nint, uint, nint, nint, nint> WndProc;
+        public int ClsExtra;
+        public int WndExtra;
+        public nint Instance;
+        public nint Icon;
+        public nint Cursor;
+        public nint Background;
+        public char* MenuName;
+        public char* ClassName;
+        public nint IconSm;
+    }
 }

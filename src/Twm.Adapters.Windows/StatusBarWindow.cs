@@ -10,14 +10,14 @@ namespace Twm.Adapters.Windows;
 /// A single Win32 status-bar window painted with raw GDI. Self-contained
 /// interop (like <see cref="WinEventHook" />): a shared window class with a
 /// static <c>[UnmanagedCallersOnly]</c> WndProc + function-pointer
-/// registration. The window is <c>WS_EX_TOOLWINDOW | WS_EX_TOPMOST |
-/// WS_EX_NOACTIVATE</c>, so Twm's own <c>WindowFilter</c> ignores it (tool
-/// window) and it never steals focus.
-///
+/// registration. The window is
+/// <c>WS_EX_TOOLWINDOW | WS_EX_TOPMOST | WS_EX_NOACTIVATE</c>, so Twm's own
+/// <c>WindowFilter</c> ignores it (tool window) and it never steals focus.
+/// <para>
 /// The static WndProc can't capture instance state, so each window's
-/// <see cref="StatusBarRenderState" /> (its <see cref="MonitorBarView" />, clock, and
-/// <see cref="BarOptions" /> theme) lives in a static map keyed by HWND;
-/// everything runs on the single WM thread, so no locking is needed.
+/// <see cref="StatusBarRenderState" /> (its <see cref="MonitorBarView" />,
+/// clock, and <see cref="BarOptions" /> theme) lives in a static map keyed by
+/// HWND; everything runs on the single WM thread, so no locking is needed.
 /// </summary>
 public sealed unsafe partial class StatusBarWindow : IDisposable
 {
@@ -26,8 +26,10 @@ public sealed unsafe partial class StatusBarWindow : IDisposable
     // DrawText format flags for each drawn element
     private const DrawTextFormat DtChip =
         DrawTextFormat.Center | DrawTextFormat.VCenter | DrawTextFormat.SingleLine;
+
     private const DrawTextFormat DtClock =
         DrawTextFormat.Center | DrawTextFormat.VCenter | DrawTextFormat.SingleLine;
+
     private const DrawTextFormat DtTitle =
         DrawTextFormat.VCenter
         | DrawTextFormat.SingleLine
@@ -44,12 +46,12 @@ public sealed unsafe partial class StatusBarWindow : IDisposable
     private const int ClockWidth = 52;
     private const int TitleGap = 12;
 
-    private static readonly Dictionary<nint, StatusBarRenderState> s_renderState = [];
+    private static readonly Dictionary<nint, StatusBarRenderState> s_hWndToRenderState = [];
 
     private static bool s_classRegistered;
 
     private readonly BarOptions _options;
-    private nint _hwnd;
+    private nint _hWnd;
 
     public StatusBarWindow(Rect bounds, BarOptions options)
     {
@@ -58,7 +60,7 @@ public sealed unsafe partial class StatusBarWindow : IDisposable
 
         fixed (char* cls = ClassName)
         {
-            _hwnd = CreateWindowExW(
+            _hWnd = CreateWindowExW(
                 dwExStyle: ExtendedWindowStyle.ToolWindow
                     | ExtendedWindowStyle.Topmost
                     | ExtendedWindowStyle.NoActivate,
@@ -76,23 +78,7 @@ public sealed unsafe partial class StatusBarWindow : IDisposable
             );
         }
 
-        ShowWindow(_hwnd, ShowWindowCommand.ShowNoActivate);
-    }
-
-    /// <summary>Sets what this bar shows and requests a repaint. </summary>
-    public void Render(MonitorBarView view, string clock)
-    {
-        s_renderState[_hwnd] = new StatusBarRenderState(view, clock, _options);
-        InvalidateRect(_hwnd, 0, bErase: false);
-    }
-
-    public void Dispose()
-    {
-        if (_hwnd != 0)
-        {
-            DestroyWindow(_hwnd); // WM_DESTROY drops the render state
-            _hwnd = 0;
-        }
+        ShowWindow(_hWnd, ShowWindowCommand.ShowNoActivate);
     }
 
     /// <summary>
@@ -112,6 +98,33 @@ public sealed unsafe partial class StatusBarWindow : IDisposable
             {
                 s_classRegistered = false;
             }
+        }
+    }
+
+    /// <summary>
+    /// Moves this bar to a new rectangle (after a display change).
+    /// </summary>
+    public void MoveTo(Rect bounds)
+    {
+        if (_hWnd != 0)
+        {
+            MoveWindow(_hWnd, bounds.X, bounds.Y, bounds.Width, bounds.Height, bRepaint: true);
+        }
+    }
+
+    /// <summary>Sets what this bar shows and requests a repaint. </summary>
+    public void Render(MonitorBarView view, string clock)
+    {
+        s_hWndToRenderState[_hWnd] = new StatusBarRenderState(view, clock, _options);
+        InvalidateRect(_hWnd, 0, bErase: false);
+    }
+
+    public void Dispose()
+    {
+        if (_hWnd != 0)
+        {
+            DestroyWindow(_hWnd); // WM_DESTROY drops the render state
+            _hWnd = 0;
         }
     }
 
@@ -144,19 +157,25 @@ public sealed unsafe partial class StatusBarWindow : IDisposable
                 Paint(hWnd);
                 return 0;
             case WindowMessage.Destroy:
-                s_renderState.Remove(hWnd);
+                s_hWndToRenderState.Remove(hWnd);
                 return 0;
             default:
                 return DefWindowProcW(hWnd, uMsg, wParam, lParam);
         }
     }
 
+    /// <summary>
+    /// Halves each RGB channel of a COLORREF, for a dimmed (empty-workspace)
+    /// foreground.
+    /// </summary>
+    private static uint Dim(uint color) => (color >> 1) & 0x007F7F7F;
+
     private static void Paint(nint hWnd)
     {
         nint hdc = BeginPaint(hWnd, out PaintStruct ps);
         GetClientRect(hWnd, out Rect32 client);
 
-        bool hasState = s_renderState.TryGetValue(hWnd, out StatusBarRenderState? state);
+        bool hasState = s_hWndToRenderState.TryGetValue(hWnd, out StatusBarRenderState? state);
         nint background = CreateSolidBrush(
             hasState ? state!.Options.Background : DefaultBackground
         );
@@ -236,15 +255,6 @@ public sealed unsafe partial class StatusBarWindow : IDisposable
                 DrawTextW(hdc, title, state.View.FocusedTitle.Length, ref titleRect, DtTitle);
             }
         }
-    }
-
-    /// <summary>
-    /// Halves each RGB channel of a COLORREF, for a dimmed (empty-workspace)
-    /// foreground.
-    /// </summary>
-    private static uint Dim(uint color)
-    {
-        return (color >> 1) & 0x007F7F7F;
     }
 
     private sealed record StatusBarRenderState(

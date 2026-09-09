@@ -19,14 +19,6 @@ public sealed partial class HotkeyManager
     private readonly Dictionary<int, KeyBinding> _idToBinding = [];
     private int _nextId = 1;
 
-    [LibraryImport("user32.dll")]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    private static partial bool RegisterHotKey(nint hWnd, int id, uint fsModifiers, uint vk);
-
-    [LibraryImport("user32.dll")]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    private static partial bool UnregisterHotKey(nint hWnd, int id);
-
     /// <summary>
     /// Registers a binding; returns whether the OS accepted it (a conflict
     /// returns false).
@@ -61,6 +53,15 @@ public sealed partial class HotkeyManager
         {
             UnregisterHotKey(0, id);
         }
+
         _idToBinding.Clear();
     }
+
+    [LibraryImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool RegisterHotKey(nint hWnd, int id, uint fsModifiers, uint vk);
+
+    [LibraryImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool UnregisterHotKey(nint hWnd, int id);
 }

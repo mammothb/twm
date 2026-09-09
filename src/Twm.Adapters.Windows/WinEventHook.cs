@@ -57,6 +57,110 @@ public sealed unsafe partial class WinEventHook : IDisposable
 
     private readonly List<nint> _hooks = [];
 
+    /// <summary>WinEvent constants this hook subscribes to.</summary>
+    private enum WinEvent : uint
+    {
+        SystemForeground = 0x0003, // EVENT_SYSTEM_FOREGROUND
+        SystemMinimizeStart = 0x0016, // EVENT_SYSTEM_MINIMIZESTART
+        SystemMinimizeEnd = 0x0017, // EVENT_SYSTEM_MINIMIZEEND
+        ObjectCreate = 0x8000, // EVENT_OBJECT_CREATE
+        ObjectDestroy = 0x8001, // EVENT_OBJECT_DESTROY
+        ObjectShow = 0x8002, // EVENT_OBJECT_SHOW
+        ObjectHide = 0x8003, // EVENT_OBJECT_HIDE
+        ObjectCloaked = 0x8017, // EVENT_OBJECT_CLOAKED
+        ObjectUncloaked = 0x8018, // EVENT_OBJECT_UNCLOAKED
+    }
+
+    /// <summary>SetWinEventHook flags.</summary>
+    [Flags]
+    private enum WinEventFlags : uint
+    {
+        OutOfContext = 0x0000, // WINEVENT_OUTOFCONTEXT
+        SkipOwnProcess = 0x0002, // WINEVENT_SKIPOWNPROCESS
+    }
+
+    /// <summary>
+    /// Installs the hooks and routes events to <paramref name="handler" /> until
+    /// disposed.
+    /// </summary>
+    public void Install(Action<WindowEventKind, WindowId> handler)
+    {
+        ArgumentNullException.ThrowIfNull(handler);
+
+        // The WinEvent callback is static, so the handler is process-wide, only
+        // one hook set may be installed at a time
+        if (s_owner is not null)
+        {
+            throw new InvalidOperationException("A WinEventHook is already installed");
+        }
+
+        s_owner = this;
+        s_handler = handler;
+
+        const WinEventFlags flags = WinEventFlags.OutOfContext | WinEventFlags.SkipOwnProcess;
+
+        // Four tight ranges rather than one wide one, so we never receive the
+        // very frequent EVENT_OBJECT_LOCATIONCHANGE (0x800B) that sits between
+        // these object events
+        _hooks.Add(
+            SetWinEventHook(
+                WinEvent.SystemForeground,
+                WinEvent.SystemForeground,
+                0,
+                &OnWinEvent,
+                0,
+                0,
+                flags
+            )
+        );
+        _hooks.Add(
+            SetWinEventHook(
+                WinEvent.SystemMinimizeStart,
+                WinEvent.SystemMinimizeEnd,
+                0,
+                &OnWinEvent,
+                0,
+                0,
+                flags
+            )
+        );
+        _hooks.Add(
+            SetWinEventHook(WinEvent.ObjectCreate, WinEvent.ObjectHide, 0, &OnWinEvent, 0, 0, flags)
+        );
+        _hooks.Add(
+            SetWinEventHook(
+                WinEvent.ObjectCloaked,
+                WinEvent.ObjectUncloaked,
+                0,
+                &OnWinEvent,
+                0,
+                0,
+                flags
+            )
+        );
+    }
+
+    public void Dispose()
+    {
+        foreach (nint hook in _hooks)
+        {
+            if (hook != 0)
+            {
+                UnhookWinEvent(hook);
+            }
+        }
+
+        _hooks.Clear();
+
+        // Only the installing instance clears the shared handler/owner, so a
+        // stray Dispose on a non-owner can't disable live hooks
+        if (ReferenceEquals(s_owner, this))
+        {
+            s_owner = null;
+            s_handler = null;
+        }
+    }
+
     [LibraryImport("user32.dll")]
     private static partial nint SetWinEventHook(
         WinEvent eventMin,
@@ -116,106 +220,5 @@ public sealed unsafe partial class WinEventHook : IDisposable
         {
             handler(value, new WindowId(hWnd));
         }
-    }
-
-    /// <summary>
-    /// Installs the hooks and routes events to <paramref name="handler" /> until
-    /// disposed.
-    /// </summary>
-    public void Install(Action<WindowEventKind, WindowId> handler)
-    {
-        ArgumentNullException.ThrowIfNull(handler);
-        // The WinEvent callback is static, so the handler is process-wide, only
-        // one hook set may be installed at a time
-        if (s_owner is not null)
-        {
-            throw new InvalidOperationException("A WinEventHook is already installed");
-        }
-        s_owner = this;
-        s_handler = handler;
-
-        const WinEventFlags flags = WinEventFlags.OutOfContext | WinEventFlags.SkipOwnProcess;
-
-        // Four tight ranges rather than one wide one, so we never receive the
-        // very frequent EVENT_OBJECT_LOCATIONCHANGE (0x800B) that sits between
-        // these object events
-        _hooks.Add(
-            SetWinEventHook(
-                WinEvent.SystemForeground,
-                WinEvent.SystemForeground,
-                0,
-                &OnWinEvent,
-                0,
-                0,
-                flags
-            )
-        );
-        _hooks.Add(
-            SetWinEventHook(
-                WinEvent.SystemMinimizeStart,
-                WinEvent.SystemMinimizeEnd,
-                0,
-                &OnWinEvent,
-                0,
-                0,
-                flags
-            )
-        );
-        _hooks.Add(
-            SetWinEventHook(WinEvent.ObjectCreate, WinEvent.ObjectHide, 0, &OnWinEvent, 0, 0, flags)
-        );
-        _hooks.Add(
-            SetWinEventHook(
-                WinEvent.ObjectCloaked,
-                WinEvent.ObjectUncloaked,
-                0,
-                &OnWinEvent,
-                0,
-                0,
-                flags
-            )
-        );
-    }
-
-    public void Dispose()
-    {
-        foreach (nint hook in _hooks)
-        {
-            if (hook != 0)
-            {
-                UnhookWinEvent(hook);
-            }
-        }
-
-        _hooks.Clear();
-        // Only the installing instance clears the shared handler/owner, so a
-        // stray Dispose on a non-owner can't disable live hooks
-        if (ReferenceEquals(s_owner, this))
-        {
-            s_owner = null;
-            s_handler = null;
-        }
-    }
-
-    /// <summary>WinEvent constants this hook subscribes to.</summary>
-    private enum WinEvent : uint
-    {
-        SystemForeground = 0x0003, // EVENT_SYSTEM_FOREGROUND
-        SystemMinimizeStart = 0x0016, // EVENT_SYSTEM_MINIMIZESTART
-        SystemMinimizeEnd = 0x0017, // EVENT_SYSTEM_MINIMIZEEND
-        ObjectCreate = 0x8000, // EVENT_OBJECT_CREATE
-        ObjectDestroy = 0x8001, // EVENT_OBJECT_DESTROY
-        ObjectShow = 0x8002, // EVENT_OBJECT_SHOW
-        ObjectHide = 0x8003, // EVENT_OBJECT_HIDE
-        ObjectCloaked = 0x8017, // EVENT_OBJECT_CLOAKED
-        ObjectUncloaked = 0x8018, // EVENT_OBJECT_UNCLOAKED
-    }
-
-    /// <summary>SetWinEventHook flags.</summary>
-    [Flags]
-    private enum WinEventFlags : uint
-    {
-        OutOfContext = 0x0000, // WINEVENT_OUTOFCONTEXT
-        SkipOwnProcess = 0x0002, // WINEVENT_SKIPOWNPROCESS
     }
 }
