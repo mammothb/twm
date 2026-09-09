@@ -137,8 +137,9 @@ csharp_style_prefer_range_operator = true:suggestion
 csharp_style_pattern_local_over_anonymous_function = false:none
 
 dotnet_analyzer_diagnostic.category-StyleCop.CSharp.DocumentationRules.severity = none
-dotnet_analyzer_diagnostic.category-StyleCop.CSharp.SpacingRules.severity = none
 dotnet_analyzer_diagnostic.category-StyleCop.CSharp.NamingRules.severity = none
+dotnet_analyzer_diagnostic.category-StyleCop.CSharp.MaintainabilityRules.severity = none
+dotnet_analyzer_diagnostic.category-StyleCop.CSharp.SpacingRules.severity = none
 dotnet_analyzer_diagnostic.category-StyleCop.CSharp.ReadabilityRules.severity = none
 dotnet_diagnostic.SA0001.severity = none
 

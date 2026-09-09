@@ -28,6 +28,7 @@ public static class ConfigMapping
         {
             return Gaps.None;
         }
+
         return new Gaps(dto.Inner ?? 0, dto.Outer ?? 0);
     }
 
@@ -42,6 +43,7 @@ public static class ConfigMapping
         {
             return null;
         }
+
         return new WorkspaceOptions { PerMonitor = dto.PerMonitor, Names = dto.Names };
     }
 

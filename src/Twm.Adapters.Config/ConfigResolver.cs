@@ -61,67 +61,36 @@ public static class ConfigResolver
         );
     }
 
-    private static TabOptions ResolveTabs(TabsDto? dto, BarOptions bar, List<string> errors)
+    /// <summary>
+    /// Parses <c>#RRGGBB</c> (or <c>RRGGBB</c>) to a Win32 COLOREF
+    /// (0x00BBGGRR).
+    /// </summary>
+    private static uint ParseColor(string? hex, uint fallback, string field, List<string> errors)
     {
-        // Tabs default to the resolved status-bar theme (so they match the bar)
-        // height defaults to the layout engine's stripe size
-        int height = TabOptions.Defaults.Height;
-        if (dto is null)
+        if (string.IsNullOrWhiteSpace(hex))
         {
-            return new TabOptions(height, bar.Background, bar.Foreground, bar.ActiveBackground);
+            return fallback;
         }
 
-        if (dto.Height is int h)
-        {
-            if (h > 0)
-            {
-                height = h;
-            }
-            else
-            {
-                errors.Add($"tabs.height {h} invalid (must be > 0); using {height}");
-            }
-        }
-
-        return new TabOptions(
-            Height: height,
-            Background: ParseColor(dto.Background, bar.Background, "tabs.background", errors),
-            Foreground: ParseColor(dto.Foreground, bar.Foreground, "tabs.foreground", errors),
-            ActiveBackground: ParseColor(
-                dto.ActiveBackground,
-                bar.ActiveBackground,
-                "tabs.activeBackground",
-                errors
+        string trimmed = hex.Trim().TrimStart('#');
+        if (
+            trimmed.Length == 6
+            && uint.TryParse(
+                trimmed,
+                NumberStyles.HexNumber,
+                CultureInfo.InvariantCulture,
+                out uint rgb
             )
-        );
-    }
-
-    private static BorderOptions ResolveBorder(BorderDto? dto, List<string> errors)
-    {
-        BorderOptions d = BorderOptions.Defaults;
-        if (dto is null)
+        )
         {
-            return d;
+            uint r = (rgb >> 16) & 0xFF;
+            uint g = (rgb >> 8) & 0xFF;
+            uint b = rgb & 0xFF;
+            return r | (g << 8) | (b << 16);
         }
 
-        int width = d.Width;
-        if (dto.Width is int w)
-        {
-            if (w > 0)
-            {
-                width = w;
-            }
-            else
-            {
-                errors.Add($"border.width {w} invalid (must be > 0); using {width}");
-            }
-        }
-
-        return new BorderOptions(
-            Enabled: dto.Enabled ?? d.Enabled,
-            Color: ParseColor(dto.Color, d.Color, "border.color", errors),
-            Width: width
-        );
+        errors.Add($"{field} '{hex}' invalid (expected #RRGGBB); using default");
+        return fallback;
     }
 
     private static BarOptions ResolveBar(BarDto? dto, List<string> errors)
@@ -179,36 +148,67 @@ public static class ConfigResolver
         );
     }
 
-    /// <summary>
-    /// Parses <c>#RRGGBB</c> (or <c>RRGGBB</c>) to a Win32 COLOREF
-    /// (0x00BBGGRR).
-    /// </summary>
-    private static uint ParseColor(string? hex, uint fallback, string field, List<string> errors)
+    private static BorderOptions ResolveBorder(BorderDto? dto, List<string> errors)
     {
-        if (string.IsNullOrWhiteSpace(hex))
+        BorderOptions d = BorderOptions.Defaults;
+        if (dto is null)
         {
-            return fallback;
+            return d;
         }
 
-        string trimmed = hex.Trim().TrimStart('#');
-        if (
-            trimmed.Length == 6
-            && uint.TryParse(
-                trimmed,
-                NumberStyles.HexNumber,
-                CultureInfo.InvariantCulture,
-                out uint rgb
+        int width = d.Width;
+        if (dto.Width is int w)
+        {
+            if (w > 0)
+            {
+                width = w;
+            }
+            else
+            {
+                errors.Add($"border.width {w} invalid (must be > 0); using {width}");
+            }
+        }
+
+        return new BorderOptions(
+            Enabled: dto.Enabled ?? d.Enabled,
+            Color: ParseColor(dto.Color, d.Color, "border.color", errors),
+            Width: width
+        );
+    }
+
+    private static TabOptions ResolveTabs(TabsDto? dto, BarOptions bar, List<string> errors)
+    {
+        // Tabs default to the resolved status-bar theme (so they match the bar)
+        // height defaults to the layout engine's stripe size
+        int height = TabOptions.Defaults.Height;
+        if (dto is null)
+        {
+            return new TabOptions(height, bar.Background, bar.Foreground, bar.ActiveBackground);
+        }
+
+        if (dto.Height is int h)
+        {
+            if (h > 0)
+            {
+                height = h;
+            }
+            else
+            {
+                errors.Add($"tabs.height {h} invalid (must be > 0); using {height}");
+            }
+        }
+
+        return new TabOptions(
+            Height: height,
+            Background: ParseColor(dto.Background, bar.Background, "tabs.background", errors),
+            Foreground: ParseColor(dto.Foreground, bar.Foreground, "tabs.foreground", errors),
+            ActiveBackground: ParseColor(
+                dto.ActiveBackground,
+                bar.ActiveBackground,
+                "tabs.activeBackground",
+                errors
             )
-        )
-        {
-            uint r = (rgb >> 16) & 0xFF;
-            uint g = (rgb >> 8) & 0xFF;
-            uint b = rgb & 0xFF;
-            return r | (g << 8) | (b << 16);
-        }
-
-        errors.Add($"{field} '{hex}' invalid (expected #RRGGBB); using default");
-        return fallback;
+        );
     }
 
     private static bool TryFindDuplicate(IReadOnlyList<string> names, out string duplicate)
@@ -222,6 +222,7 @@ public static class ConfigResolver
                 return true;
             }
         }
+
         duplicate = "";
         return false;
     }

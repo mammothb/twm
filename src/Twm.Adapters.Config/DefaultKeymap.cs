@@ -25,7 +25,14 @@ public static class DefaultKeymap
     public static IReadOnlyDictionary<KeyBinding, KeyEffect> Create()
     {
         KeymapBuildResult result = KeymapBuilder.Build(
-            new TwmConfig { Mod = "alt", Bindings = DefaultBindings() }
+            new TwmConfig
+            {
+                Mod = "alt",
+                Bindings = new Dictionary<string, string>(
+                    DefaultBindings(),
+                    StringComparer.Ordinal
+                ),
+            }
         );
 
         // The built-in bindings must always be valid; fail loudly if a future
@@ -45,7 +52,7 @@ public static class DefaultKeymap
     /// source of truth for the default keymap; also used as the fallback when a
     /// config omits <c>bindings:</c>.
     /// </summary>
-    public static Dictionary<string, string> DefaultBindings()
+    public static IReadOnlyDictionary<string, string> DefaultBindings()
     {
         var bindings = new Dictionary<string, string>(StringComparer.Ordinal)
         {
@@ -68,6 +75,7 @@ public static class DefaultKeymap
             ["$mod+b"] = "split h",
             ["$mod+shift+q"] = "close",
             ["$mod+shift+e"] = "exit",
+            ["$mod+shift+r"] = "reconcile-displays",
         };
 
         for (int number = 1; number <= WorkspaceKeys; number++)
