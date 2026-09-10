@@ -12,6 +12,7 @@ namespace Twm.TestSupport.Fakes;
 public sealed class FakeWindowSystem(params NativeWindowInfo[] windows) : IWindowSystem
 {
     private readonly IReadOnlyList<NativeWindowInfo> _windows = windows;
+
     public List<(WindowId Window, Rect Bounds)> Positioned { get; } = [];
 
     /// <summary>
@@ -19,9 +20,13 @@ public sealed class FakeWindowSystem(params NativeWindowInfo[] windows) : IWindo
     /// failure-isolation tests).
     /// </summary>
     public HashSet<WindowId> ThrowOnRect { get; } = [];
+
     public List<WindowId> Foregrounded { get; } = [];
+
     public List<WindowId> Shown { get; } = [];
+
     public List<WindowId> Hidden { get; } = [];
+
     public List<WindowId> Closed { get; } = [];
 
     /// <summary>
@@ -38,6 +43,7 @@ public sealed class FakeWindowSystem(params NativeWindowInfo[] windows) : IWindo
         {
             throw new InvalidOperationException($"simulated SetWindowRect failure for {window}");
         }
+
         Positioned.Add((window, bounds));
         Operations.Add($"rect:{window.Value}");
     }
