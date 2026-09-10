@@ -13,12 +13,6 @@ namespace Twm.Application.Tests.Fixtures;
 /// </summary>
 public sealed class TestWorld
 {
-    public RootContainer Root { get; }
-    public Monitor Primary { get; }
-    public Monitor Secondary { get; }
-    public LayoutEngine Layout { get; }
-    public Bus Bus { get; }
-
     public TestWorld(
         IReadOnlyList<string>? primaryWorkspaces = null,
         IReadOnlyList<string>? secondaryWorkspaces = null
@@ -60,6 +54,19 @@ public sealed class TestWorld
         Layout.Arrange(Root);
     }
 
+    public RootContainer Root { get; }
+
+    public Monitor Primary { get; }
+
+    public Monitor Secondary { get; }
+
+    public LayoutEngine Layout { get; }
+
+    public Bus Bus { get; }
+
+    public static Workspace WorkspaceOf(Monitor monitor, int index) =>
+        (Workspace)monitor.Children[index];
+
     public CommandResult Invoke(ICommand command) => Bus.Invoke(command);
 
     /// <summary>
@@ -69,7 +76,4 @@ public sealed class TestWorld
         Bus.Invoke(new AdoptWindowCommand(new WindowId(id), monitor));
 
     public TilingWindow Window(int id) => Root.FindWindow(new WindowId(id))!;
-
-    public static Workspace WorkspaceOf(Monitor monitor, int index) =>
-        (Workspace)monitor.Children[index];
 }

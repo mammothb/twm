@@ -25,29 +25,6 @@ public class WmSessionTests
             IsPrimary: false
         );
 
-    private static NativeWindowInfo Win(
-        int id,
-        int x,
-        int y,
-        int w = 800,
-        int h = 600,
-        string cls = "Notepad",
-        string title = "App"
-    ) =>
-        new(
-            new WindowId(id),
-            title,
-            cls,
-            new Rect(x, y, w, h),
-            IsVisible: true,
-            IsCloaked: false,
-            IsToolWindow: false,
-            IsMinimized: false
-        );
-
-    private static int WindowCount(WmSession session) =>
-        session.Root.Descendants.OfType<TilingWindow>().Count();
-
     [Fact]
     public void Shutdown_ShowsEveryManagedWindow_IncludingOnesOnInactiveWorkspaces()
     {
@@ -385,4 +362,27 @@ public class WmSessionTests
 
         eventCount.ShouldBePositive();
     }
+
+    private static NativeWindowInfo Win(
+        int id,
+        int x,
+        int y,
+        int w = 800,
+        int h = 600,
+        string cls = "Notepad",
+        string title = "App"
+    ) =>
+        new(
+            new WindowId(id),
+            title,
+            cls,
+            new Rect(x, y, w, h),
+            IsVisible: true,
+            IsCloaked: false,
+            IsToolWindow: false,
+            IsMinimized: false
+        );
+
+    private static int WindowCount(WmSession session) =>
+        session.Root.Descendants.OfType<TilingWindow>().Count();
 }

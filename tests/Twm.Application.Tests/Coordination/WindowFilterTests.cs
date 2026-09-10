@@ -14,63 +14,37 @@ public class WindowFilterTests
     /// </summary>
     private static readonly WindowFilter s_filter = new();
 
-    private static NativeWindowInfo Manageable() =>
-        new(
-            Id: new WindowId(1),
-            Title: "Editor",
-            ClassName: "Notepad",
-            Bounds: new Rect(0, 0, 800, 600),
-            IsVisible: true,
-            IsCloaked: false,
-            IsToolWindow: false,
-            IsMinimized: false
-        );
-
     [Fact]
-    public void NormalTopLevelWindow_IsManageable()
-    {
+    public void NormalTopLevelWindow_IsManageable() =>
         s_filter.IsManageable(Manageable()).ShouldBeTrue();
-    }
 
     [Fact]
-    public void InvisibleWindow_IsIgnored()
-    {
+    public void InvisibleWindow_IsIgnored() =>
         s_filter.IsManageable(Manageable() with { IsVisible = false }).ShouldBeFalse();
-    }
 
     [Fact]
-    public void CloakedWindow_IsIgnored()
-    {
+    public void CloakedWindow_IsIgnored() =>
         s_filter.IsManageable(Manageable() with { IsCloaked = true }).ShouldBeFalse();
-    }
 
     [Fact]
-    public void MinimizedWindow_IsIgnored()
-    {
+    public void MinimizedWindow_IsIgnored() =>
         s_filter.IsManageable(Manageable() with { IsMinimized = true }).ShouldBeFalse();
-    }
 
     [Fact]
-    public void ToolWindow_IsIgnored()
-    {
+    public void ToolWindow_IsIgnored() =>
         s_filter.IsManageable(Manageable() with { IsToolWindow = true }).ShouldBeFalse();
-    }
 
     [Fact]
-    public void ChildWindow_IsIgnored()
-    {
+    public void ChildWindow_IsIgnored() =>
         s_filter
             .IsManageable(Manageable() with { Title = "Chrome Legacy Window", IsChild = true })
             .ShouldBeFalse();
-    }
 
     [Theory]
     [InlineData("")]
     [InlineData("  ")]
-    public void BlankTitle_IsIgnored(string title)
-    {
+    public void BlankTitle_IsIgnored(string title) =>
         s_filter.IsManageable(Manageable() with { Title = title }).ShouldBeFalse();
-    }
 
     [Theory]
     [InlineData("Shell_TrayWnd")]
@@ -79,49 +53,35 @@ public class WindowFilterTests
     [InlineData("WorkerW")]
     [InlineData("Window.UI.Core.CoreWindow")]
     [InlineData("TaskManagerWindow")]
-    public void IgnoredClass_IsIgnored(string className)
-    {
+    public void IgnoredClass_IsIgnored(string className) =>
         s_filter.IsManageable(Manageable() with { ClassName = className }).ShouldBeFalse();
-    }
 
     [Fact]
-    public void ElevatedWindow_IsIgnored()
-    {
+    public void ElevatedWindow_IsIgnored() =>
         s_filter.IsManageable(Manageable() with { IsElevated = true }).ShouldBeFalse();
-    }
 
     [Fact]
-    public void NoActivateWindow_IsIgnored()
-    {
+    public void NoActivateWindow_IsIgnored() =>
         s_filter.IsManageable(Manageable() with { IsNoActivate = true }).ShouldBeFalse();
-    }
 
     [Fact]
-    public void OwnedMenuPopup_IsIgnored()
-    {
+    public void OwnedMenuPopup_IsIgnored() =>
         s_filter.IsManageable(Manageable() with { IsMenuPopup = true }).ShouldBeFalse();
-    }
 
     [Fact]
-    public void NoCaptionWindow_IsIgnored()
-    {
+    public void NoCaptionWindow_IsIgnored() =>
         s_filter.IsManageable(Manageable() with { HasCaption = false }).ShouldBeFalse();
-    }
 
     [Fact]
-    public void NoWindowEdgeWindow_IsIgnored()
-    {
+    public void NoWindowEdgeWindow_IsIgnored() =>
         s_filter.IsManageable(Manageable() with { HasWindowEdge = false }).ShouldBeFalse();
-    }
 
     [Fact]
-    public void DlgModalFrameWindow_IsIgnored()
-    {
+    public void DlgModalFrameWindow_IsIgnored() =>
         // A window with WS_EX_DLGMODALFRAME (WinForms
         // FixedDialog/Fixed3D/FixedSingle, native dialog templates, KeePass's
         // document form) is not a tiled app window.
         s_filter.IsManageable(Manageable() with { IsDlgModalFrame = true }).ShouldBeFalse();
-    }
 
     [Fact]
     public void DlgModalFrameWindow_WithManageRule_IsRescued()
@@ -174,4 +134,16 @@ public class WindowFilterTests
 
         filter.IsManageable(Manageable()).ShouldBeTrue();
     }
+
+    private static NativeWindowInfo Manageable() =>
+        new(
+            Id: new WindowId(1),
+            Title: "Editor",
+            ClassName: "Notepad",
+            Bounds: new Rect(0, 0, 800, 600),
+            IsVisible: true,
+            IsCloaked: false,
+            IsToolWindow: false,
+            IsMinimized: false
+        );
 }

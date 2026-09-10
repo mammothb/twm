@@ -19,7 +19,7 @@ public class SingleMonitorSessionTests
         world.Invoke(new MoveInDirectionCommand(Direction.Left)); // [1, 3, 2]
         world.Invoke(new ResizeContainerCommand(0.5));
 
-        string expected =
+        const string expected =
             "Workspace \"1\" Horizontal [0,0 1920x1080]\n"
             + "  Window #1 [0,0 640x1080]\n"
             + "  Window #3 [640,0 960x1080]\n"
@@ -67,7 +67,7 @@ public class SingleMonitorSessionTests
 
         world.Invoke(new MoveInDirectionCommand(Direction.Left));
 
-        string expected =
+        const string expected =
             "Workspace \"1\" Horizontal [0,0 1920x1080]\n"
             + "  Window #1 [0,0 640x1080]\n"
             + "  Window #2 [640,0 640x1080]\n"

@@ -25,18 +25,6 @@ public class WorkspaceSessionTests
             IsPrimary: false
         );
 
-    private static NativeWindowInfo Win(int id, int x, int y) =>
-        new(
-            new WindowId(id),
-            "App",
-            "Notepad",
-            new Rect(x, y, 800, 600),
-            IsVisible: true,
-            IsCloaked: false,
-            IsToolWindow: false,
-            IsMinimized: false
-        );
-
     [Fact]
     public void FocusWorkspace_ActivatesTarget_CloaksPreviousActive()
     {
@@ -104,4 +92,16 @@ public class WorkspaceSessionTests
         session.Root.FocusedWindow()!.WindowId.ShouldBe(new WindowId(1));
         secondary.LastFocusedChild.ShouldBeSameAs(secondaryActiveBefore);
     }
+
+    private static NativeWindowInfo Win(int id, int x, int y) =>
+        new(
+            new WindowId(id),
+            "App",
+            "Notepad",
+            new Rect(x, y, 800, 600),
+            IsVisible: true,
+            IsCloaked: false,
+            IsToolWindow: false,
+            IsMinimized: false
+        );
 }

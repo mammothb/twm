@@ -4,26 +4,6 @@ namespace Twm.Application.Tests.Messaging;
 
 public class BusTests
 {
-    private sealed record IncrementCommand(int By) : ICommand;
-
-    private sealed record ResetCommand : ICommand;
-
-    private sealed record CounterChanged(int Value) : IEvent;
-
-    private sealed record UnrelatedEvent : IEvent;
-
-    private sealed class DelegateHandler<TCommand>(Func<TCommand, CommandResult> handle)
-        : ICommandHandler<TCommand>
-        where TCommand : ICommand
-    {
-        private readonly Func<TCommand, CommandResult> _handle = handle;
-
-        public CommandResult Handle(TCommand command)
-        {
-            return _handle(command);
-        }
-    }
-
     [Fact]
     public void Invoke_DispatchesToHandlerAndReturnsResult()
     {
@@ -48,7 +28,7 @@ public class BusTests
             })
         );
 
-        int expected = 42;
+        const int expected = 42;
         bus.Invoke(new IncrementCommand(expected));
 
         seen.ShouldBe(expected);
@@ -61,14 +41,14 @@ public class BusTests
         bool incrementCalled = false;
         bool resetCalled = false;
         bus.Register(
-            new DelegateHandler<IncrementCommand>(command =>
+            new DelegateHandler<IncrementCommand>(_ =>
             {
                 incrementCalled = true;
                 return CommandResult.Ok;
             })
         );
         bus.Register(
-            new DelegateHandler<ResetCommand>(command =>
+            new DelegateHandler<ResetCommand>(_ =>
             {
                 resetCalled = true;
                 return CommandResult.Ok;
@@ -85,7 +65,7 @@ public class BusTests
     public void Invoke_ReturnsFailureResultFromHandler()
     {
         var bus = new Bus();
-        string message = "failed";
+        const string message = "failed";
         bus.Register(new DelegateHandler<ResetCommand>(_ => CommandResult.Fail(message)));
 
         CommandResult result = bus.Invoke(new ResetCommand());
@@ -124,7 +104,7 @@ public class BusTests
         bus.Subscribe<CounterChanged>(e => first = e.Value);
         bus.Subscribe<CounterChanged>(e => second = e.Value);
 
-        int expected = 7;
+        const int expected = 7;
         bus.Emit(new CounterChanged(expected));
 
         first.ShouldBe(expected);
@@ -175,7 +155,7 @@ public class BusTests
     [Fact]
     public void CommandHistory_IsBoundedKeepingMostRecent()
     {
-        int commandHistoryCapacity = 2;
+        const int commandHistoryCapacity = 2;
         var bus = new Bus(commandHistoryCapacity);
         bus.Register(new DelegateHandler<IncrementCommand>(_ => CommandResult.Ok));
         bus.Register(new DelegateHandler<ResetCommand>(_ => CommandResult.Ok));
@@ -186,5 +166,22 @@ public class BusTests
 
         bus.CommandHistory.ShouldBe([nameof(ResetCommand), nameof(IncrementCommand)]);
         bus.CommandHistory.Count.ShouldBe(commandHistoryCapacity);
+    }
+
+    private sealed record IncrementCommand(int By) : ICommand;
+
+    private sealed record ResetCommand : ICommand;
+
+    private sealed record CounterChanged(int Value) : IEvent;
+
+    private sealed record UnrelatedEvent : IEvent;
+
+    private sealed class DelegateHandler<TCommand>(Func<TCommand, CommandResult> handle)
+        : ICommandHandler<TCommand>
+        where TCommand : ICommand
+    {
+        private readonly Func<TCommand, CommandResult> _handle = handle;
+
+        public CommandResult Handle(TCommand command) => _handle(command);
     }
 }
