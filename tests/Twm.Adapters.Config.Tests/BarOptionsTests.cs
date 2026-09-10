@@ -4,8 +4,6 @@ namespace Twm.Adapters.Config.Tests;
 
 public class BarOptionsTests
 {
-    private static ResolvedConfig Resolve(TwmConfig config) => ConfigResolver.Resolve(config, 1);
-
     [Fact]
     public void NoBarSection_UsesDefaults()
     {
@@ -75,4 +73,6 @@ public class BarOptionsTests
 
         resolved.Bar.Enabled.ShouldBeFalse();
     }
+
+    private static ResolvedConfig Resolve(TwmConfig config) => ConfigResolver.Resolve(config, 1);
 }

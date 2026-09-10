@@ -10,20 +10,6 @@ namespace Twm.Adapters.Config.Tests;
 
 public class ConfigResolverTests
 {
-    private static NativeWindowInfo Window(string className) =>
-        new(
-            Id: new WindowId(1),
-            Title: "Editor",
-            ClassName: className,
-            Bounds: new Rect(0, 0, 800, 600),
-            IsVisible: true,
-            IsCloaked: false,
-            IsToolWindow: false,
-            IsMinimized: false
-        );
-
-    private static WindowFilter Filter(ResolvedConfig resolved) => new(resolved.WindowRules);
-
     [Fact]
     public void Resolve_Defaults_ReproducesBuiltInsWithNoErrors()
     {
@@ -94,4 +80,18 @@ public class ConfigResolverTests
         resolved.Errors.ShouldNotBeEmpty();
         resolved.Workspaces!.Names.ShouldBeNull();
     }
+
+    private static NativeWindowInfo Window(string className) =>
+        new(
+            Id: new WindowId(1),
+            Title: "Editor",
+            ClassName: className,
+            Bounds: new Rect(0, 0, 800, 600),
+            IsVisible: true,
+            IsCloaked: false,
+            IsToolWindow: false,
+            IsMinimized: false
+        );
+
+    private static WindowFilter Filter(ResolvedConfig resolved) => new(resolved.WindowRules);
 }

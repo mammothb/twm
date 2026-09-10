@@ -4,8 +4,6 @@ namespace Twm.Adapters.Config.Tests;
 
 public class BorderOptionsTests
 {
-    private static ResolvedConfig Resolve(TwmConfig config) => ConfigResolver.Resolve(config, 1);
-
     [Fact]
     public void NoBorderSection_UsesDefaults()
     {
@@ -59,4 +57,6 @@ public class BorderOptionsTests
 
         resolved.Border.Enabled.ShouldBeFalse();
     }
+
+    private static ResolvedConfig Resolve(TwmConfig config) => ConfigResolver.Resolve(config, 1);
 }

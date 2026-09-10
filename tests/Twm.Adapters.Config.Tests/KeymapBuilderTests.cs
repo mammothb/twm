@@ -6,16 +6,6 @@ namespace Twm.Adapters.Config.Tests;
 
 public class KeymapBuilderTests
 {
-    private static TwmConfig WithBindings(
-        string mod,
-        params (string Chord, string Action)[] bindings
-    ) =>
-        new()
-        {
-            Mod = mod,
-            Bindings = bindings.ToDictionary(b => b.Chord, b => b.Action, StringComparer.Ordinal),
-        };
-
     [Fact]
     public void Build_RunCommandBinding_ParsesActionViaCommandGrammar()
     {
@@ -86,4 +76,14 @@ public class KeymapBuilderTests
         result.Errors.ShouldBeEmpty();
         result.Keymap.ShouldBe(DefaultKeymap.Create());
     }
+
+    private static TwmConfig WithBindings(
+        string mod,
+        params (string Chord, string Action)[] bindings
+    ) =>
+        new()
+        {
+            Mod = mod,
+            Bindings = bindings.ToDictionary(b => b.Chord, b => b.Action, StringComparer.Ordinal),
+        };
 }

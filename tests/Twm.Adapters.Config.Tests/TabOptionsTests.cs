@@ -4,8 +4,6 @@ namespace Twm.Adapters.Config.Tests;
 
 public class TabOptionsTests
 {
-    private static ResolvedConfig Resolve(TwmConfig config) => ConfigResolver.Resolve(config, 1);
-
     [Fact]
     public void NoTabsSection_InheritsBarThemeAndDefaultHeight()
     {
@@ -66,4 +64,6 @@ public class TabOptionsTests
         resolved.Tabs.Height.ShouldBe(TabOptions.Defaults.Height);
         resolved.Tabs.Background.ShouldBe(TabOptions.Defaults.Background);
     }
+
+    private static ResolvedConfig Resolve(TwmConfig config) => ConfigResolver.Resolve(config, 1);
 }
