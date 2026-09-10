@@ -5,7 +5,7 @@ using Twm.Domain.Tree;
 
 namespace Twm.Application.Tests.Commands;
 
-public sealed class CommanParserTests
+public sealed class CommandParserTests
 {
     [Theory]
     [InlineData("focus left", Direction.Left)]
@@ -130,6 +130,6 @@ public sealed class CommanParserTests
         where T : ICommand
     {
         RunCommandRequest runCommandRequest = request.ShouldBeOfType<RunCommandRequest>();
-        return runCommandRequest.ShouldBeOfType<T>();
+        return runCommandRequest.Command.ShouldBeOfType<T>();
     }
 }

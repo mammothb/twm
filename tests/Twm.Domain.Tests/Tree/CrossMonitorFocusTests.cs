@@ -51,7 +51,7 @@ public class CrossMonitorFocusTests
         );
 
         w2.Focus();
-        subject.Bounds = new Rect(1920, 540, 1920, 540);
+        subject.Bounds = new Rect(1920, 0, 1920, 540);
 
         subject.FocusTargetInDirection(Direction.Left).ShouldBeSameAs(w1);
     }
@@ -149,9 +149,9 @@ public class CrossMonitorFocusTests
         var w2 = new TilingWindow(new WindowId(2));
         var w3 = new TilingWindow(new WindowId(3));
         var w4 = new TilingWindow(new WindowId(4));
-        ws.AppendChild(w2);
-        ws.AppendChild(w3);
-        ws.AppendChild(w4);
+        tabbed.AppendChild(w2);
+        tabbed.AppendChild(w3);
+        tabbed.AppendChild(w4);
 
         var right = new Monitor(new Rect(1920, 0, 1920, 1080));
         var originWs = new Workspace("2");
