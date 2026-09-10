@@ -7,8 +7,6 @@ public sealed class IpcRoundTripTests
 {
     public static bool s_isWindows => OperatingSystem.IsWindows();
 
-    private static string UniquePipeName() => "twm-test-" + Guid.NewGuid().ToString("N");
-
     [Fact]
     public void Send_RoundTripsThroughTheDispatcher()
     {
@@ -58,7 +56,7 @@ public sealed class IpcRoundTripTests
     public void Send_OversizedRequest_ReturnsErrNotCrash()
     {
         string pipeName = UniquePipeName();
-        using var server = new IpcServer(request => "ok", pipeName);
+        using var server = new IpcServer(_ => "ok", pipeName);
         server.Start();
 
         string response = IpcClient.Send(new string('x', 20000), pipeName);
@@ -73,4 +71,6 @@ public sealed class IpcRoundTripTests
             IpcClient.Send("focus left", UniquePipeName(), connectTimeoutMs: 300)
         );
     }
+
+    private static string UniquePipeName() => "twm-test-" + Guid.NewGuid().ToString("N");
 }
