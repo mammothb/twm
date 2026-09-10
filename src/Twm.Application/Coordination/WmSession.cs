@@ -31,12 +31,6 @@ public sealed class WmSession
     // user click).
     private WindowId? _pendingForeground;
 
-    /// <summary>The live container tree.</summary>
-    public RootContainer Root { get; }
-
-    /// <summary>How many windows are currently tiled.</summary>
-    public int ManagedWindowCount => Root.Descendants.OfType<TilingWindow>().Count();
-
     public WmSession(
         IMonitorSystem monitors,
         IWindowSystem windows,
@@ -60,6 +54,12 @@ public sealed class WmSession
         _reconciler = new Reconciler(windows);
         _layout.Arrange(Root);
     }
+
+    /// <summary>The live container tree.</summary>
+    public RootContainer Root { get; }
+
+    /// <summary>How many windows are currently tiled.</summary>
+    public int ManagedWindowCount => Root.Descendants.OfType<TilingWindow>().Count();
 
     /// <summary>
     /// Asks the OS to close the focused window (post WM_CLOSE). Its removal

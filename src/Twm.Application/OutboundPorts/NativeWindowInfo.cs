@@ -23,23 +23,17 @@ public sealed record NativeWindowInfo(
     bool IsNoActivate = false,
     bool IsMenuPopup = false,
     bool IsLayered = false,
-    /// <summary>
-    /// Allowlist-criteria diagnostics (require WS_CAPTION|WS_EX_WINDOWEDGE).
-    /// Default true so fakes/tests read as normal; only the Win32 backend sets
-    /// them per-window
-    /// </summary>
+    // Allowlist-criteria diagnostics (require WS_CAPTION|WS_EX_WINDOWEDGE).
+    // Default true so fakes/tests read as normal; only the Win32 backend sets
+    // them per-window
     bool HasCaption = true,
     bool HasWindowEdge = true,
-    /// <summary>
-    /// HWND of this window's owner (GW_OWNER), or null. Owned windows (modal
-    /// dialogs, popups) are hidden by DWM when their owner is cloaked. Only the
-    /// Win32 backend sets it.
-    /// </summary>
+    // HWND of this window's owner (GW_OWNER), or null. Owned windows (modal
+    // dialogs, popups) are hidden by DWM when their owner is cloaked. Only the
+    // Win32 backend sets it.
     WindowId? Owner = null,
-    /// <summary>
-    /// WS_EX_DLGMODALFRAME: thin/double dialog border. Treated as ineligible for
-    /// tiling (see WindowFilter). Default false for test fakes; the Win32
-    /// backend fills it from GWL_EXSTYLE.
-    /// </summary>
+    // WS_EX_DLGMODALFRAME: thin/double dialog border. Treated as ineligible for
+    // tiling (see WindowFilter). Default false for test fakes; the Win32
+    // backend fills it from GWL_EXSTYLE.
     bool IsDlgModalFrame = false
 );

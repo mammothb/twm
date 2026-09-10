@@ -143,6 +143,7 @@ dotnet_analyzer_diagnostic.category-StyleCop.CSharp.SpacingRules.severity = none
 dotnet_analyzer_diagnostic.category-StyleCop.CSharp.ReadabilityRules.severity = none
 dotnet_diagnostic.SA0001.severity = none
 dotnet_diagnostic.SA1502.severity = none
+dotnet_diagnostic.SA1515.severity = none
 
 # Space preferences
 csharp_space_after_cast = false
