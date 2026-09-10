@@ -9,13 +9,15 @@ public sealed class Bus
 {
     private const int DefaultCommandHistoryCapacity = 100;
 
-    private readonly Dictionary<Type, Func<ICommand, CommandResult>> _handlers = [];
-    private readonly Dictionary<Type, List<Action<IEvent>>> _subscribers = [];
+    private readonly Dictionary<Type, Func<ICommand, CommandResult>> _commandTypeToHandler = [];
+    private readonly Dictionary<Type, List<Action<IEvent>>> _eventTypeToSubscribers = [];
     private readonly Queue<string> _commandHistory = [];
     private readonly int _commandHistoryCapacity;
 
+#pragma warning disable SA1502 // ElementMustNoBeOnSingleLine
     public Bus()
         : this(DefaultCommandHistoryCapacity) { }
+#pragma warning restore SA1502 // ElementMustNoBeOnSingleLine
 
     public Bus(int commandHistoryCapacity)
     {
@@ -29,21 +31,18 @@ public sealed class Bus
     public IReadOnlyCollection<string> CommandHistory => _commandHistory.ToArray();
 
     /// <summary>
-    /// Registers the single handler for <typeparamref name="TCommand" />.
+    /// Fans an event out to every subscriber of its exact type.
     /// </summary>
-    public void Register<TCommand>(ICommandHandler<TCommand> handler)
-        where TCommand : ICommand
+    public void Emit(IEvent @event)
     {
-        ArgumentNullException.ThrowIfNull(handler);
-        Type type = typeof(TCommand);
-        if (_handlers.ContainsKey(type))
+        ArgumentNullException.ThrowIfNull(@event);
+        if (_eventTypeToSubscribers.TryGetValue(@event.GetType(), out List<Action<IEvent>>? list))
         {
-            throw new InvalidOperationException(
-                $"A handler is already registered for command '{type.Name}'."
-            );
+            foreach (Action<IEvent> subscriber in list.ToArray())
+            {
+                subscriber(@event);
+            }
         }
-
-        _handlers[type] = command => handler.Handle((TCommand)command);
     }
 
     /// <summary>
@@ -53,13 +52,31 @@ public sealed class Bus
     {
         ArgumentNullException.ThrowIfNull(command);
         Type type = command.GetType();
-        if (!_handlers.TryGetValue(type, out Func<ICommand, CommandResult>? handler))
+        if (!_commandTypeToHandler.TryGetValue(type, out Func<ICommand, CommandResult>? handler))
         {
             throw new InvalidOperationException($"No handler registred for command '{type.Name}'.");
         }
 
         RecordInvocation(type);
         return handler(command);
+    }
+
+    /// <summary>
+    /// Registers the single handler for <typeparamref name="TCommand" />.
+    /// </summary>
+    public void Register<TCommand>(ICommandHandler<TCommand> handler)
+        where TCommand : ICommand
+    {
+        ArgumentNullException.ThrowIfNull(handler);
+        Type type = typeof(TCommand);
+        if (_commandTypeToHandler.ContainsKey(type))
+        {
+            throw new InvalidOperationException(
+                $"A handler is already registered for command '{type.Name}'."
+            );
+        }
+
+        _commandTypeToHandler[type] = command => handler.Handle((TCommand)command);
     }
 
     /// <summary>
@@ -70,28 +87,13 @@ public sealed class Bus
     {
         ArgumentNullException.ThrowIfNull(handler);
         Type type = typeof(TEvent);
-        if (!_subscribers.TryGetValue(type, out List<Action<IEvent>>? list))
+        if (!_eventTypeToSubscribers.TryGetValue(type, out List<Action<IEvent>>? list))
         {
             list = [];
-            _subscribers[type] = list;
+            _eventTypeToSubscribers[type] = list;
         }
 
         list.Add(@event => handler((TEvent)@event));
-    }
-
-    /// <summary>
-    /// Fans an event out to every subscriber of its exact type.
-    /// </summary>
-    public void Emit(IEvent @event)
-    {
-        ArgumentNullException.ThrowIfNull(@event);
-        if (_subscribers.TryGetValue(@event.GetType(), out List<Action<IEvent>>? list))
-        {
-            foreach (Action<IEvent> subscriber in list.ToArray())
-            {
-                subscriber(@event);
-            }
-        }
     }
 
     private void RecordInvocation(Type commandType)
