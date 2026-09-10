@@ -192,7 +192,7 @@ public static class DirectionalQueries
         Container? activeWorkspace = subject
             .MonitorOf()
             ?.AdjacentMonitor(direction)
-            ?.LastFocusedChild;
+            ?.ActiveWorkspace();
         return activeWorkspace is null
             ? null
             : EntryWindow(activeWorkspace, direction, subject.Bounds.Center) ?? activeWorkspace;
