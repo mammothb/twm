@@ -24,20 +24,16 @@ public static class LayoutExtensions
     /// split-horizontal and tabbed (children run left-to-right), vertical for
     /// split-vertical and stacked.
     /// </summary>
-    public static TilingDirection Axis(this Layout layout)
-    {
-        return layout switch
+    public static TilingDirection Axis(this Layout layout) =>
+        layout switch
         {
             Layout.SplitVertical or Layout.Stacked => TilingDirection.Vertical,
             _ => TilingDirection.Horizontal,
         };
-    }
 
     /// <summary>
     /// Whether this is a side-by-side tiling layout (not tabbed/stacked).
     /// </summary>
-    public static bool IsSplit(this Layout layout)
-    {
-        return layout is Layout.SplitHorizontal or Layout.SplitVertical;
-    }
+    public static bool IsSplit(this Layout layout) =>
+        layout is Layout.SplitHorizontal or Layout.SplitVertical;
 }

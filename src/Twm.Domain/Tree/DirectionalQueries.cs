@@ -45,7 +45,21 @@ public static class DirectionalQueries
                 nearest = other;
             }
         }
+
         return nearest;
+    }
+
+    /// <summary>
+    /// The container focus should move to when travelling in
+    /// <paramref="direction" /> from <paramref="subject" />: the deepest
+    /// focusable neighbor within the tree, or, at a workspace edge, the
+    /// entry-edge window of the adjacent monitor's active workspace(falling
+    /// back to that workspace itself). Null if there is nowhere to go).
+    /// </summary>
+    public static Container? FocusTargetInDirection(this Container subject, Direction direction)
+    {
+        ArgumentNullException.ThrowIfNull(subject);
+        return FindInTree(subject, direction) ?? CrossMonitorTarget(subject, direction);
     }
 
     private static int DirectionalDistance(Rect from, Rect to, Direction direction) =>
@@ -68,64 +82,86 @@ public static class DirectionalQueries
     private static bool VerticalOverlap(Rect a, Rect b) => a.Y < b.Bottom && b.Y < a.Bottom;
 
     /// <summary>
-    /// The tiling window nearest the entry edge when crossing into this
-    /// container moving in <paramref name="moveDirection" />, e.g., moving
-    /// Right enters from the left, so the leftmost window. Ties on the entry
-    /// axis are broken by the window nearest <paramref name="fromCenter" /> on
-    /// the perpendicular axis, so focus lands in line with where it came from.
-    /// Null if empty.
+    /// The window to focus when entering <paramref name="container" /> while
+    /// travelling in <paramref name="moveDirection" />. Descends the tree: a
+    /// real split is entered at its edge child along the travel axis, and by
+    /// the child nearest <paramref name="fromCenter" /> on the perpendicular
+    /// axis tabbed/stacked children overlap and have no spatial edge, so the
+    /// most-recently-focused child is kept. Null if the container yields no
+    /// tiling window (empty, or not a window/split container).
     /// </summary>
-    public static TilingWindow? EdgeWindow(
+    private static TilingWindow? EntryWindow(
         this Container container,
         Direction moveDirection,
         Point fromCenter
     )
     {
         ArgumentNullException.ThrowIfNull(container);
-        TilingWindow? best = null;
-        long bestPrimary = long.MaxValue;
-        long bestSecondary = long.MaxValue;
-        foreach (Container descendant in container.Descendants)
+        Container? node = container;
+        while (node is not null)
         {
-            if (descendant is not TilingWindow window)
+            if (node is TilingWindow window)
             {
+                return window;
+            }
+
+            if (node is SplitContainer split)
+            {
+                node = EntryChild(split, moveDirection, fromCenter);
                 continue;
             }
 
-            Rect bounds = window.Bounds;
-            long primary = moveDirection switch
-            {
-                Direction.Right => bounds.X, // nearest left edge
-                Direction.Left => -bounds.Right, // nearest right edge
-                Direction.Down => bounds.Y, // nearest top edge
-                Direction.Up => -bounds.Bottom, // nearest bottom edge
-                _ => 0,
-            };
-            long secondary = moveDirection is Direction.Left or Direction.Right
-                ? Math.Abs(bounds.Center.Y - fromCenter.Y)
-                : Math.Abs(bounds.Center.X - fromCenter.X);
-
-            if (primary < bestPrimary || (primary == bestPrimary && secondary < bestSecondary))
-            {
-                bestPrimary = primary;
-                bestSecondary = secondary;
-                best = window;
-            }
+            return null;
         }
-        return best;
+
+        return null;
     }
 
-    /// <summary>
-    /// The container focus should move to when travelling in
-    /// <paramref="direction" /> from <paramref="subject" />: the deepest
-    /// focusable neighbor within the tree, or, at a workspace edge, the
-    /// entry-edge window of the adjacent monitor's active workspace(falling
-    /// back to that workspace itself). Null if there is nowhere to go).
-    /// </summary>
-    public static Container? FocusTargetInDirection(this Container subject, Direction direction)
+    private static Container? EntryChild(
+        SplitContainer split,
+        Direction moveDirection,
+        Point fromCenter
+    )
     {
-        ArgumentNullException.ThrowIfNull(subject);
-        return FindInTree(subject, direction) ?? CrossMonitorTarget(subject, direction);
+        if (split.Children.Count == 0)
+        {
+            return null;
+        }
+
+        // Tabbed/stacked children overlap: there is no spatial edge, so honor
+        // the remembered focus instead of layout position
+        if (!split.Layout.IsSplit())
+        {
+            return split.LastFocusedChild;
+        }
+
+        // A real split is spatially meaningful only along its own axis: enter
+        // from the edge opposite trave (moving Right/Down enters the first
+        // child, Left/Up enters the last).
+        if (split.Layout.Axis() == moveDirection.Axis())
+        {
+            return moveDirection is Direction.Right or Direction.Down
+                ? split.Children[0]
+                : split.Children[^1];
+        }
+
+        // Perpendicular split: keep spatial continuity by the child nearest
+        // fromCenter on the perpendicular axis
+        Container best = split.Children[0];
+        long bestDelta = long.MaxValue;
+        foreach (Container child in split.Children)
+        {
+            long delta = moveDirection is Direction.Left or Direction.Right
+                ? Math.Abs(child.Bounds.Center.Y - fromCenter.Y)
+                : Math.Abs(child.Bounds.Center.X - fromCenter.X);
+            if (delta < bestDelta)
+            {
+                bestDelta = delta;
+                best = child;
+            }
+        }
+
+        return best;
     }
 
     private static Container? FindInTree(Container subject, Direction direction)
@@ -144,8 +180,10 @@ public static class DirectionalQueries
                     return DeepestFocusable(split.Children[neighborIndex]);
                 }
             }
+
             node = split;
         }
+
         return null;
     }
 
@@ -154,9 +192,10 @@ public static class DirectionalQueries
         Container? activeWorkspace = subject
             .MonitorOf()
             ?.AdjacentMonitor(direction)
-            ?.LastFocusedChild;
-
-        return activeWorkspace?.EdgeWindow(direction, subject.Bounds.Center) ?? activeWorkspace;
+            ?.ActiveWorkspace();
+        return activeWorkspace is null
+            ? null
+            : EntryWindow(activeWorkspace, direction, subject.Bounds.Center) ?? activeWorkspace;
     }
 
     private static Container DeepestFocusable(Container node)
@@ -165,6 +204,7 @@ public static class DirectionalQueries
         {
             return node;
         }
+
         return node.LastFocusedDescendant ?? node;
     }
 }

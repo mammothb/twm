@@ -18,6 +18,7 @@ public class BarViewModelTests
             new Rect(0, 0, 1920, 1080),
             IsPrimary: true
         );
+
     private static MonitorInfo Secondary =>
         new(
             new MonitorId(1),
@@ -25,20 +26,6 @@ public class BarViewModelTests
             new Rect(1920, 0, 1280, 1024),
             IsPrimary: false
         );
-
-    private static NativeWindowInfo Win(int id, int x, int y) =>
-        new(
-            new WindowId(id),
-            $"App{id}",
-            "Notepad",
-            new Rect(x, y, 800, 600),
-            IsVisible: true,
-            IsCloaked: false,
-            IsToolWindow: false,
-            IsMinimized: false
-        );
-
-    private static string TitleOf(WindowId id) => $"win{id.Value}";
 
     [Fact]
     public void Build_TwoMonitors_WorkspaceNamesActiveFlagsAndClock()
@@ -105,4 +92,18 @@ public class BarViewModelTests
         empty.Occupied.ShouldBeFalse();
         primary.FocusedTitle.ShouldBeNull();
     }
+
+    private static NativeWindowInfo Win(int id, int x, int y) =>
+        new(
+            new WindowId(id),
+            $"App{id}",
+            "Notepad",
+            new Rect(x, y, 800, 600),
+            IsVisible: true,
+            IsCloaked: false,
+            IsToolWindow: false,
+            IsMinimized: false
+        );
+
+    private static string TitleOf(WindowId id) => $"win{id.Value}";
 }

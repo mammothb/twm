@@ -4,16 +4,6 @@ namespace Twm.Domain.Tests.Tree;
 
 public class IsAncestorOfTests
 {
-    private static (SplitContainer Root, SplitContainer Mid, TilingWindow Leaf) Chain()
-    {
-        var root = new SplitContainer();
-        var mid = new SplitContainer();
-        var leaf = new TilingWindow(new WindowId(1));
-        root.AppendChild(mid);
-        mid.AppendChild(leaf);
-        return (root, mid, leaf);
-    }
-
     [Fact]
     public void TrueForDirectAndIndirectDescendants()
     {
@@ -56,5 +46,15 @@ public class IsAncestorOfTests
         var w2 = new TilingWindow(new WindowId(2));
 
         root.IsAncestorOf(w2).ShouldBeFalse();
+    }
+
+    private static (SplitContainer Root, SplitContainer Mid, TilingWindow Leaf) Chain()
+    {
+        var root = new SplitContainer();
+        var mid = new SplitContainer();
+        var leaf = new TilingWindow(new WindowId(1));
+        root.AppendChild(mid);
+        mid.AppendChild(leaf);
+        return (root, mid, leaf);
     }
 }

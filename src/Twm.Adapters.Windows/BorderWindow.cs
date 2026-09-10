@@ -53,6 +53,23 @@ public sealed unsafe partial class BorderWindow : IDisposable
         }
     }
 
+    /// <summary>Unregisters the shared window class (clean teardown).</summary>
+    public static void UnregisterSharedClass()
+    {
+        if (!s_classRegistered)
+        {
+            return;
+        }
+
+        fixed (char* cls = ClassName)
+        {
+            if (UnregisterClassW(cls, GetModuleHandleW(null)))
+            {
+                s_classRegistered = false;
+            }
+        }
+    }
+
     /// <summary>
     /// Positions the border so its band traces the given frame (the focused
     /// window's visible frame). The band is drawn just inside the frame edges
@@ -64,6 +81,7 @@ public sealed unsafe partial class BorderWindow : IDisposable
         {
             return;
         }
+
         if (frame.Width <= 0 || frame.Height <= 0)
         {
             Hide();
@@ -91,22 +109,29 @@ public sealed unsafe partial class BorderWindow : IDisposable
         }
     }
 
-    /// <summary>Unregisters the shared window class (clean teardown).</summary>
-    public static void UnregisterSharedClass()
+    private static void EnsureClassRegistered()
     {
-        if (!s_classRegistered)
+        if (s_classRegistered)
         {
             return;
         }
 
         fixed (char* cls = ClassName)
         {
-            if (UnregisterClassW(cls, GetModuleHandleW(null)))
-            {
-                s_classRegistered = false;
-            }
+            WndClassExW wc = default;
+            wc.CbSize = (uint)sizeof(WndClassExW);
+            wc.WndProc = &WndProc;
+            wc.Instance = GetModuleHandleW(null);
+            wc.ClassName = cls;
+            RegisterClassExW(in wc);
         }
+
+        s_classRegistered = true;
     }
+
+    [UnmanagedCallersOnly]
+    private static nint WndProc(nint hWnd, uint uMsg, nint wParam, nint lParam) =>
+        DefWindowProcW(hWnd, uMsg, wParam, lParam);
 
     // Builds a 32bpp premultipled-BGRA bitmap
     private void Render(int x, int y, int width, int height)
@@ -134,6 +159,7 @@ public sealed unsafe partial class BorderWindow : IDisposable
             {
                 DeleteObject(dib);
             }
+
             DeleteDC(memDc);
             _ = ReleaseDC(0, screenDc);
             return;
@@ -160,14 +186,15 @@ public sealed unsafe partial class BorderWindow : IDisposable
                     line[2] = r;
                     line[3] = 255;
                 }
+
                 line += 4;
             }
         }
 
         nint oldBitmap = SelectObject(memDc, dib);
 
-        var src = new Point32 { X = 0, Y = 0 };
         var dst = new Point32 { X = x, Y = y };
+        var src = new Point32 { X = 0, Y = 0 };
         var size = new Size32 { Cx = width, Cy = height };
         var blend = new BlendFunction
         {
@@ -184,28 +211,4 @@ public sealed unsafe partial class BorderWindow : IDisposable
         DeleteDC(memDc);
         _ = ReleaseDC(0, screenDc);
     }
-
-    private static void EnsureClassRegistered()
-    {
-        if (s_classRegistered)
-        {
-            return;
-        }
-
-        fixed (char* cls = ClassName)
-        {
-            WndClassExW wc = default;
-            wc.CbSize = (uint)sizeof(WndClassExW);
-            wc.WndProc = &WndProc;
-            wc.Instance = GetModuleHandleW(null);
-            wc.ClassName = cls;
-            RegisterClassExW(in wc);
-        }
-
-        s_classRegistered = true;
-    }
-
-    [UnmanagedCallersOnly]
-    private static nint WndProc(nint hWnd, uint uMsg, nint wParam, nint lParam) =>
-        DefWindowProcW(hWnd, uMsg, wParam, lParam);
 }

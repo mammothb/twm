@@ -14,28 +14,6 @@ namespace Twm.Adapters.Config;
 public partial class TwmConfig
 {
     /// <summary>
-    /// Modifier for <c>$mod</c> in bindings: "alt" (default) or "win".
-    /// </summary>
-    public string? Mod { get; set; }
-    public GapsDto? Gaps { get; set; }
-    public WorkspacesDto? Workspaces { get; set; }
-
-    ///<summary>
-    /// Chord -> command string, e.g., <c>"$mod+h": "focus left"</c>.
-    /// Null = built-in keymap.
-    /// </summary>
-    public Dictionary<string, string>? Bindings { get; set; }
-
-    /// <summary>
-    /// Extra ignore/manage rules layered on the built-in filter.
-    /// Null = defaults only.
-    /// </summary>
-    public List<WindowRuleDto>? WindowRules { get; set; }
-    public BarDto? Bar { get; set; }
-    public BorderDto? Border { get; set; }
-    public TabsDto? Tabs { get; set; }
-
-    /// <summary>
     /// Canonical defaults == today's hardcoded behavior, used when the file is
     /// absent or invalid. <see cref="Bindings" />/<see cref="WindowRules" />
     /// stay null (=> built-in keymap/filter).
@@ -49,6 +27,33 @@ public partial class TwmConfig
             Bindings = null,
             WindowRules = null,
         };
+
+    /// <summary>
+    /// Modifier for <c>$mod</c> in bindings: "alt" (default) or "win".
+    /// </summary>
+    public string? Mod { get; set; }
+
+    public GapsDto? Gaps { get; set; }
+
+    public WorkspacesDto? Workspaces { get; set; }
+
+    ///<summary>
+    /// Chord -> command string, e.g., <c>"$mod+h": "focus left"</c>.
+    /// Null = built-in keymap.
+    /// </summary>
+    public Dictionary<string, string>? Bindings { get; set; }
+
+    /// <summary>
+    /// Extra ignore/manage rules layered on the built-in filter.
+    /// Null = defaults only.
+    /// </summary>
+    public List<WindowRuleDto>? WindowRules { get; set; }
+
+    public BarDto? Bar { get; set; }
+
+    public BorderDto? Border { get; set; }
+
+    public TabsDto? Tabs { get; set; }
 }
 
 /// <summary>Gap sizes in pixels; either may be omitted.</summary>
@@ -56,6 +61,7 @@ public partial class TwmConfig
 public partial class GapsDto
 {
     public int? Inner { get; set; }
+
     public int? Outer { get; set; }
 }
 
@@ -82,6 +88,7 @@ public partial class WorkspacesDto
 public partial class WindowRuleDto
 {
     public string? Class { get; set; }
+
     public string? Title { get; set; }
 
     /// <summary>"ignore" or "manage".</summary>
@@ -98,11 +105,17 @@ public partial class BarDto
 
     /// <summary>"top" (default) or "bottom".</summary>
     public string? Position { get; set; }
+
     public int? Height { get; set; }
+
     public string? Background { get; set; }
+
     public string? Foreground { get; set; }
+
     public string? ActiveBackground { get; set; }
+
     public bool? ShowTitle { get; set; }
+
     public bool? ShowClock { get; set; }
 }
 
@@ -114,7 +127,9 @@ public partial class BarDto
 public partial class BorderDto
 {
     public bool? Enabled { get; set; }
+
     public string? Color { get; set; }
+
     public int? Width { get; set; }
 }
 
@@ -126,7 +141,10 @@ public partial class BorderDto
 public partial class TabsDto
 {
     public int? Height { get; set; }
+
     public string? Background { get; set; }
+
     public string? Foreground { get; set; }
+
     public string? ActiveBackground { get; set; }
 }

@@ -8,14 +8,6 @@ namespace Twm.Application.Tests.Coordination;
 
 public class InsetMonitorSystemTests
 {
-    private static MonitorInfo Monitor(int taskbar = 0) =>
-        new(
-            new MonitorId(1),
-            new Rect(0, 0, 1920, 1080),
-            new Rect(0, 0, 1920, 1080 - taskbar),
-            IsPrimary: true
-        );
-
     [Fact]
     public void Top_ShrinksWorkAreaFromTheTop_BoundsUntouched()
     {
@@ -60,4 +52,12 @@ public class InsetMonitorSystemTests
 
         result.WorkArea.ShouldBe(new Rect(0, 1080, 1920, 0));
     }
+
+    private static MonitorInfo Monitor(int taskbar = 0) =>
+        new(
+            new MonitorId(1),
+            new Rect(0, 0, 1920, 1080),
+            new Rect(0, 0, 1920, 1080 - taskbar),
+            IsPrimary: true
+        );
 }

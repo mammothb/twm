@@ -22,6 +22,7 @@ public static class IpcClient
         using var client = new NamedPipeClientStream(".", pipeName, PipeDirection.InOut);
         client.Connect(connectTimeoutMs);
         using var reader = new StreamReader(client, leaveOpen: true);
+
         // Write the request as raw bytes rather than a StreamWriter, whose
         // dispose-time flush throw "pipe is broken" if the server has already
         // replied and closed. Writing directly avoids that hazard

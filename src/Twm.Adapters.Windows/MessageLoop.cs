@@ -28,68 +28,6 @@ public static partial class MessageLoop
     /// </summary>
     public const uint WmTimer = 0x0113;
 
-    [StructLayout(LayoutKind.Sequential)]
-    private struct NativeMessage
-    {
-        public nint Hwnd;
-        public uint Message;
-        public nint WParam;
-        public nint LParam;
-        public uint Time;
-        public int PointX;
-        public int PointY;
-    }
-
-    // ========================================================================
-    // user32.dll
-    // ========================================================================
-
-    [LibraryImport("user32.dll")]
-    private static partial nint DispatchMessageW(in NativeMessage lpMsg);
-
-    [LibraryImport("user32.dll")]
-    private static partial int GetMessageW(
-        out NativeMessage lpMsg,
-        nint hWnd,
-        uint wMsgFilterMin,
-        uint wMsgFilterMax
-    );
-
-    [LibraryImport("user32.dll")]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    private static partial bool KillTimer(nint hWnd, nuint uIDEvent);
-
-    [LibraryImport("user32.dll")]
-    private static partial void PostQuitMessage(int nExitCode);
-
-    [LibraryImport("user32.dll")]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    private static partial bool PostThreadMessageW(
-        uint idThread,
-        uint Msg,
-        nint wParam,
-        nint lParam
-    );
-
-    [LibraryImport("user32.dll")]
-    private static partial nuint SetTimer(
-        nint hWnd,
-        nuint nIDEvent,
-        uint uElapse,
-        nint lpTimerFunc
-    );
-
-    [LibraryImport("user32.dll")]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    private static partial bool TranslateMessage(in NativeMessage lpMsg);
-
-    // ========================================================================
-    // kernel32.dll
-    // ========================================================================
-
-    [LibraryImport("kernel32.dll")]
-    private static partial uint GetCurrentThreadId();
-
     /// <summary>
     /// The id of the calling thread, for posting wake messages back to the
     /// pump.
@@ -138,4 +76,64 @@ public static partial class MessageLoop
 
     /// <summary>Stops a timer started by <see cref="StartTimer" />.</summary>
     public static void StopTimer(nuint id) => KillTimer(0, id);
+
+    // ========================================================================
+    // user32.dll
+    // ========================================================================
+    [LibraryImport("user32.dll")]
+    private static partial nint DispatchMessageW(in NativeMessage lpMsg);
+
+    [LibraryImport("user32.dll")]
+    private static partial int GetMessageW(
+        out NativeMessage lpMsg,
+        nint hWnd,
+        uint wMsgFilterMin,
+        uint wMsgFilterMax
+    );
+
+    [LibraryImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool KillTimer(nint hWnd, nuint uIDEvent);
+
+    [LibraryImport("user32.dll")]
+    private static partial void PostQuitMessage(int nExitCode);
+
+    [LibraryImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool PostThreadMessageW(
+        uint idThread,
+        uint Msg,
+        nint wParam,
+        nint lParam
+    );
+
+    [LibraryImport("user32.dll")]
+    private static partial nuint SetTimer(
+        nint hWnd,
+        nuint nIDEvent,
+        uint uElapse,
+        nint lpTimerFunc
+    );
+
+    [LibraryImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool TranslateMessage(in NativeMessage lpMsg);
+
+    // ========================================================================
+    // kernel32.dll
+    // ========================================================================
+    [LibraryImport("kernel32.dll")]
+    private static partial uint GetCurrentThreadId();
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct NativeMessage
+    {
+        public nint Hwnd;
+        public uint Message;
+        public nint WParam;
+        public nint LParam;
+        public uint Time;
+        public int PointX;
+        public int PointY;
+    }
 }

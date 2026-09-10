@@ -7,18 +7,6 @@ namespace TWm.Presentation.Tests;
 
 public class TabBarViewModelTests
 {
-    private static string Title(WindowId id) => $"win{id.Value}";
-
-    private static (RootContainer Root, Monitor Monitor, Workspace Workspace) Desktop(Layout layout)
-    {
-        var root = new RootContainer();
-        var monitor = new Monitor(new Rect(0, 0, 800, 600));
-        root.AppendChild(monitor);
-        var ws = new Workspace("1", layout);
-        monitor.AppendChild(ws);
-        return (root, monitor, ws);
-    }
-
     [Fact]
     public void TabbedWorkspace_EmitsOneBarWithTabsAndFocusedFlag()
     {
@@ -92,5 +80,17 @@ public class TabBarViewModelTests
         new LayoutEngine().Arrange(root);
 
         TabBarViewModel.Build(root, Title).ShouldBeEmpty();
+    }
+
+    private static string Title(WindowId id) => $"win{id.Value}";
+
+    private static (RootContainer Root, Monitor Monitor, Workspace Workspace) Desktop(Layout layout)
+    {
+        var root = new RootContainer();
+        var monitor = new Monitor(new Rect(0, 0, 800, 600));
+        root.AppendChild(monitor);
+        var ws = new Workspace("1", layout);
+        monitor.AppendChild(ws);
+        return (root, monitor, ws);
     }
 }

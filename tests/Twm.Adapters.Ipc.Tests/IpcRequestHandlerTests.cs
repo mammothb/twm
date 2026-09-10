@@ -16,25 +16,6 @@ public sealed class IpcRequestHandlerTests
             IsPrimary: true
         );
 
-    private static NativeWindowInfo Win(int id) =>
-        new(
-            new WindowId(id),
-            "App",
-            "Notepad",
-            new Rect(100, 100, 800, 600),
-            IsVisible: true,
-            IsCloaked: false,
-            IsToolWindow: false,
-            IsMinimized: false
-        );
-
-    private static WmSession StartedSession(params NativeWindowInfo[] windows)
-    {
-        var session = new WmSession(new FakeMonitorSystem(Primary), new FakeWindowSystem(windows));
-        session.Start();
-        return session;
-    }
-
     [Fact]
     public void GetTree_ReturnsTreeJson()
     {
@@ -83,5 +64,24 @@ public sealed class IpcRequestHandlerTests
         var handler = new IpcRequestHandler(StartedSession(Win(1)), () => { });
 
         handler.Handle("badcommand").ShouldStartWith("err");
+    }
+
+    private static NativeWindowInfo Win(int id) =>
+        new(
+            new WindowId(id),
+            "App",
+            "Notepad",
+            new Rect(100, 100, 800, 600),
+            IsVisible: true,
+            IsCloaked: false,
+            IsToolWindow: false,
+            IsMinimized: false
+        );
+
+    private static WmSession StartedSession(params NativeWindowInfo[] windows)
+    {
+        var session = new WmSession(new FakeMonitorSystem(Primary), new FakeWindowSystem(windows));
+        session.Start();
+        return session;
     }
 }

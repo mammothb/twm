@@ -37,7 +37,7 @@ public static class KeymapBuilder
         IReadOnlyDictionary<string, string> bindings =
             config.Bindings ?? DefaultKeymap.DefaultBindings();
 
-        Dictionary<KeyBinding, KeyEffect> map = [];
+        Dictionary<KeyBinding, KeyEffect> bindingToEffect = [];
         foreach (KeyValuePair<string, string> entry in bindings)
         {
             if (
@@ -59,10 +59,10 @@ public static class KeymapBuilder
                 continue;
             }
 
-            map[binding] = effect;
+            bindingToEffect[binding] = effect;
         }
 
-        return new KeymapBuildResult(map, errors);
+        return new KeymapBuildResult(bindingToEffect, errors);
     }
 
     /// <summary>
@@ -91,6 +91,9 @@ public static class KeymapBuilder
                 return true;
             case ExitRequest:
                 effect = new ExitWm();
+                return true;
+            case ReconcileRequest:
+                effect = new ReconcileDisplays();
                 return true;
             case GetTreeRequest:
                 error = "'get-tree' is a query, not valid as a keybinding";

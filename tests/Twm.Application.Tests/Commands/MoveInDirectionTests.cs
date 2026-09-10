@@ -74,7 +74,7 @@ public class MoveInDirectionTests
             new MoveInDirectionCommand(Direction.Left)
         );
 
-        string expected =
+        const string expected =
             "Monitor [0,0 800x600]\n"
             + "  Workspace \"1\" Horizontal [0,0 800x600]\n"
             + "    Window #1 [0,0 266x600]\n"

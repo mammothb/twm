@@ -5,14 +5,6 @@ namespace Twm.Domain.Tests.Tree;
 
 public class VisibilityTests
 {
-    private static Monitor SingleMonitor()
-    {
-        var root = new RootContainer();
-        var monitor = new Monitor(new Rect(0, 0, 800, 600));
-        root.AppendChild(monitor);
-        return monitor;
-    }
-
     [Fact]
     public void DetachedWindow_IsNotVisible()
     {
@@ -65,5 +57,13 @@ public class VisibilityTests
 
         w1.IsEffectivelyVisible().ShouldBeFalse();
         w2.IsEffectivelyVisible().ShouldBeTrue();
+    }
+
+    private static Monitor SingleMonitor()
+    {
+        var root = new RootContainer();
+        var monitor = new Monitor(new Rect(0, 0, 800, 600));
+        root.AppendChild(monitor);
+        return monitor;
     }
 }

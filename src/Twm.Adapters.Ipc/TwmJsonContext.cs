@@ -12,4 +12,4 @@ namespace Twm.Adapters.Ipc;
     DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
 )]
 [JsonSerializable(typeof(TreeNode))]
-internal sealed partial class TwmJsonContext : JsonSerializerContext { }
+internal sealed partial class TwmJsonContext : JsonSerializerContext;

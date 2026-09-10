@@ -7,22 +7,6 @@ namespace Twm.Application.Tests.Coordination;
 
 public class MonitorRouterTests
 {
-    private static RootContainer TwoMonitors() =>
-        DesktopBuilder.Build([
-            new MonitorInfo(
-                new MonitorId(1),
-                new Rect(0, 0, 1920, 1080),
-                new Rect(0, 0, 1920, 1080),
-                IsPrimary: true
-            ),
-            new MonitorInfo(
-                new MonitorId(2),
-                new Rect(0, 0, 1280, 1024),
-                new Rect(1920, 0, 1280, 1024),
-                IsPrimary: false
-            ),
-        ]);
-
     [Fact]
     public void WindowCenterInPrimary_PicksPrimary()
     {
@@ -61,4 +45,20 @@ public class MonitorRouterTests
         // x in secondary, but y=1040 is out of 1024 range of secondary
         MonitorRouter.Pick(root, new Rect(2400, 1040, 800, 600)).ShouldBeSameAs(primary);
     }
+
+    private static RootContainer TwoMonitors() =>
+        DesktopBuilder.Build([
+            new MonitorInfo(
+                new MonitorId(1),
+                new Rect(0, 0, 1920, 1080),
+                new Rect(0, 0, 1920, 1080),
+                IsPrimary: true
+            ),
+            new MonitorInfo(
+                new MonitorId(2),
+                new Rect(0, 0, 1280, 1024),
+                new Rect(1920, 0, 1280, 1024),
+                IsPrimary: false
+            ),
+        ]);
 }

@@ -16,24 +16,40 @@ namespace Twm.Adapters.Windows;
 public sealed class StatusBarManager : IDisposable
 {
     private readonly List<StatusBarWindow> _bars = [];
+    private readonly BarOptions _options;
 
     public StatusBarManager(IReadOnlyList<MonitorInfo> orderedMonitors, BarOptions options)
     {
         ArgumentNullException.ThrowIfNull(orderedMonitors);
         ArgumentNullException.ThrowIfNull(options);
+        _options = options;
         foreach (MonitorInfo monitor in orderedMonitors)
         {
-            // Sit at the work-area edge (respects a taskbar); the
-            // InsetMonitorSystem removes this same strip from the tiling area
-            // so windows don't overlap the bar
-            Rect area = monitor.WorkArea;
-            int y =
-                options.Position == BarPosition.Top
-                    ? area.Y
-                    : area.Y + area.Height - options.Height;
-            _bars.Add(
-                new StatusBarWindow(new Rect(area.X, y, area.Width, options.Height), options)
-            );
+            _bars.Add(new StatusBarWindow(BarRect(monitor), options));
+        }
+    }
+
+    public void SyncMonitors(IReadOnlyList<MonitorInfo> orderedMonitors)
+    {
+        ArgumentNullException.ThrowIfNull(orderedMonitors);
+
+        // drop bars for monitors that went away from the tail
+        while (_bars.Count > orderedMonitors.Count)
+        {
+            _bars[^1].Dispose();
+            _bars.RemoveAt(_bars.Count - 1);
+        }
+
+        // add bars for newly attached monitors
+        while (_bars.Count < orderedMonitors.Count)
+        {
+            _bars.Add(new StatusBarWindow(BarRect(orderedMonitors[_bars.Count]), _options));
+        }
+
+        // move every surviving bar to its monitor's edge
+        for (int i = 0; i < _bars.Count; i++)
+        {
+            _bars[i].MoveTo(BarRect(orderedMonitors[i]));
         }
     }
 
@@ -59,7 +75,16 @@ public sealed class StatusBarManager : IDisposable
         {
             bar.Dispose();
         }
+
         _bars.Clear();
         StatusBarWindow.UnregisterSharedClass();
+    }
+
+    private Rect BarRect(MonitorInfo monitor)
+    {
+        Rect area = monitor.WorkArea;
+        int y =
+            _options.Position == BarPosition.Top ? area.Y : area.Y + area.Height - _options.Height;
+        return new Rect(area.X, y, area.Width, _options.Height);
     }
 }

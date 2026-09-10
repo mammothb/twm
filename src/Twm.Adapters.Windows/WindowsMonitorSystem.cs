@@ -26,6 +26,7 @@ public sealed class WindowsMonitorSystem : IMonitorSystem
                 result.Add(new MonitorInfo(new MonitorId(monitor), bounds, workArea, isPrimary));
             }
         }
+
         return result;
     }
 }

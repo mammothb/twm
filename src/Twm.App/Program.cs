@@ -114,6 +114,13 @@ if (barOptions.Enabled)
     );
     RefreshBars();
     session.Subscribe<LayoutChangedEvent>(_ => RefreshBars());
+    session.Subscribe<DisplaysReconciledEvent>(_ =>
+    {
+        statusBar?.SyncMonitors([
+            .. DesktopBuilder.OrderPrimaryFirst(monitors.EnumerateMonitors()),
+        ]);
+        RefreshBars();
+    });
     clockTimer = MessageLoop.StartTimer(1000);
 }
 
@@ -161,24 +168,28 @@ hook.Install(
                         $"managed - {windows.GetTitle(id)} ({session.ManagedWindowCount} tiled)"
                     );
                 }
+
                 break;
             case WindowEventKind.Destroyed:
                 if (session.Remove(id))
                 {
                     Console.WriteLine($"unmanaged ({session.ManagedWindowCount} tiled)");
                 }
+
                 break;
             case WindowEventKind.Hidden:
                 if (session.HandleHidden(id))
                 {
                     Console.WriteLine($"unmanaged ({session.ManagedWindowCount} tiled)");
                 }
+
                 break;
             case WindowEventKind.Minimized:
                 if (session.HandleMinimized(id))
                 {
                     Console.WriteLine($"unmanaged ({session.ManagedWindowCount} tiled)");
                 }
+
                 break;
             case WindowEventKind.Cloaked:
                 session.HandleCloaked(id);
@@ -218,17 +229,20 @@ MessageLoop.Run(
             ipcDispatcher.Drain();
             return;
         }
+
         if (message == MessageLoop.WmAppQuit)
         {
             MessageLoop.Quit();
             return;
         }
+
         if (message == MessageLoop.WmTimer)
         {
             if (statusBar is not null && BarViewModel.Clock(DateTimeOffset.Now) != lastBarClock)
             {
                 RefreshBars();
             }
+
             return;
         }
 
@@ -251,12 +265,16 @@ MessageLoop.Run(
                 {
                     Console.WriteLine($"focus - {windows.GetTitle(focused.WindowId)}");
                 }
+
                 break;
             case CloseFocusedWindow:
                 session.CloseFocused();
                 break;
             case ExitWm:
                 MessageLoop.Quit();
+                break;
+            case ReconcileDisplays:
+                session.ReconcileDisplays();
                 break;
         }
     }

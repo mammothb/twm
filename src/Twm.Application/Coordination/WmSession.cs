@@ -18,6 +18,8 @@ namespace Twm.Application.Coordination;
 /// fakes; the Win32 backends plug in unchanged.
 public sealed class WmSession
 {
+    private readonly IMonitorSystem _monitors;
+    private readonly WorkspaceOptions? _workspaces;
     private readonly IWindowSystem _windows;
     private readonly WindowFilter _filter;
     private readonly Bus _bus;
@@ -40,6 +42,8 @@ public sealed class WmSession
     {
         ArgumentNullException.ThrowIfNull(monitors);
         ArgumentNullException.ThrowIfNull(windows);
+        _monitors = monitors;
+        _workspaces = workspaces;
         _windows = windows;
         _filter = filter ?? new WindowFilter();
 
@@ -57,114 +61,46 @@ public sealed class WmSession
     /// <summary>How many windows are currently tiled.</summary>
     public int ManagedWindowCount => Root.Descendants.OfType<TilingWindow>().Count();
 
-    /// <summary>Whether the given window is currently in the tree.</summary>
-    public bool IsManaged(WindowId window) => Root.FindWindow(window) is not null;
+    /// <summary>
+    /// Asks the OS to close the focused window (post WM_CLOSE). Its removal
+    /// from the tree arrives later via the destroy WinEvent, not here.
+    /// </summary>
+    public void CloseFocused()
+    {
+        if (Root.FocusedWindow() is TilingWindow focused)
+        {
+            _windows.Close(focused.WindowId);
+        }
+    }
 
     /// <summary>
-    /// Adopts every currently manageable window, then applies the layout to the
+    /// Runs a core command through the bus, then reapplies the layout to the
     /// OS.
     /// </summary>
-    public void Start()
+    public CommandResult Execute(ICommand command)
     {
-        foreach (NativeWindowInfo window in _windows.EnumerateWindows())
-        {
-            if (_filter.IsManageable(window))
-            {
-                Adopt(window);
-            }
-        }
-
+        ArgumentNullException.ThrowIfNull(command);
+        Log.Line($"execute {command.GetType().Name}");
+        CommandResult result = _bus.Invoke(command);
         Apply();
+        return result;
     }
 
     /// <summary>
-    /// Adopts a single window if manageable; returns whether it was adopted.
+    /// Handles a cloak event (ObjectCloaked). A cloak is never a user action:
+    /// it is Twm's own cloak of a non-visible window, or DWM cascading the
+    /// cloak to an owned window (e.g. the Eden Configuration dialog). Never
+    /// removes. Returns false.
     /// </summary>
-    public bool TryAdopt(NativeWindowInfo window)
+    public bool HandleCloaked(WindowId window)
     {
-        ArgumentNullException.ThrowIfNull(window);
-        // Skip windows we shouldn't manage, and windows already in the tree
-        // (create/show events can fire repeatedly for the same window)
-        if (!_filter.IsManageable(window) || Root.FindWindow(window.Id) is not null)
-        {
-            return false;
-        }
-
-        Adopt(window);
-        Apply();
-        return true;
-    }
-
-    /// <summary>
-    /// Removes a window from management, e.g., when the OS destroys it, then
-    /// reapplies.
-    /// </summary>
-    public bool Remove(WindowId window)
-    {
-        // Ignore the constant stream of destroy/hide/cloak events for windows
-        // we never managed
         if (Root.FindWindow(window) is null)
         {
             return false;
         }
 
-        _bus.Invoke(new RemoveWindowCommand(window));
-        Apply();
-        return true;
-    }
-
-    /// <summary>
-    /// Records that the OS foreground moved to <paramref name="window" />, so
-    /// subsequent focus/move commands act from it. No reconcile, the window is
-    /// already foreground (the user selected it).
-    /// </summary>
-    public void SyncFocus(WindowId window)
-    {
-        TilingWindow? managed = Root.FindWindow(window);
-        if (managed is null)
-        {
-            return;
-        }
-
-        if (_pendingForeground is WindowId expected)
-        {
-            // Consume the foreground event our own reconcile triggered. If it's
-            // the window we foregrounded, the tree is already correct, don't
-            // treat it as a user click
-            _pendingForeground = null;
-            if (window == expected)
-            {
-                Log.Line($"syncfocus 0x{window.Value:X}: ignored (our own foreground)");
-                return;
-            }
-        }
-
-        // Reveal ONLY for a genuine cross-workspace navigation, e.g., taskbar
-        // clicking a window on an inactive workspace). A foreground event for a
-        // window already on the ACTIVE workspace, including a non-focused tab,
-        // must NOT reconcile: cloak/uncloak fires more foreground/cloak
-        // events, which feed a foreground->reconcile->foreground storm when
-        // cycling tabs (which also starves the exit hotkey). Tabs are switched
-        // by keyboard, not by focus events
-        bool isOnInactiveWorkspace =
-            managed.WorkspaceOf() is Workspace workspace
-            && !ReferenceEquals(workspace, managed.MonitorOf()?.LastFocusedChild);
-
-        managed.Focus();
-
-        if (isOnInactiveWorkspace)
-        {
-            Log.Line($"syncfocus 0x{window.Value:X}: reveal inactive workspace");
-            // reconciles (reveals the workspace) and emits LayoutChanged
-            Apply();
-        }
-        else
-        {
-            Log.Line($"syncfocus 0x{window.Value:X}: focus-only");
-            // focus only change (no reconcile): still notify so the bar
-            // refreshes the focused title
-            _bus.Emit(new LayoutChangedEvent());
-        }
+        Log.Line($"cloaked 0x{window.Value:X}: ignored (never remove on cloak)");
+        return false;
     }
 
     /// <summary>
@@ -211,46 +147,55 @@ public sealed class WmSession
         return removed;
     }
 
+    /// <summary>Whether the given window is currently in the tree.</summary>
+    public bool IsManaged(WindowId window) => Root.FindWindow(window) is not null;
+
     /// <summary>
-    /// Handles a cloak event (ObjectCloaked). A cloak is never a user action:
-    /// it is Twm's own cloak of a non-visible window, or DWM cascading the
-    /// cloak to an owned window (e.g. the Eden Configuration dialog). Never
-    /// removes. Returns false.
+    /// Re-read the display topology and re-tile. Same count: resize monitors
+    /// in-place, count change: redistribute whole workspaces via
+    /// <see cref="Restructure" />. No-op when nothing changed. Returns whether
+    /// the layout updated.
     /// </summary>
-    public bool HandleCloaked(WindowId window)
+    public bool ReconcileDisplays()
     {
+        List<MonitorInfo> fresh =
+        [
+            .. DesktopBuilder.OrderPrimaryFirst(_monitors.EnumerateMonitors()),
+        ];
+        List<Monitor> treeMonitors = [.. Root.Children.OfType<Monitor>()];
+
+        bool changed =
+            fresh.Count == treeMonitors.Count
+                ? ResizeInPlace(fresh, treeMonitors)
+                : Restructure(fresh, treeMonitors);
+
+        if (!changed)
+        {
+            return false;
+        }
+
+        _layout.Arrange(Root);
+        Apply();
+        _bus.Emit(new DisplaysReconciledEvent());
+        return true;
+    }
+
+    /// <summary>
+    /// Removes a window from management, e.g., when the OS destroys it, then
+    /// reapplies.
+    /// </summary>
+    public bool Remove(WindowId window)
+    {
+        // Ignore the constant stream of destroy/hide/cloak events for windows
+        // we never managed
         if (Root.FindWindow(window) is null)
         {
             return false;
         }
 
-        Log.Line($"cloaked 0x{window.Value:X}: ignored (never remove on cloak)");
-        return false;
-    }
-
-    /// <summary>
-    /// Asks the OS to close the focused window (post WM_CLOSE). Its removal
-    /// from the tree arrives later via the destroy WinEvent, not here.
-    /// </summary>
-    public void CloseFocused()
-    {
-        if (Root.FocusedWindow() is TilingWindow focused)
-        {
-            _windows.Close(focused.WindowId);
-        }
-    }
-
-    /// <summary>
-    /// Runs a core command through the bus, then reapplies the layout to the
-    /// OS.
-    /// </summary>
-    public CommandResult Execute(ICommand command)
-    {
-        ArgumentNullException.ThrowIfNull(command);
-        Log.Line($"execute {command.GetType().Name}");
-        CommandResult result = _bus.Invoke(command);
+        _bus.Invoke(new RemoveWindowCommand(window));
         Apply();
-        return result;
+        return true;
     }
 
     /// <summary>
@@ -274,6 +219,216 @@ public sealed class WmSession
         }
     }
 
+    /// <summary>
+    /// Adopts every currently manageable window, then applies the layout to the
+    /// OS.
+    /// </summary>
+    public void Start()
+    {
+        foreach (NativeWindowInfo window in _windows.EnumerateWindows())
+        {
+            if (_filter.IsManageable(window))
+            {
+                Adopt(window);
+            }
+        }
+
+        Apply();
+    }
+
+    /// <summary>
+    /// Subscribes to a WM event, e.g., <see cref="LayoutChangedEvent" /> on the
+    /// internal bus, for in-process consumers such as the status bar. Handlers
+    /// run on the WM thread.
+    /// </summary>
+    public void Subscribe<TEvent>(Action<TEvent> handler)
+        where TEvent : IEvent => _bus.Subscribe(handler);
+
+    /// <summary>
+    /// Records that the OS foreground moved to <paramref name="window" />, so
+    /// subsequent focus/move commands act from it. No reconcile, the window is
+    /// already foreground (the user selected it).
+    /// </summary>
+    public void SyncFocus(WindowId window)
+    {
+        TilingWindow? managed = Root.FindWindow(window);
+        if (managed is null)
+        {
+            return;
+        }
+
+        if (_pendingForeground is WindowId expected)
+        {
+            // Consume the foreground event our own reconcile triggered. If it's
+            // the window we foregrounded, the tree is already correct, don't
+            // treat it as a user click
+            _pendingForeground = null;
+            if (window == expected)
+            {
+                Log.Line($"syncfocus 0x{window.Value:X}: ignored (our own foreground)");
+                return;
+            }
+        }
+
+        // Reveal ONLY for a genuine cross-workspace navigation, e.g., taskbar
+        // clicking a window on an inactive workspace). A foreground event for a
+        // window already on the ACTIVE workspace, including a non-focused tab,
+        // must NOT reconcile: cloak/uncloak fires more foreground/cloak
+        // events, which feed a foreground->reconcile->foreground storm when
+        // cycling tabs (which also starves the exit hotkey). Tabs are switched
+        // by keyboard, not by focus events
+        bool isOnInactiveWorkspace =
+            managed.WorkspaceOf() is Workspace workspace
+            && !ReferenceEquals(workspace, managed.MonitorOf()?.LastFocusedChild);
+
+        managed.Focus();
+
+        if (isOnInactiveWorkspace)
+        {
+            Log.Line($"syncfocus 0x{window.Value:X}: reveal inactive workspace");
+
+            // reconciles (reveals the workspace) and emits LayoutChanged
+            Apply();
+        }
+        else
+        {
+            Log.Line($"syncfocus 0x{window.Value:X}: focus-only");
+
+            // focus only change (no reconcile): still notify so the bar
+            // refreshes the focused title
+            _bus.Emit(new LayoutChangedEvent());
+        }
+    }
+
+    /// <summary>
+    /// Adopts a single window if manageable; returns whether it was adopted.
+    /// </summary>
+    public bool TryAdopt(NativeWindowInfo window)
+    {
+        ArgumentNullException.ThrowIfNull(window);
+
+        // Skip windows we shouldn't manage, and windows already in the tree
+        // (create/show events can fire repeatedly for the same window)
+        if (!_filter.IsManageable(window) || Root.FindWindow(window.Id) is not null)
+        {
+            return false;
+        }
+
+        Adopt(window);
+        Apply();
+        return true;
+    }
+
+    /// <summary>
+    /// Same monitor count: update each monitor's
+    /// <see cref="Container.Bounds" /> from the fresh work areas. Returns
+    /// whether any bounds changed.
+    /// </summary>
+    private static bool ResizeInPlace(List<MonitorInfo> fresh, List<Monitor> treeMonitors)
+    {
+        bool changed = false;
+        for (int i = 0; i < treeMonitors.Count; i++)
+        {
+            if (treeMonitors[i].Bounds != fresh[i].WorkArea)
+            {
+                treeMonitors[i].Bounds = fresh[i].WorkArea;
+                changed = true;
+            }
+        }
+
+        if (!changed)
+        {
+            Log.Line("reconcile-displays: geometry unchanged; no-op");
+        }
+
+        return changed;
+    }
+
+    private bool Restructure(List<MonitorInfo> fresh, List<Monitor> treeMonitors)
+    {
+        IReadOnlyList<IReadOnlyList<string>> plan;
+        try
+        {
+            plan = DesktopBuilder.PlanWorkspaceNames(_workspaces, fresh.Count);
+        }
+        catch (ArgumentException ex)
+        {
+            Log.Line(
+                $"reconcile-displays: cannot plan {fresh.Count} monitors ({ex.Message}); skipped"
+            );
+            return false;
+        }
+
+        Log.Line(
+            $"reconcile-displays: monitor count {treeMonitors.Count}->{fresh.Count}; redistributing"
+        );
+
+        // Workspace to re-focus afterward (persists by reference across the
+        // move
+        Container? focusLeaf = Root.LastFocusedDescendant;
+        Workspace? focusedWorkspace = focusLeaf as Workspace ?? focusLeaf?.WorkspaceOf();
+
+        // Detach every existing workspace (name globally unique); drop old
+        // monitors
+        var nameToWorkspace = new Dictionary<string, Workspace>(StringComparer.Ordinal);
+        List<Workspace> existingOrdered = [];
+        foreach (Monitor monitor in treeMonitors)
+        {
+            foreach (Workspace workspace in monitor.Children.OfType<Workspace>().ToList())
+            {
+                monitor.RemoveChild(workspace);
+                nameToWorkspace[workspace.Name] = workspace;
+                existingOrdered.Add(workspace);
+            }
+
+            Root.RemoveChild(monitor);
+        }
+
+        // Rebuild the scaffold from the plan, reusing each workspace by name
+        // (moving its subtree) or creating an empty one
+        var targetNames = new HashSet<string>(StringComparer.Ordinal);
+        for (int i = 0; i < fresh.Count; i++)
+        {
+            var monitor = new Monitor(fresh[i].WorkArea);
+            foreach (string name in plan[i])
+            {
+                targetNames.Add(name);
+                monitor.AppendChild(
+                    nameToWorkspace.TryGetValue(name, out Workspace? reused)
+                        ? reused
+                        : new Workspace(name)
+                );
+            }
+
+            Root.AppendChild(monitor);
+        }
+
+        // Rehome windows from dropped workspaces onto the primary's active
+        // workspace
+        Workspace survivor = ((Monitor)Root.Children[0]).Children.OfType<Workspace>().First();
+        foreach (Workspace orphan in existingOrdered)
+        {
+            if (targetNames.Contains(orphan.Name))
+            {
+                continue;
+            }
+
+            foreach (Container child in orphan.Children.ToList())
+            {
+                orphan.RemoveChild(child);
+                survivor.AppendChild(child);
+            }
+        }
+
+        // Re-focus the prior workspace if it survived
+        if (focusedWorkspace is not null && targetNames.Contains(focusedWorkspace.Name))
+        {
+            focusedWorkspace.Focus();
+        }
+
+        return true;
+    }
+
     private void Adopt(NativeWindowInfo window)
     {
         Monitor monitor = MonitorRouter.Pick(Root, window.Bounds);
@@ -289,14 +444,6 @@ public sealed class WmSession
         );
         _bus.Emit(new LayoutChangedEvent());
     }
-
-    /// <summary>
-    /// Subscribes to a WM event, e.g., <see cref="LayoutChangedEvent" /> on the
-    /// internal bus, for in-process consumers such as the status bar. Handlers
-    /// run on the WM thread.
-    /// </summary>
-    public void Subscribe<TEvent>(Action<TEvent> handler)
-        where TEvent : IEvent => _bus.Subscribe(handler);
 
     private void RegisterHandlers()
     {

@@ -40,6 +40,7 @@ public sealed class IpcServer : IDisposable
         {
             throw new InvalidOperationException("The IPC server is already started.");
         }
+
         _acceptLoop = Task.Run(() => AcceptLoopAsync(_cancellation.Token));
     }
 
@@ -54,6 +55,7 @@ public sealed class IpcServer : IDisposable
         {
             // The loop unwinds via cancellation
         }
+
         _cancellation.Dispose();
     }
 
@@ -82,8 +84,10 @@ public sealed class IpcServer : IDisposable
                 {
                     return;
                 }
+
                 continue;
             }
+
             // Handle off the accept loop so the next listener is ready, so a
             // client reconnecting back-to-back never hits an empty gap
             _ = HandleConnectionAsync(server, cancellation);

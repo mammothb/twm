@@ -54,6 +54,7 @@ public abstract class Container
             {
                 node = node.LastFocusedChild;
             }
+
             return node;
         }
     }
@@ -149,6 +150,7 @@ public abstract class Container
             {
                 return true;
             }
+
             node = node.Parent;
         }
 
@@ -170,6 +172,7 @@ public abstract class Container
                 "Cannot attach a container to itself or one of its descendants."
             );
         }
+
         if (child.Parent is not null)
         {
             throw new InvalidOperationException("Container is already attached to a parent.");

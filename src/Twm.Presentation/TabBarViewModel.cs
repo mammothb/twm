@@ -66,10 +66,12 @@ public static class TabBarViewModel
         {
             return titleOf(window.WindowId);
         }
+
         if (child.LastFocusedDescendant is TilingWindow descendant)
         {
             return titleOf(descendant.WindowId);
         }
+
         return child is SplitContainer split ? $"[{split.Layout}]" : "";
     }
 }

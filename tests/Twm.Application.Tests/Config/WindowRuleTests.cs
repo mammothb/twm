@@ -7,18 +7,6 @@ namespace Twm.Application.Tests;
 
 public class WindowRuleTests
 {
-    private static NativeWindowInfo Window(string className, string title) =>
-        new(
-            Id: new WindowId(1),
-            Title: title,
-            ClassName: className,
-            Bounds: new Rect(0, 0, 800, 600),
-            IsVisible: true,
-            IsCloaked: false,
-            IsToolWindow: false,
-            IsMinimized: false
-        );
-
     [Fact]
     public void Matches_ClassExact_TitleSubstringCaseInsensitive()
     {
@@ -46,4 +34,16 @@ public class WindowRuleTests
         rule.Matches(Window("Chrome", "Docs")).ShouldBeFalse();
         rule.Matches(Window("Edge", "Cats - YouTube")).ShouldBeFalse();
     }
+
+    private static NativeWindowInfo Window(string className, string title) =>
+        new(
+            Id: new WindowId(1),
+            Title: title,
+            ClassName: className,
+            Bounds: new Rect(0, 0, 800, 600),
+            IsVisible: true,
+            IsCloaked: false,
+            IsToolWindow: false,
+            IsMinimized: false
+        );
 }

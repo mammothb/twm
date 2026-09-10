@@ -25,3 +25,6 @@ public sealed record CloseRequest : WmRequest;
 
 /// <summary>Exit the window manager.</summary>
 public sealed record ExitRequest : WmRequest;
+
+/// <summary>Re-read the display topology and re-tile to it.</summary>
+public sealed record ReconcileRequest : WmRequest;

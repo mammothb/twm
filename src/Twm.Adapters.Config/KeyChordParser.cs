@@ -14,7 +14,7 @@ public static class KeyChordParser
     /// <summary>
     /// i3-keysym-style key names -> Win32 virtual-key codes (WinUser.h VK_*).
     /// </summary>
-    private static readonly FrozenDictionary<string, uint> s_namedKeys = BuildNamedKeys();
+    private static readonly FrozenDictionary<string, uint> s_nameToVirtualKey = BuildNamedKeys();
 
     public static bool TryParse(
         string chord,
@@ -99,12 +99,13 @@ public static class KeyChordParser
                 return true;
             }
         }
-        return s_namedKeys.TryGetValue(trimmed.ToLowerInvariant(), out virtualKey);
+
+        return s_nameToVirtualKey.TryGetValue(trimmed.ToLowerInvariant(), out virtualKey);
     }
 
     private static FrozenDictionary<string, uint> BuildNamedKeys()
     {
-        var map = new Dictionary<string, uint>(StringComparer.Ordinal)
+        var nameToVirtualKey = new Dictionary<string, uint>(StringComparer.Ordinal)
         {
             ["minus"] = 0xBD, // VK_OEM_MINUS (-_)
             ["equal"] = 0xBB, // VK_OEM_PLUS (=+)
@@ -138,9 +139,9 @@ public static class KeyChordParser
 
         for (uint f = 1; f <= 12; f++)
         {
-            map[$"f{f}"] = 0x70 + (f - 1); // VK_F1 (0x70) .. VK_F12 (0x7B)
+            nameToVirtualKey[$"f{f}"] = 0x70 + (f - 1); // VK_F1 (0x70) .. VK_F12 (0x7B)
         }
 
-        return map.ToFrozenDictionary(StringComparer.Ordinal);
+        return nameToVirtualKey.ToFrozenDictionary(StringComparer.Ordinal);
     }
 }

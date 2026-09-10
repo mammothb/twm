@@ -46,229 +46,6 @@ internal static unsafe partial class NativeMethods
     // treated as elevated and left alone.
     private static readonly Lazy<int> s_ourIntegrityRid = new(ComputeOurIntegrityRid);
 
-    [StructLayout(LayoutKind.Sequential)]
-    internal readonly struct Rect32(int left, int top, int right, int bottom)
-    {
-        public readonly int Left = left;
-        public readonly int Top = top;
-        public readonly int Right = right;
-        public readonly int Bottom = bottom;
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
-    private struct MonitorInfoData
-    {
-        public int CbSize;
-        public Rect32 Monitor;
-        public Rect32 Work;
-        public uint Flags;
-    }
-
-    // ========================================================================
-    // user32.dll
-    // ========================================================================
-    [LibraryImport("user32.dll")]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    private static partial bool BringWindowToTop(nint hWnd);
-
-    [LibraryImport("user32.dll")]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    private static partial bool EnumDisplayMonitors(
-        nint hdc,
-        nint lprcClip,
-        delegate* unmanaged<nint, nint, nint, nint, int> lpfnEnum,
-        nint dwData
-    );
-
-    [LibraryImport("user32.dll")]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    private static partial bool EnumWindows(
-        delegate* unmanaged<nint, nint, int> lpEnumFunc,
-        nint lParam
-    );
-
-    [LibraryImport("user32.dll")]
-    private static partial int GetClassNameW(nint hWnd, char* lpClassName, int nMaxCount);
-
-    [LibraryImport("user32.dll")]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    private static partial bool GetMonitorInfoW(nint hMonitor, ref MonitorInfoData lpmi);
-
-    [LibraryImport("user32.dll")]
-    private static partial nint GetWindow(nint hWnd, uint uCmd);
-
-    [LibraryImport("user32.dll")]
-    private static partial nint GetWindowLongPtrW(nint hWnd, GetWindowLong nIndex);
-
-    [LibraryImport("user32.dll")]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    private static partial bool GetWindowRect(nint hWnd, out Rect32 lpRect);
-
-    [LibraryImport("user32.dll")]
-    private static partial int GetWindowTextW(nint hWnd, char* lpString, int nMaxCount);
-
-    [LibraryImport("user32.dll")]
-    private static partial uint GetWindowThreadProcessId(nint hWnd, out uint lpdwProcessId);
-
-    [LibraryImport("user32.dll")]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    private static partial bool IsIconic(nint hWnd);
-
-    [LibraryImport("user32.dll")]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    private static partial bool IsWindowVisible(nint hWnd);
-
-    [LibraryImport("user32.dll")]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    private static partial bool IsZoomed(nint hWnd);
-
-    [LibraryImport("user32.dll")]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    private static partial bool PostMessageW(
-        nint hWnd,
-        WindowMessage Msg,
-        nint wParam,
-        nint lParam
-    );
-
-    [LibraryImport("user32.dll")]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    private static partial bool SetForegroundWindow(nint hWnd);
-
-    [LibraryImport("user32.dll")]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    private static partial bool SetProcessDpiAwarenessContext(nint value);
-
-    [LibraryImport("user32.dll")]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    private static partial bool SetWindowPos(
-        nint hWnd,
-        nint hWndInsertAfter,
-        int x,
-        int y,
-        int cx,
-        int cy,
-        SetWindowPosFlags uFlags
-    );
-
-    [LibraryImport("user32.dll")]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    internal static partial bool ShowWindow(nint hWnd, ShowWindowCommand nCmdShow);
-
-    [LibraryImport("user32.dll")]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    private static partial bool SystemParametersInfoW(
-        uint uiAction,
-        uint uiParam,
-        nint pvParam,
-        uint fWinIni
-    );
-
-    // ========================================================================
-    // kernel32.dll
-    // ========================================================================
-
-    [LibraryImport("kernel32.dll", SetLastError = true)]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    private static partial bool AllocConsole();
-
-    [LibraryImport("kernel32.dll", SetLastError = true)]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    private static partial bool AttachConsole(uint dwProcessId);
-
-    [LibraryImport("kernel32.dll", SetLastError = true)]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    private static partial bool CloseHandle(nint hObject);
-
-    [LibraryImport("kernel32.dll")]
-    private static partial nint GetCurrentProcess();
-
-    [LibraryImport("kernel32.dll", SetLastError = true)]
-    private static partial nint OpenProcess(
-        uint dwDesiredAccess,
-        [MarshalAs(UnmanagedType.Bool)] bool bInheritHandle,
-        uint dwProcessId
-    );
-
-    [LibraryImport("kernel32.dll")]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    private static partial bool QueryFullProcessImageNameW(
-        nint hProcess,
-        uint dwFlags,
-        char* lpExeName,
-        ref uint lpdwSize
-    );
-
-    // ========================================================================
-    // advapi32.dll
-    // ========================================================================
-
-    [LibraryImport("advapi32.dll", SetLastError = true)]
-    private static partial uint* GetSidSubAuthority(nint pSid, uint nSubAuthority);
-
-    [LibraryImport("advapi32.dll", SetLastError = true)]
-    private static partial byte* GetSidSubAuthorityCount(nint pSid);
-
-    [LibraryImport("advapi32.dll", SetLastError = true)]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    private static partial bool GetTokenInformation(
-        nint TokenHandle,
-        int TokenInformationClass,
-        byte* TokenInformation,
-        uint TokenInformationLength,
-        out uint ReturnLength
-    );
-
-    [LibraryImport("advapi32.dll", SetLastError = true)]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    private static partial bool OpenProcessToken(
-        nint ProcessHandle,
-        uint DesiredAccess,
-        out nint TokenHandle
-    );
-
-    // ========================================================================
-    // dwmapi.dll
-    // ========================================================================
-
-    [LibraryImport("dwmapi.dll")]
-    private static partial int DwmGetWindowAttribute(
-        nint hWnd,
-        DwmWindowAttribute dwAttribute,
-        out int pvAttribute,
-        int cbAttribute
-    );
-
-    [LibraryImport("dwmapi.dll", EntryPoint = "DwmGetWindowAttribute")]
-    private static partial int DwmGetWindowFrameBounds(
-        nint hWnd,
-        DwmWindowAttribute dwAttribute,
-        out Rect32 pvAttribute,
-        int cbAttribute
-    );
-
-    [UnmanagedCallersOnly]
-    private static int CollectWindow(nint hWnd, nint lParam)
-    {
-        GCHandle handle = GCHandle.FromIntPtr(lParam);
-        if (handle.Target is List<nint> list)
-        {
-            list.Add(hWnd);
-        }
-        return 1; // TRUE: continue enumeration
-    }
-
-    [UnmanagedCallersOnly]
-    private static int CollectMonitor(nint hMonitor, nint hdcMonitor, nint lprcMonitor, nint dwData)
-    {
-        GCHandle handle = GCHandle.FromIntPtr(dwData);
-        if (handle.Target is List<nint> list)
-        {
-            list.Add(hMonitor);
-        }
-        return 1; // TRUE: continue enumeration
-    }
-
     internal static List<nint> TopLevelWindows()
     {
         List<nint> handles = [];
@@ -281,6 +58,7 @@ internal static unsafe partial class NativeMethods
         {
             gc.Free();
         }
+
         return handles;
     }
 
@@ -296,6 +74,7 @@ internal static unsafe partial class NativeMethods
         {
             gc.Free();
         }
+
         return handles;
     }
 
@@ -333,6 +112,7 @@ internal static unsafe partial class NativeMethods
         {
             length = GetClassNameW(window, p, buffer.Length);
         }
+
         return length > 0 ? new string(buffer[..length]) : "";
     }
 
@@ -410,6 +190,7 @@ internal static unsafe partial class NativeMethods
         {
             length = GetWindowTextW(window, p, buffer.Length);
         }
+
         return length > 0 ? new string(buffer[..length]) : "";
     }
 
@@ -500,6 +281,7 @@ internal static unsafe partial class NativeMethods
         {
             return false;
         }
+
         var style = (WindowStyle)GetWindowLongPtrW(window, GetWindowLong.Style);
         return (style & WindowStyle.Caption) == 0;
     }
@@ -590,6 +372,7 @@ internal static unsafe partial class NativeMethods
             );
             return;
         }
+
         SetWindowPos(
             hWnd: window,
             hWndInsertAfter: 0,
@@ -599,6 +382,34 @@ internal static unsafe partial class NativeMethods
             cy: bounds.Height,
             uFlags: SetWindowPosFlags.Tile
         );
+    }
+
+    [LibraryImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    internal static partial bool ShowWindow(nint hWnd, ShowWindowCommand nCmdShow);
+
+    [UnmanagedCallersOnly]
+    private static int CollectWindow(nint hWnd, nint lParam)
+    {
+        GCHandle handle = GCHandle.FromIntPtr(lParam);
+        if (handle.Target is List<nint> list)
+        {
+            list.Add(hWnd);
+        }
+
+        return 1; // TRUE: continue enumeration
+    }
+
+    [UnmanagedCallersOnly]
+    private static int CollectMonitor(nint hMonitor, nint hdcMonitor, nint lprcMonitor, nint dwData)
+    {
+        GCHandle handle = GCHandle.FromIntPtr(dwData);
+        if (handle.Target is List<nint> list)
+        {
+            list.Add(hMonitor);
+        }
+
+        return 1; // TRUE: continue enumeration
     }
 
     private static int ProcessIntegrityRid(nint window)
@@ -685,4 +496,198 @@ internal static unsafe partial class NativeMethods
     }
 
     private static Rect ToRect(Rect32 r) => new(r.Left, r.Top, r.Right - r.Left, r.Bottom - r.Top);
+
+    // ========================================================================
+    // user32.dll
+    // ========================================================================
+    [LibraryImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool BringWindowToTop(nint hWnd);
+
+    [LibraryImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool EnumDisplayMonitors(
+        nint hdc,
+        nint lprcClip,
+        delegate* unmanaged<nint, nint, nint, nint, int> lpfnEnum,
+        nint dwData
+    );
+
+    [LibraryImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool EnumWindows(
+        delegate* unmanaged<nint, nint, int> lpEnumFunc,
+        nint lParam
+    );
+
+    [LibraryImport("user32.dll")]
+    private static partial int GetClassNameW(nint hWnd, char* lpClassName, int nMaxCount);
+
+    [LibraryImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool GetMonitorInfoW(nint hMonitor, ref MonitorInfoData lpmi);
+
+    [LibraryImport("user32.dll")]
+    private static partial nint GetWindow(nint hWnd, uint uCmd);
+
+    [LibraryImport("user32.dll")]
+    private static partial nint GetWindowLongPtrW(nint hWnd, GetWindowLong nIndex);
+
+    [LibraryImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool GetWindowRect(nint hWnd, out Rect32 lpRect);
+
+    [LibraryImport("user32.dll")]
+    private static partial int GetWindowTextW(nint hWnd, char* lpString, int nMaxCount);
+
+    [LibraryImport("user32.dll")]
+    private static partial uint GetWindowThreadProcessId(nint hWnd, out uint lpdwProcessId);
+
+    [LibraryImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool IsIconic(nint hWnd);
+
+    [LibraryImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool IsWindowVisible(nint hWnd);
+
+    [LibraryImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool IsZoomed(nint hWnd);
+
+    [LibraryImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool PostMessageW(
+        nint hWnd,
+        WindowMessage Msg,
+        nint wParam,
+        nint lParam
+    );
+
+    [LibraryImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool SetForegroundWindow(nint hWnd);
+
+    [LibraryImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool SetProcessDpiAwarenessContext(nint value);
+
+    [LibraryImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool SetWindowPos(
+        nint hWnd,
+        nint hWndInsertAfter,
+        int x,
+        int y,
+        int cx,
+        int cy,
+        SetWindowPosFlags uFlags
+    );
+
+    [LibraryImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool SystemParametersInfoW(
+        uint uiAction,
+        uint uiParam,
+        nint pvParam,
+        uint fWinIni
+    );
+
+    // ========================================================================
+    // kernel32.dll
+    // ========================================================================
+    [LibraryImport("kernel32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool AllocConsole();
+
+    [LibraryImport("kernel32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool AttachConsole(uint dwProcessId);
+
+    [LibraryImport("kernel32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool CloseHandle(nint hObject);
+
+    [LibraryImport("kernel32.dll")]
+    private static partial nint GetCurrentProcess();
+
+    [LibraryImport("kernel32.dll", SetLastError = true)]
+    private static partial nint OpenProcess(
+        uint dwDesiredAccess,
+        [MarshalAs(UnmanagedType.Bool)] bool bInheritHandle,
+        uint dwProcessId
+    );
+
+    [LibraryImport("kernel32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool QueryFullProcessImageNameW(
+        nint hProcess,
+        uint dwFlags,
+        char* lpExeName,
+        ref uint lpdwSize
+    );
+
+    // ========================================================================
+    // advapi32.dll
+    // ========================================================================
+    [LibraryImport("advapi32.dll", SetLastError = true)]
+    private static partial uint* GetSidSubAuthority(nint pSid, uint nSubAuthority);
+
+    [LibraryImport("advapi32.dll", SetLastError = true)]
+    private static partial byte* GetSidSubAuthorityCount(nint pSid);
+
+    [LibraryImport("advapi32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool GetTokenInformation(
+        nint TokenHandle,
+        int TokenInformationClass,
+        byte* TokenInformation,
+        uint TokenInformationLength,
+        out uint ReturnLength
+    );
+
+    [LibraryImport("advapi32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool OpenProcessToken(
+        nint ProcessHandle,
+        uint DesiredAccess,
+        out nint TokenHandle
+    );
+
+    // ========================================================================
+    // dwmapi.dll
+    // ========================================================================
+    [LibraryImport("dwmapi.dll")]
+    private static partial int DwmGetWindowAttribute(
+        nint hWnd,
+        DwmWindowAttribute dwAttribute,
+        out int pvAttribute,
+        int cbAttribute
+    );
+
+    [LibraryImport("dwmapi.dll", EntryPoint = "DwmGetWindowAttribute")]
+    private static partial int DwmGetWindowFrameBounds(
+        nint hWnd,
+        DwmWindowAttribute dwAttribute,
+        out Rect32 pvAttribute,
+        int cbAttribute
+    );
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal readonly struct Rect32(int left, int top, int right, int bottom)
+    {
+        public readonly int Left = left;
+        public readonly int Top = top;
+        public readonly int Right = right;
+        public readonly int Bottom = bottom;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct MonitorInfoData
+    {
+        public int CbSize;
+        public Rect32 Monitor;
+        public Rect32 Work;
+        public uint Flags;
+    }
 }

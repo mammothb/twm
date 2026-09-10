@@ -30,7 +30,7 @@ public sealed class Reconciler(IWindowSystem windows)
         // hidden (and cloaking an owner under a visible dialog feeds an
         // adopt/unmanage loop). Such owners are shown underneath their dialog
         // and never hidden.
-        var visibleOwners = new HashSet<WindowId>();
+        HashSet<WindowId> visibleOwners = [];
         foreach (TilingWindow window in windows)
         {
             if (window.IsEffectivelyVisible() && window.Owner is WindowId owner)

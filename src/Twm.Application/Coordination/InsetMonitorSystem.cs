@@ -31,6 +31,7 @@ public sealed class InsetMonitorSystem : IMonitorSystem
         {
             result.Add(monitor with { WorkArea = Inset(monitor.WorkArea) });
         }
+
         return result;
     }
 

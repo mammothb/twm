@@ -33,7 +33,7 @@ internal static class DiagnosticModes
         Console.WriteLine("\n== Windows ==");
         List<NativeWindowInfo> all = [.. windows.EnumerateWindows()];
         Dictionary<WindowId, NativeWindowInfo> byWindow = all.ToDictionary(w => w.Id);
-        Dictionary<WindowId, WindowDiagnostic> diagnostics = windows
+        Dictionary<WindowId, WindowDiagnostic> windowIdToDiagnostic = windows
             .DescribeDiagnostics()
             .ToDictionary(d => d.Id);
         foreach (NativeWindowInfo window in all)
@@ -56,7 +56,7 @@ internal static class DiagnosticModes
             string flags = string.Join(',', candidates.Where(f => f.Length > 0));
             string flagSuffix = flags.Length > 0 ? $"  {{{flags}}}" : "";
             string exeSuffix =
-                diagnostics.TryGetValue(window.Id, out WindowDiagnostic? d)
+                windowIdToDiagnostic.TryGetValue(window.Id, out WindowDiagnostic? d)
                 && d.ProcessName is not null
                     ? $"  pid={d.ProcessId} exe={d.ProcessName}"
                     : "";
@@ -67,13 +67,14 @@ internal static class DiagnosticModes
                     ? ownerInfo.Title
                     : "";
                 string ownerExe =
-                    diagnostics.TryGetValue(owner, out WindowDiagnostic? od)
+                    windowIdToDiagnostic.TryGetValue(owner, out WindowDiagnostic? od)
                     && od.ProcessName is not null
                         ? $" exe={od.ProcessName}"
                         : "";
                 string ownerClass = d?.OwnerClass is not null ? $" class={d.OwnerClass}" : "";
                 ownerText = $"0x{owner.Value:X} (\"{ownerTitle}\"{ownerExe}{ownerClass})";
             }
+
             Console.WriteLine(
                 $"  [{decision}] {window.ClassName, -28} \"{window.Title}\" 0x{window.Id.Value:X} owner={ownerText}{exeSuffix}{flagSuffix}"
             );

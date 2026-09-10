@@ -19,3 +19,9 @@ public sealed record CloseFocusedWindow : KeyEffect;
 
 /// <summary>Exit the window manager.</summary>
 public sealed record ExitWm : KeyEffect;
+
+/// <summary>
+/// Re-read the display topology and re-tile (after a resolution/aspect change
+/// or a monitor add/remove)
+/// </summary>
+public sealed record ReconcileDisplays : KeyEffect;

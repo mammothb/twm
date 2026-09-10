@@ -88,6 +88,7 @@ public class SetLayoutTests
         {
             ws.AppendChild(new TilingWindow(new WindowId(i)));
         }
+
         return (root, ws, new LayoutEngine());
     }
 }

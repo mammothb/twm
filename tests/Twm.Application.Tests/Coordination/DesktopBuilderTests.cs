@@ -8,17 +8,6 @@ namespace Twm.Application.Tests.Coordination;
 
 public class DesktopBuilderTests
 {
-    private static MonitorInfo Mon(int x, int y, int w, int h, bool primary, int taskbar = 0) =>
-        new(
-            Id: new MonitorId(x + 1),
-            Bounds: new Rect(x, y, w, h),
-            WorkArea: new Rect(x, y, w, h - taskbar),
-            IsPrimary: primary
-        );
-
-    private static IEnumerable<string> WorkspaceNames(Monitor monitor) =>
-        monitor.Children.Cast<Workspace>().Select(workspace => workspace.Name);
-
     [Fact]
     public void TwoMonitors_ProduceInterleavedWorkspaces()
     {
@@ -91,7 +80,7 @@ public class DesktopBuilderTests
     [Fact]
     public void Monitor_UsesWorkAreaNotFullBounds()
     {
-        int taskbar = 48;
+        const int taskbar = 48;
         RootContainer root = DesktopBuilder.Build([
             Mon(0, 0, 1920, 1080, primary: true, taskbar: taskbar),
         ]);
@@ -128,10 +117,8 @@ public class DesktopBuilderTests
     }
 
     [Fact]
-    public void EmptyMonitorList_Throws()
-    {
+    public void EmptyMonitorList_Throws() =>
         Should.Throw<ArgumentException>(() => DesktopBuilder.Build([]));
-    }
 
     [Fact]
     public void PerMonitorConfig_ChangesTheCount()
@@ -178,4 +165,15 @@ public class DesktopBuilderTests
             )
         );
     }
+
+    private static MonitorInfo Mon(int x, int y, int w, int h, bool primary, int taskbar = 0) =>
+        new(
+            Id: new MonitorId(x + 1),
+            Bounds: new Rect(x, y, w, h),
+            WorkArea: new Rect(x, y, w, h - taskbar),
+            IsPrimary: primary
+        );
+
+    private static IEnumerable<string> WorkspaceNames(Monitor monitor) =>
+        monitor.Children.Cast<Workspace>().Select(workspace => workspace.Name);
 }

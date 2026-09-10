@@ -28,7 +28,7 @@ public sealed class WmThreadDispatcherTests
     [Fact]
     public void DispatchFromBackground_WhenWakeFails_ReturnsErrorWithoutHanging()
     {
-        var dispatcher = new WmThreadDispatcher(() => false, request => "ok");
+        var dispatcher = new WmThreadDispatcher(() => false, _ => "ok");
 
         string response = dispatcher.DispatchFromBackground("focus left");
 
@@ -40,7 +40,7 @@ public sealed class WmThreadDispatcherTests
     {
         var dispatcher = new WmThreadDispatcher(
             () => false,
-            request => "ok",
+            _ => "ok",
             TimeSpan.FromMilliseconds(150)
         );
 
@@ -59,7 +59,7 @@ public sealed class WmThreadDispatcherTests
                 woken = true;
                 return true;
             },
-            request => throw new InvalidOperationException("fail")
+            _ => throw new InvalidOperationException("fail")
         );
 
         Task<string> submit = Task.Run(() => dispatcher.DispatchFromBackground("x"));

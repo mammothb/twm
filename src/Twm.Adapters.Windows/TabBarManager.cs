@@ -34,8 +34,7 @@ public sealed class TabBarManager(uint background, uint foreground, uint accent,
             bar.Render(view);
         }
 
-        List<Guid> staleIds = [.. _idToBar.Keys.Where(id => !liveIds.Contains(id))];
-        foreach (Guid id in staleIds)
+        foreach (Guid id in _idToBar.Keys.Where(id => !liveIds.Contains(id)))
         {
             _idToBar[id].Dispose();
             _idToBar.Remove(id);

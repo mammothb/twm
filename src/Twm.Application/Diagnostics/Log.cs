@@ -9,6 +9,7 @@ namespace Twm.Application.Diagnostics;
 public static class Log
 {
     private static Action<string>? s_sink;
+
     public static bool Enabled => s_sink is not null;
 
     public static void Init(Action<string>? sink) => s_sink = sink;

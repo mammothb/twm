@@ -17,7 +17,7 @@ public class DualMonitorSessionTests
         world.Adopt(3, world.Secondary);
         world.Adopt(4, world.Secondary);
 
-        string expected =
+        const string expected =
             "Root\n"
             + "  Monitor [0,0 1920x1080]\n"
             + "    Workspace \"1\" Horizontal [0,0 1920x1080]\n"
