@@ -23,18 +23,23 @@ public sealed record NativeWindowInfo(
     bool IsNoActivate = false,
     bool IsMenuPopup = false,
     bool IsLayered = false,
-    // Diagnostics for evaluating komorebi's allowlist criteria (require
-    // WS_CAPTION|WS_EX_WINDOWEDGE). Default true so fakes/tests read as normal
-    // windows; only the Win32 backend sets them per-window
+    /// <summary>
+    /// Allowlist-criteria diagnostics (require WS_CAPTION|WS_EX_WINDOWEDGE).
+    /// Default true so fakes/tests read as normal; only the Win32 backend sets
+    /// them per-window
+    /// </summary>
     bool HasCaption = true,
     bool HasWindowEdge = true,
-    // The HWND of this window's owner (GW_OWNER), or null. Owned windows
-    // (modal dialogs, popups) are hidden by DWM when their owner is cloaked
-    // (their cloak becomes DWM_CLOAKED_SHELL). Read-only; only the Win32
-    // backend sets it.
+    /// <summary>
+    /// HWND of this window's owner (GW_OWNER), or null. Owned windows (modal
+    /// dialogs, popups) are hidden by DWM when their owner is cloaked. Only the
+    /// Win32 backend sets it.
+    /// </summary>
     WindowId? Owner = null,
-    // WS_EX_DLGMODALFRAME: thin/double dialog border. Komorebi treats this as
-    // ineligible for tiling; twm does too (see WindowFilter). Default false
-    // for test fakes; the Win32 backend fills it from GWL_EXSTYLE.
+    /// <summary>
+    /// WS_EX_DLGMODALFRAME: thin/double dialog border. Treated as ineligible for
+    /// tiling (see WindowFilter). Default false for test fakes; the Win32
+    /// backend fills it from GWL_EXSTYLE.
+    /// </summary>
     bool IsDlgModalFrame = false
 );
