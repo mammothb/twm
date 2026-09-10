@@ -282,7 +282,7 @@ public class TreeOperationsTests
     {
         (RootContainer root, _, _, _, _, _, _) = BuildSampleTree();
 
-        string expected =
+        const string expected =
             "Root\n"
             + "  Monitor [0,0 1920x1080]\n"
             + "    Workspace \"1\" Horizontal [0,0 0x0]\n"

@@ -209,7 +209,7 @@ public class LayoutEngineTests
 
         new LayoutEngine().Arrange(monitor);
 
-        string expected =
+        const string expected =
             "Monitor [0,0 800x600]\n"
             + "  Workspace \"1\" Horizontal [0,0 800x600]\n"
             + "    Window #1 [0,0 400x600]\n"
