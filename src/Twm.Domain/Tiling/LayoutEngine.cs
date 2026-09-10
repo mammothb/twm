@@ -54,38 +54,6 @@ public sealed class LayoutEngine(Gaps gaps, int titleBarHeight)
         }
     }
 
-    private void ArrangeNode(Container node, Rect rect)
-    {
-        node.Bounds = rect;
-        if (node is not SplitContainer split || split.Children.Count == 0)
-        {
-            return;
-        }
-
-        if (split.Layout is Layout.Tabbed or Layout.Stacked)
-        {
-            // Reserve a title strip (tabbed = one row; stacked = one row per
-            // child), then give every child the same content rect below it.
-            // Only the focused child is shown (the reconciler cloaks the rest);
-            // non-focused children still get valid bounds.
-            int rows = split.Layout == Layout.Tabbed ? 1 : split.Children.Count;
-            // Avoid content from being pushed to another container
-            int strip = Math.Min(rect.Height, _titleBarHeight * rows);
-            var content = new Rect(rect.X, rect.Y + strip, rect.Width, rect.Height - strip);
-            foreach (Container child in split.Children)
-            {
-                ArrangeNode(child, content);
-            }
-            return;
-        }
-
-        Rect[] childRects = ComputeChildRects(split, rect, _gaps.Inner);
-        for (int i = 0; i < split.Children.Count; i++)
-        {
-            ArrangeNode(split.Children[i], childRects[i]);
-        }
-    }
-
     private static Rect[] ComputeChildRects(SplitContainer split, Rect rect, int innerGap)
     {
         int count = split.Children.Count;
@@ -126,8 +94,10 @@ public sealed class LayoutEngine(Gaps gaps, int titleBarHeight)
                 y += insetTop;
                 height = Math.Max(0, height - insetTop - insetBottom);
             }
+
             result[i] = new Rect(x, y, width, height);
         }
+
         return result;
     }
 
@@ -138,4 +108,38 @@ public sealed class LayoutEngine(Gaps gaps, int titleBarHeight)
             Math.Max(0, rect.Width - (2 * amount)),
             Math.Max(0, rect.Height - (2 * amount))
         );
+
+    private void ArrangeNode(Container node, Rect rect)
+    {
+        node.Bounds = rect;
+        if (node is not SplitContainer split || split.Children.Count == 0)
+        {
+            return;
+        }
+
+        if (split.Layout is Layout.Tabbed or Layout.Stacked)
+        {
+            // Reserve a title strip (tabbed = one row; stacked = one row per
+            // child), then give every child the same content rect below it.
+            // Only the focused child is shown (the reconciler cloaks the rest);
+            // non-focused children still get valid bounds.
+            int rows = split.Layout == Layout.Tabbed ? 1 : split.Children.Count;
+
+            // Avoid content from being pushed to another container
+            int strip = Math.Min(rect.Height, _titleBarHeight * rows);
+            var content = new Rect(rect.X, rect.Y + strip, rect.Width, rect.Height - strip);
+            foreach (Container child in split.Children)
+            {
+                ArrangeNode(child, content);
+            }
+
+            return;
+        }
+
+        Rect[] childRects = ComputeChildRects(split, rect, _gaps.Inner);
+        for (int i = 0; i < split.Children.Count; i++)
+        {
+            ArrangeNode(split.Children[i], childRects[i]);
+        }
+    }
 }

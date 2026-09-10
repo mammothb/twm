@@ -22,6 +22,7 @@ public static class TreeQueries
         {
             return active;
         }
+
         foreach (Container child in monitor.Children)
         {
             if (child is Workspace workspace)
@@ -29,6 +30,7 @@ public static class TreeQueries
                 return workspace;
             }
         }
+
         return null;
     }
 
@@ -45,6 +47,7 @@ public static class TreeQueries
                 return window;
             }
         }
+
         return null;
     }
 
@@ -62,6 +65,7 @@ public static class TreeQueries
                 return workspace;
             }
         }
+
         return null;
     }
 
@@ -76,6 +80,7 @@ public static class TreeQueries
                 return monitor;
             }
         }
+
         return null;
     }
 
@@ -90,6 +95,7 @@ public static class TreeQueries
                 return workspace;
             }
         }
+
         return null;
     }
 }

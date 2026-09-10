@@ -39,8 +39,10 @@ public sealed class TilingWindow(WindowId windowId, WindowId? owner = null) : Co
             {
                 return false;
             }
+
             node = split;
         }
+
         return true;
     }
 }

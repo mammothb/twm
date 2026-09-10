@@ -74,8 +74,10 @@ public static class TreeMutations
             {
                 return true;
             }
+
             pivot = split;
         }
+
         return false;
     }
 
@@ -184,8 +186,10 @@ public static class TreeMutations
                     return true;
                 }
             }
+
             pivot = split;
         }
+
         return false;
     }
 
@@ -241,6 +245,7 @@ public static class TreeMutations
         {
             return;
         }
+
         parent.RemoveChild(window);
         parent.Cleanup();
     }

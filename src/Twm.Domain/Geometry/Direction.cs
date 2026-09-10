@@ -13,20 +13,17 @@ public enum Direction
 public static class DirectionExtensions
 {
     /// <summary>The tiling axis the direction travels along.</summary>
-    public static TilingDirection Axis(this Direction direction)
-    {
-        return direction switch
+    public static TilingDirection Axis(this Direction direction) =>
+        direction switch
         {
             Direction.Left or Direction.Right => TilingDirection.Horizontal,
             Direction.Up or Direction.Down => TilingDirection.Vertical,
             _ => throw new ArgumentOutOfRangeException(nameof(direction)),
         };
-    }
 
     /// <summary>The direction pointing to opposite way.</summary>
-    public static Direction Opposite(this Direction direction)
-    {
-        return direction switch
+    public static Direction Opposite(this Direction direction) =>
+        direction switch
         {
             Direction.Left => Direction.Right,
             Direction.Right => Direction.Left,
@@ -34,5 +31,4 @@ public static class DirectionExtensions
             Direction.Down => Direction.Up,
             _ => throw new ArgumentOutOfRangeException(nameof(direction)),
         };
-    }
 }

@@ -14,10 +14,8 @@ public sealed class Bus
     private readonly Queue<string> _commandHistory = [];
     private readonly int _commandHistoryCapacity;
 
-#pragma warning disable SA1502 // ElementMustNoBeOnSingleLine
     public Bus()
         : this(DefaultCommandHistoryCapacity) { }
-#pragma warning restore SA1502 // ElementMustNoBeOnSingleLine
 
     public Bus(int commandHistoryCapacity)
     {
