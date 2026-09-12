@@ -10,7 +10,7 @@ public class MonitorAdjacencyTests
     {
         (Monitor left, Monitor right) = TwoSideBySide();
 
-        left.AdjacentMonitor(Direction.Right).ShouldBeSameAs(right);
+        left.FindAdjacentMonitor(Direction.Right).ShouldBeSameAs(right);
     }
 
     [Fact]
@@ -18,7 +18,7 @@ public class MonitorAdjacencyTests
     {
         (Monitor left, Monitor right) = TwoSideBySide();
 
-        right.AdjacentMonitor(Direction.Left).ShouldBeSameAs(left);
+        right.FindAdjacentMonitor(Direction.Left).ShouldBeSameAs(left);
     }
 
     [Fact]
@@ -26,8 +26,8 @@ public class MonitorAdjacencyTests
     {
         (Monitor left, Monitor right) = TwoSideBySide();
 
-        right.AdjacentMonitor(Direction.Right).ShouldBeNull();
-        left.AdjacentMonitor(Direction.Left).ShouldBeNull();
+        right.FindAdjacentMonitor(Direction.Right).ShouldBeNull();
+        left.FindAdjacentMonitor(Direction.Left).ShouldBeNull();
     }
 
     [Fact]
@@ -35,8 +35,8 @@ public class MonitorAdjacencyTests
     {
         (Monitor left, _) = TwoSideBySide();
 
-        left.AdjacentMonitor(Direction.Up).ShouldBeNull();
-        left.AdjacentMonitor(Direction.Down).ShouldBeNull();
+        left.FindAdjacentMonitor(Direction.Up).ShouldBeNull();
+        left.FindAdjacentMonitor(Direction.Down).ShouldBeNull();
     }
 
     // Two monitors side by side: left 1920x1080 at origin, right 1280x1024 to

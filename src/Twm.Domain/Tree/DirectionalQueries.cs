@@ -10,46 +10,6 @@ namespace Twm.Domain.Tree;
 public static class DirectionalQueries
 {
     /// <summary>
-    /// The nearest monitor lying in <paramref name="direction" /> from this
-    /// one, by geometry (center beyond this monitor's center in that direction,
-    /// with perpendicular overlap), or null if there is no monitor that way.
-    /// </summary>
-    public static Monitor? AdjacentMonitor(this Monitor monitor, Direction direction)
-    {
-        ArgumentNullException.ThrowIfNull(monitor);
-        if (monitor.Parent is not RootContainer root)
-        {
-            return null;
-        }
-
-        Rect from = monitor.Bounds;
-        Monitor? nearest = null;
-        int nearestDistance = int.MaxValue;
-        foreach (Container child in root.Children)
-        {
-            if (child is not Monitor other || ReferenceEquals(other, monitor))
-            {
-                continue;
-            }
-
-            Rect to = other.Bounds;
-            if (!IsInDirection(from, to, direction))
-            {
-                continue;
-            }
-
-            int distance = DirectionalDistance(from, to, direction);
-            if (distance < nearestDistance)
-            {
-                nearestDistance = distance;
-                nearest = other;
-            }
-        }
-
-        return nearest;
-    }
-
-    /// <summary>
     /// The container focus should move to when travelling in
     /// <paramref="direction" /> from <paramref="subject" />: the deepest
     /// focusable neighbor within the tree, or, at a workspace edge, the
@@ -61,25 +21,6 @@ public static class DirectionalQueries
         ArgumentNullException.ThrowIfNull(subject);
         return FindInTree(subject, direction) ?? CrossMonitorTarget(subject, direction);
     }
-
-    private static int DirectionalDistance(Rect from, Rect to, Direction direction) =>
-        direction is Direction.Left or Direction.Right
-            ? Math.Abs(to.Center.X - from.Center.X)
-            : Math.Abs(to.Center.Y - from.Center.Y);
-
-    private static bool IsInDirection(Rect from, Rect to, Direction direction) =>
-        direction switch
-        {
-            Direction.Left => to.Center.X < from.Center.X && VerticalOverlap(from, to),
-            Direction.Right => to.Center.X > from.Center.X && VerticalOverlap(from, to),
-            Direction.Up => to.Center.Y < from.Center.Y && HorizontalOverlap(from, to),
-            Direction.Down => to.Center.Y > from.Center.Y && HorizontalOverlap(from, to),
-            _ => false,
-        };
-
-    private static bool HorizontalOverlap(Rect a, Rect b) => a.X < b.Right && b.X < a.Right;
-
-    private static bool VerticalOverlap(Rect a, Rect b) => a.Y < b.Bottom && b.Y < a.Bottom;
 
     /// <summary>
     /// The window to focus when entering <paramref name="container" /> while
@@ -191,7 +132,7 @@ public static class DirectionalQueries
     {
         Container? activeWorkspace = subject
             .FindAncestor<Monitor>()
-            ?.AdjacentMonitor(direction)
+            ?.FindAdjacentMonitor(direction)
             ?.ActiveWorkspace;
         return activeWorkspace is null
             ? null
