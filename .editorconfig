@@ -11,6 +11,7 @@ insert_final_newline = true
 indent_style = space
 indent_size = 4
 trim_trailing_whitespace = true
+max_line_length = 100
 
 # Specify UTF-8 without byte-order mark
 [*.{csproj,locproj,nativeproj,proj,resx,slnx,vbproj}]
@@ -153,6 +154,7 @@ csharp_space_between_parentheses = false
 csharp_space_between_square_brackets = false
 
 # Roslynator — match existing style preferences
+roslynator_max_line_length = 100
 roslynator_use_var = never
 
 # IDE0011: Prefer braces
