@@ -59,6 +59,8 @@ public abstract class Container
         }
     }
 
+    public Container LastFocusedDescendantOrSelf => LastFocusedDescendant ?? this;
+
     /// <summary>
     /// This container's position among its parent's children.
     /// </summary>

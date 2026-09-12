@@ -20,7 +20,7 @@ public sealed class FocusInDirectionHandler(RootContainer root, LayoutEngine lay
             return CommandResult.Ok;
         }
 
-        subject.FocusTargetInDirection(command.Direction)?.Focus();
+        subject.FindFocusTarget(command.Direction)?.Focus();
         return CommandResult.Ok;
     }
 }
