@@ -5,7 +5,7 @@ namespace Twm.Domain.Tests.Tree;
 public class ReplaceChildTests
 {
     [Fact]
-    public void SwapsInPlaceAndReparents()
+    public void ReplaceChild_SwapsInPlaceAndReparents()
     {
         var split = new SplitContainer();
         var w1 = new TilingWindow(new WindowId(1));
@@ -24,7 +24,7 @@ public class ReplaceChildTests
     }
 
     [Fact]
-    public void PreservesFocusStanding()
+    public void ReplaceChild_PreservesFocusStanding()
     {
         var split = new SplitContainer();
         var w1 = new TilingWindow(new WindowId(1));
@@ -42,7 +42,7 @@ public class ReplaceChildTests
     }
 
     [Fact]
-    public void SameOldAndNew_IsNoOP()
+    public void ReplaceChild_SameOldAndNew_IsNoOp()
     {
         var split = new SplitContainer();
         var w1 = new TilingWindow(new WindowId(1));
@@ -55,7 +55,7 @@ public class ReplaceChildTests
     }
 
     [Fact]
-    public void DoesNotTransferSize()
+    public void ReplaceChild_DoesNotTransferSize()
     {
         var split = new SplitContainer();
         var w1 = new TilingWindow(new WindowId(1)) { SizeFraction = 3 };
