@@ -12,4 +12,12 @@ public sealed class Monitor : Container
     {
         Bounds = displayBounds;
     }
+
+    /// <summary>
+    /// The monitor's active workspace, its most-recently-focused workspace, or
+    /// its first workspace if none has been focused. Null if the monitor has no
+    /// workspaces.
+    /// </summary>
+    public Workspace? ActiveWorkspace =>
+        LastFocusedChild as Workspace ?? Children.OfType<Workspace>().FirstOrDefault();
 }
