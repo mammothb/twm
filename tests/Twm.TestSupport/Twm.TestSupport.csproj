@@ -1,4 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <ExcludeFromCodeCoverage>true</ExcludeFromCodeCoverage>
+  </PropertyGroup>
+
   <!-- Shared test infrastructure. -->
   <ItemGroup>
     <ProjectReference Include="../../src/Twm.Application/Twm.Application.csproj" />
