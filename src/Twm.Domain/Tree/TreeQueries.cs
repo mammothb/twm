@@ -4,23 +4,6 @@ namespace Twm.Domain.Tree;
 public static class TreeQueries
 {
     /// <summary>
-    /// Finds a managed window by id anywhere under the container.
-    /// </summary>
-    public static TilingWindow? FindWindow(this Container container, WindowId id)
-    {
-        ArgumentNullException.ThrowIfNull(container);
-        foreach (Container descendant in container.Descendants)
-        {
-            if (descendant is TilingWindow window && window.WindowId == id)
-            {
-                return window;
-            }
-        }
-
-        return null;
-    }
-
-    /// <summary>
     /// Finds a workspace by name anywhere under the container.
     /// </summary>
     public static Workspace? FindWorkspace(this Container container, string name)
