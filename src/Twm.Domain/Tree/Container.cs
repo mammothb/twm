@@ -117,6 +117,24 @@ public abstract class Container
     }
 
     /// <summary>
+    /// Returns the first ancestor of type <typeparamref name="T" /> or null if
+    /// detached.
+    /// </summary>
+    public T? FindAncestor<T>()
+        where T : Container
+    {
+        foreach (Container ancestor in Ancestors)
+        {
+            if (ancestor is T target)
+            {
+                return target;
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
     /// Records this container as most-recently-focused along its whole
     /// ancestry, so that <see cref="LastFocusedDescendant" /> from any ancestor
     /// reaches it.

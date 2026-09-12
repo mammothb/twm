@@ -278,8 +278,8 @@ public sealed class WmSession
         // cycling tabs (which also starves the exit hotkey). Tabs are switched
         // by keyboard, not by focus events
         bool isOnInactiveWorkspace =
-            managed.WorkspaceOf() is Workspace workspace
-            && !ReferenceEquals(workspace, managed.MonitorOf()?.LastFocusedChild);
+            managed.FindAncestor<Workspace>() is Workspace workspace
+            && !ReferenceEquals(workspace, managed.FindAncestor<Monitor>()?.LastFocusedChild);
 
         managed.Focus();
 
@@ -366,7 +366,8 @@ public sealed class WmSession
         // Workspace to re-focus afterward (persists by reference across the
         // move
         Container? focusLeaf = Root.LastFocusedDescendant;
-        Workspace? focusedWorkspace = focusLeaf as Workspace ?? focusLeaf?.WorkspaceOf();
+        Workspace? focusedWorkspace =
+            focusLeaf as Workspace ?? focusLeaf?.FindAncestor<Workspace>();
 
         // Detach every existing workspace (name globally unique); drop old
         // monitors

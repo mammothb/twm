@@ -74,8 +74,8 @@ public class WmSessionTests
         var secondary = (Monitor)session.Root.Children[1];
         TilingWindow w1 = session.Root.FindWindow(new WindowId(1))!;
         TilingWindow w2 = session.Root.FindWindow(new WindowId(2))!;
-        w1.MonitorOf().ShouldBeSameAs(primary);
-        w2.MonitorOf().ShouldBeSameAs(secondary);
+        w1.FindAncestor<Monitor>().ShouldBeSameAs(primary);
+        w2.FindAncestor<Monitor>().ShouldBeSameAs(secondary);
         // each fills its own monitor's work area; nothing migrates across
         // displays
         w1.Bounds.ShouldBe(new Rect(0, 0, 1920, 1080));

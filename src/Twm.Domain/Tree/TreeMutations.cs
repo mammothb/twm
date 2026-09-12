@@ -197,7 +197,7 @@ public static class TreeMutations
     {
         ArgumentNullException.ThrowIfNull(subject);
         if (
-            subject.MonitorOf()?.AdjacentMonitor(direction)?.LastFocusedChild
+            subject.FindAncestor<Monitor>()?.AdjacentMonitor(direction)?.LastFocusedChild
                 is not SplitContainer targetWorkspace
             || subject.Parent is not Container oldParent
         )
@@ -222,7 +222,7 @@ public static class TreeMutations
     {
         ArgumentNullException.ThrowIfNull(subject);
         if (
-            ReferenceEquals(subject.WorkspaceOf(), target)
+            ReferenceEquals(subject.FindAncestor<Workspace>(), target)
             || subject.Parent is not Container oldParent
         )
         {

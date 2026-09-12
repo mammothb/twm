@@ -22,8 +22,8 @@ public sealed class TilingWindow(WindowId windowId, WindowId? owner = null) : Co
     /// reconciler shows/cloaks by, and the hide-event classifier reads.
     public bool IsEffectivelyVisible()
     {
-        Workspace? workspace = this.WorkspaceOf();
-        Container? activeWorkspace = workspace?.MonitorOf()?.LastFocusedChild;
+        Workspace? workspace = FindAncestor<Workspace>();
+        Container? activeWorkspace = workspace?.FindAncestor<Monitor>()?.LastFocusedChild;
         if (workspace is null || !ReferenceEquals(workspace, activeWorkspace))
         {
             return false;

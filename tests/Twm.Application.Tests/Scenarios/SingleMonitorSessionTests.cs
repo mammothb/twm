@@ -90,6 +90,6 @@ public class SingleMonitorSessionTests
         Workspace ws2 = TestWorld.WorkspaceOf(world.Primary, 1);
         ws1.Children.ShouldBe([world.Window(1)]);
         ws2.Children.ShouldBe([world.Window(2)]);
-        world.Window(2).WorkspaceOf().ShouldBeSameAs(ws2);
+        world.Window(2).FindAncestor<Workspace>().ShouldBeSameAs(ws2);
     }
 }

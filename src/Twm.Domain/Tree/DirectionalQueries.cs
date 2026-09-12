@@ -190,7 +190,7 @@ public static class DirectionalQueries
     private static Container? CrossMonitorTarget(Container subject, Direction direction)
     {
         Container? activeWorkspace = subject
-            .MonitorOf()
+            .FindAncestor<Monitor>()
             ?.AdjacentMonitor(direction)
             ?.ActiveWorkspace;
         return activeWorkspace is null

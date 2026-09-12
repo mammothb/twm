@@ -44,8 +44,8 @@ public class DualMonitorSessionTests
 
         before.ShouldBe(new Rect(0, 0, 1920, 1080));
         world.Window(1).Bounds.ShouldBe(before);
-        world.Window(2).MonitorOf().ShouldBeSameAs(world.Secondary);
-        world.Window(3).MonitorOf().ShouldBeSameAs(world.Secondary);
+        world.Window(2).FindAncestor<Monitor>().ShouldBeSameAs(world.Secondary);
+        world.Window(3).FindAncestor<Monitor>().ShouldBeSameAs(world.Secondary);
     }
 
     [Fact]
@@ -61,7 +61,7 @@ public class DualMonitorSessionTests
         Workspace secondaryWs = TestWorld.WorkspaceOf(world.Secondary, 0);
         primaryWs.Children.ShouldBe([world.Window(1)]);
         secondaryWs.Children.ShouldBe([world.Window(2)]);
-        world.Window(2).MonitorOf().ShouldBeSameAs(world.Secondary);
+        world.Window(2).FindAncestor<Monitor>().ShouldBeSameAs(world.Secondary);
         world.Window(1).Bounds.ShouldBe(new Rect(0, 0, 1920, 1080));
         world.Window(2).Bounds.ShouldBe(new Rect(1920, 0, 1280, 1024));
     }
@@ -105,7 +105,7 @@ public class DualMonitorSessionTests
 
         world.Invoke(new MoveInDirectionCommand(Direction.Right));
 
-        world.Window(1).MonitorOf().ShouldBeSameAs(world.Secondary);
+        world.Window(1).FindAncestor<Monitor>().ShouldBeSameAs(world.Secondary);
         world.Root.FocusedWindow!.WindowId.ShouldBe(new WindowId(1));
     }
 }
