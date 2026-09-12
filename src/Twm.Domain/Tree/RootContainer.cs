@@ -23,4 +23,21 @@ public sealed class RootContainer : Container
 
         return null;
     }
+
+    /// <summary>
+    /// Finds a workspace by name anywhere under the container.
+    /// </summary>
+    public Workspace? FindWorkspace(string name)
+    {
+        ArgumentNullException.ThrowIfNull(name);
+        foreach (Container descendant in Descendants)
+        {
+            if (descendant is Workspace workspace && workspace.Name == name)
+            {
+                return workspace;
+            }
+        }
+
+        return null;
+    }
 }
