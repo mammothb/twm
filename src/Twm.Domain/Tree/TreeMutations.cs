@@ -43,37 +43,6 @@ public static class TreeMutations
     }
 
     /// <summary>
-    /// Adopts a new window into the workspace: next to the workspace's focused
-    /// window or filling the workspace when empty. Returns the new window (not
-    /// yet focused).
-    /// </summary>
-    public static TilingWindow Adopt(
-        this Workspace workspace,
-        WindowId windowId,
-        WindowId? owner = null
-    )
-    {
-        ArgumentNullException.ThrowIfNull(workspace);
-        var window = new TilingWindow(windowId, owner);
-
-        // Open next to the workspace's focused window, i3-style; otherwise fill
-        // the workspace
-        if (
-            workspace.LastFocusedDescendant is TilingWindow focused
-            && focused.Parent is SplitContainer parent
-        )
-        {
-            parent.InsertChild(focused.Index + 1, window);
-        }
-        else
-        {
-            workspace.AppendChild(window);
-        }
-
-        return window;
-    }
-
-    /// <summary>
     /// Moves the window one step in a direction withing its monitor,
     /// restructuring the tree i3-style (reorder within a split, dive into an
     /// adjacent split, or pop out beside an ancestor). Returns whether the tree
