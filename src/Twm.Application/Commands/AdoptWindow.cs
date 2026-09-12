@@ -16,7 +16,7 @@ public sealed class AdoptWindowHandler(RootContainer root, LayoutEngine layout)
     public override CommandResult Handle(AdoptWindowCommand command)
     {
         ArgumentNullException.ThrowIfNull(command);
-        Workspace? workspace = command.Monitor.ActiveWorkspace();
+        Workspace? workspace = command.Monitor.ActiveWorkspace;
         if (workspace is null)
         {
             return CommandResult.Fail("Monitor has no workspace to adopt into.");

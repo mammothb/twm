@@ -74,8 +74,8 @@ public class WmSessionTests
         var secondary = (Monitor)session.Root.Children[1];
         TilingWindow w1 = session.Root.FindWindow(new WindowId(1))!;
         TilingWindow w2 = session.Root.FindWindow(new WindowId(2))!;
-        w1.MonitorOf().ShouldBeSameAs(primary);
-        w2.MonitorOf().ShouldBeSameAs(secondary);
+        w1.FindAncestor<Monitor>().ShouldBeSameAs(primary);
+        w2.FindAncestor<Monitor>().ShouldBeSameAs(secondary);
         // each fills its own monitor's work area; nothing migrates across
         // displays
         w1.Bounds.ShouldBe(new Rect(0, 0, 1920, 1080));
@@ -300,7 +300,7 @@ public class WmSessionTests
         var windowId = new WindowId(1);
         session.SyncFocus(windowId);
 
-        session.Root.FocusedWindow()!.WindowId.ShouldBe(windowId);
+        session.Root.FocusedWindow!.WindowId.ShouldBe(windowId);
     }
 
     [Fact]
@@ -329,7 +329,7 @@ public class WmSessionTests
 
         session.SyncFocus(new WindowId(999)); // never managed
 
-        session.Root.FocusedWindow()!.WindowId.ShouldBe(new WindowId(1));
+        session.Root.FocusedWindow!.WindowId.ShouldBe(new WindowId(1));
     }
 
     [Fact]

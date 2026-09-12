@@ -26,7 +26,7 @@ public class AdoptWindowTests
         adopted.ShouldNotBeNull();
         adopted.Parent.ShouldBeSameAs(ws);
         adopted.Bounds.ShouldBe(monitorBounds);
-        root.FocusedWindow().ShouldBeSameAs(adopted);
+        root.FocusedWindow.ShouldBeSameAs(adopted);
     }
 
     [Fact]

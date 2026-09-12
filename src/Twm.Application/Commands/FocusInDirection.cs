@@ -14,13 +14,13 @@ public sealed class FocusInDirectionHandler(RootContainer root, LayoutEngine lay
     public override CommandResult Handle(FocusInDirectionCommand command)
     {
         ArgumentNullException.ThrowIfNull(command);
-        TilingWindow? subject = Root.FocusedWindow();
+        TilingWindow? subject = Root.FocusedWindow;
         if (subject is null)
         {
             return CommandResult.Ok;
         }
 
-        subject.FocusTargetInDirection(command.Direction)?.Focus();
+        subject.FindFocusTarget(command.Direction)?.Focus();
         return CommandResult.Ok;
     }
 }

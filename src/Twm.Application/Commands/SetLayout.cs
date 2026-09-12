@@ -17,7 +17,7 @@ public sealed class SetLayoutHandler(RootContainer root, LayoutEngine layout)
     public override CommandResult Handle(SetLayoutCommand command)
     {
         ArgumentNullException.ThrowIfNull(command);
-        if (Root.FocusedWindow()?.Parent is not SplitContainer parent)
+        if (Root.FocusedWindow?.Parent is not SplitContainer parent)
         {
             return CommandResult.Ok;
         }

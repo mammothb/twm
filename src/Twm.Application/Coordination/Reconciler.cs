@@ -65,7 +65,7 @@ public sealed class Reconciler(IWindowSystem windows)
             }
         }
 
-        if (root.FocusedWindow() is TilingWindow focused)
+        if (root.FocusedWindow is TilingWindow focused)
         {
             try
             {

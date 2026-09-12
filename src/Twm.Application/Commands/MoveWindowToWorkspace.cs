@@ -13,7 +13,7 @@ public sealed class MoveWindowToWorkspaceHandler(RootContainer root, LayoutEngin
     public override CommandResult Handle(MoveWindowToWorkspaceCommand command)
     {
         ArgumentNullException.ThrowIfNull(command);
-        TilingWindow? subject = Root.FocusedWindow();
+        TilingWindow? subject = Root.FocusedWindow;
         if (subject is null)
         {
             return CommandResult.Ok;

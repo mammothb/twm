@@ -1,3 +1,5 @@
+using Twm.Domain.Geometry;
+
 namespace Twm.Domain.Tree;
 
 /// <summary>A leaf container wrapping a single managed OS window.</summary>
@@ -15,15 +17,26 @@ public sealed class TilingWindow(WindowId windowId, WindowId? owner = null) : Co
     public WindowId? Owner { get; } = owner;
 
     /// <summary>
+    /// The container focus should move to when travelling in
+    /// <paramref="direction" /> from <paramref="subject" />: the deepest
+    /// focusable neighbor within the tree, or, at a workspace edge, the
+    /// entry-edge window of the adjacent monitor's active workspace(falling
+    /// back to that workspace itself). Null if there is nowhere to go).
+    /// </summary>
+    public Container? FindFocusTarget(Direction direction) =>
+        FindInTree(direction) ?? FindCrossMonitor(direction);
+
+    /// <summary>
     /// Whether this window should currently be shown on screen: it is on its
     /// monitor's active workspace <b>and</b>, through every tabbed/stacked
     /// ancestor up to the workspace, its branch is that containers's focused
     /// child (a non-focused tab is hidden). This is the single truth the
     /// reconciler shows/cloaks by, and the hide-event classifier reads.
+    /// </summary>
     public bool IsEffectivelyVisible()
     {
-        Workspace? workspace = this.WorkspaceOf();
-        Container? activeWorkspace = workspace?.MonitorOf()?.LastFocusedChild;
+        Workspace? workspace = FindAncestor<Workspace>();
+        Container? activeWorkspace = workspace?.FindAncestor<Monitor>()?.LastFocusedChild;
         if (workspace is null || !ReferenceEquals(workspace, activeWorkspace))
         {
             return false;
@@ -44,5 +57,316 @@ public sealed class TilingWindow(WindowId windowId, WindowId? owner = null) : Co
         }
 
         return true;
+    }
+
+    /// <summary>
+    /// Moves the window one step in a direction withing its monitor,
+    /// restructuring the tree i3-style (reorder within a split, dive into an
+    /// adjacent split, or pop out beside an ancestor). Returns whether the tree
+    /// changed.
+    /// </summary>
+    public bool MoveInDirection(Direction direction)
+    {
+        if (Parent is not SplitContainer subjectParent)
+        {
+            return false;
+        }
+
+        TilingDirection axis = direction.Axis();
+        int delta = direction is Direction.Left or Direction.Up ? -1 : 1;
+
+        // Walk up to the nearest ancestor split whose orientation matches the
+        // move axis. `pivot` is that split's child on the subject's path.
+        Container pivot = this;
+        while (pivot.Parent is SplitContainer split)
+        {
+            if (split.Layout.Axis() == axis)
+            {
+                int neighborIndex = pivot.Index + delta;
+                bool inBounds = 0 <= neighborIndex && neighborIndex < split.Children.Count;
+
+                if (ReferenceEquals(pivot, this))
+                {
+                    if (inBounds)
+                    {
+                        Container neighbor = split.Children[neighborIndex];
+                        if (neighbor is SplitContainer nested && nested.Children.Count > 0)
+                        {
+                            // Move into the adjacent split at its near edge
+                            subjectParent.RemoveChild(this);
+                            int insertAt = delta > 0 ? 0 : nested.Children.Count;
+                            nested.InsertChild(insertAt, this);
+                            subjectParent.Cleanup();
+                        }
+                        else
+                        {
+                            // Reorder within the same split
+                            split.MoveChildToIndex(this, neighborIndex);
+                        }
+
+                        Focus();
+                        return true;
+                    }
+                }
+                else if (inBounds)
+                {
+                    // Subject is nested deeper: pop it out beside its pivot
+                    // branch
+                    subjectParent.RemoveChild(this);
+                    int insertAt = delta > 0 ? pivot.Index + 1 : pivot.Index;
+                    split.InsertChild(insertAt, this);
+                    subjectParent.Cleanup();
+                    Focus();
+                    return true;
+                }
+            }
+
+            pivot = split;
+        }
+
+        return false;
+    }
+
+    public bool MoveToAdjacentMonitor(Direction direction)
+    {
+        if (
+            FindAncestor<Monitor>()?.FindAdjacentMonitor(direction)?.LastFocusedChild
+                is not SplitContainer targetWorkspace
+            || Parent is not Container oldParent
+        )
+        {
+            return false;
+        }
+
+        int delta = direction is Direction.Left or Direction.Up ? -1 : 1;
+        oldParent.RemoveChild(this);
+        int insertAt = delta > 0 ? 0 : targetWorkspace.Children.Count;
+        targetWorkspace.InsertChild(insertAt, this);
+        oldParent.Cleanup();
+        Focus();
+        return true;
+    }
+
+    /// <summary>
+    /// Moves the window to <paramref name="target" />. Returns whether it
+    /// moved.
+    /// </summary>
+    public bool MoveToWorkspace(Workspace target)
+    {
+        if (ReferenceEquals(FindAncestor<Workspace>(), target) || Parent is not Container oldParent)
+        {
+            return false;
+        }
+
+        oldParent.RemoveChild(this);
+        target.AppendChild(this);
+        oldParent.Cleanup();
+        return true;
+    }
+
+    /// <summary>
+    /// Detaches the window from the tree and prunes any split it emptied.
+    /// </summary>
+    public void Remove()
+    {
+        if (Parent is not Container parent)
+        {
+            return;
+        }
+
+        parent.RemoveChild(this);
+        parent.Cleanup();
+    }
+
+    /// <summary>
+    /// i3's <c>resize grow/shrink width/height</c>: walks up to the nearest
+    /// ancestor split on the direction's axis and trades size between the
+    /// subject's branch and its neighbor Right/Down grow, Left/Up shrink.
+    /// Returns whether it applied.
+    /// </summary>
+    public bool ResizeInDirection(Direction direction, double deltaFraction)
+    {
+        TilingDirection axis = direction.Axis();
+        bool grow = direction is Direction.Right or Direction.Down;
+        double delta = grow ? deltaFraction : -deltaFraction;
+
+        // Walk up to the nearest ancestor split on the matching axis whose
+        // child on the subject's path has a neighbor to trade size with
+        Container pivot = this;
+        while (pivot.Parent is SplitContainer split)
+        {
+            if (
+                split.Layout.Axis() == axis
+                && split.TryResizeChild(pivot, delta, pivot.NextSibling ?? pivot.PreviousSibling)
+            )
+            {
+                return true;
+            }
+
+            pivot = split;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Grows <paramref name="subject" /> within its parent split by
+    /// <paramref name="delta" />, taking the same from an adjacent sibling.
+    /// Returns whether it applied (a neighbor exists and neither side falls
+    /// below the minimum fraction).
+    /// </summary>
+    public bool ResizeWithNeighbor(double delta) =>
+        Parent is SplitContainer split
+        && split.TryResizeChild(this, delta, NextSibling ?? PreviousSibling);
+
+    /// <summary>
+    /// i3's <c>split</c>: a lone window re-orients its parent split; otherwise
+    /// the window is wrapped in a new split of the given direction so the next
+    /// neighbor nests inside.
+    /// </summary>
+    public void SplitInDirection(TilingDirection direction)
+    {
+        if (Parent is not SplitContainer parent)
+        {
+            return;
+        }
+
+        // A lone window: just set its parent split's direction (i3 splits a
+        // solitary window by re-orienting its container rather than nesting a
+        // redundant single-child split
+        if (parent.Children.Count == 1)
+        {
+            parent.Layout = direction.SplitLayout();
+            return;
+        }
+
+        // Otherwise wrap the focused window in a new split; the next window
+        // inserted next to it will nest inside
+        int index = Index;
+        double fraction = SizeFraction;
+
+        var wrapper = new SplitContainer(direction.SplitLayout());
+        parent.RemoveChild(this);
+        SizeFraction = 1.0;
+        wrapper.AppendChild(this);
+        wrapper.SizeFraction = fraction;
+        parent.InsertChild(index, wrapper);
+        Focus();
+    }
+
+    /// <summary>
+    /// The window to focus when entering <paramref name="container" /> while
+    /// travelling in <paramref name="moveDirection" />. Descends the tree: a
+    /// real split is entered at its edge child along the travel axis, and by
+    /// the child nearest <paramref name="fromCenter" /> on the perpendicular
+    /// axis tabbed/stacked children overlap and have no spatial edge, so the
+    /// most-recently-focused child is kept. Null if the container yields no
+    /// tiling window (empty, or not a window/split container).
+    /// </summary>
+    private static TilingWindow? FindEntryWindow(
+        Container container,
+        Direction moveDirection,
+        Point fromCenter
+    )
+    {
+        ArgumentNullException.ThrowIfNull(container);
+        Container? node = container;
+        while (node is not null)
+        {
+            if (node is TilingWindow window)
+            {
+                return window;
+            }
+
+            if (node is SplitContainer split)
+            {
+                node = FindEntryChild(split, moveDirection, fromCenter);
+                continue;
+            }
+
+            return null;
+        }
+
+        return null;
+    }
+
+    private static Container? FindEntryChild(
+        SplitContainer split,
+        Direction moveDirection,
+        Point fromCenter
+    )
+    {
+        if (split.Children.Count == 0)
+        {
+            return null;
+        }
+
+        // Tabbed/stacked children overlap: there is no spatial edge, so honor
+        // the remembered focus instead of layout position
+        if (!split.Layout.IsSplit())
+        {
+            return split.LastFocusedChild;
+        }
+
+        // A real split is spatially meaningful only along its own axis: enter
+        // from the edge opposite trave (moving Right/Down enters the first
+        // child, Left/Up enters the last).
+        if (split.Layout.Axis() == moveDirection.Axis())
+        {
+            return moveDirection is Direction.Right or Direction.Down
+                ? split.Children[0]
+                : split.Children[^1];
+        }
+
+        // Perpendicular split: keep spatial continuity by the child nearest
+        // fromCenter on the perpendicular axis
+        Container best = split.Children[0];
+        long bestDelta = long.MaxValue;
+        foreach (Container child in split.Children)
+        {
+            long delta = moveDirection is Direction.Left or Direction.Right
+                ? Math.Abs(child.Bounds.Center.Y - fromCenter.Y)
+                : Math.Abs(child.Bounds.Center.X - fromCenter.X);
+            if (delta < bestDelta)
+            {
+                bestDelta = delta;
+                best = child;
+            }
+        }
+
+        return best;
+    }
+
+    private Container? FindCrossMonitor(Direction direction)
+    {
+        Container? activeWorkspace = FindAncestor<Monitor>()
+            ?.FindAdjacentMonitor(direction)
+            ?.ActiveWorkspace;
+        return activeWorkspace is null
+            ? null
+            : FindEntryWindow(activeWorkspace, direction, Bounds.Center) ?? activeWorkspace;
+    }
+
+    private Container? FindInTree(Direction direction)
+    {
+        TilingDirection axis = direction.Axis();
+        int delta = direction is Direction.Left or Direction.Up ? -1 : 1;
+
+        Container node = this;
+        while (node.Parent is SplitContainer split)
+        {
+            if (split.Layout.Axis() == axis)
+            {
+                int neighborIndex = node.Index + delta;
+                if (0 <= neighborIndex && neighborIndex < split.Children.Count)
+                {
+                    return split.Children[neighborIndex].LastFocusedDescendantOrSelf;
+                }
+            }
+
+            node = split;
+        }
+
+        return null;
     }
 }

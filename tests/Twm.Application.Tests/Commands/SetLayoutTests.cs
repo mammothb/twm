@@ -29,7 +29,7 @@ public class SetLayoutTests
             new FocusInDirectionCommand(Direction.Right)
         );
 
-        root.FocusedWindow()!.WindowId.ShouldBe(new WindowId(2));
+        root.FocusedWindow!.WindowId.ShouldBe(new WindowId(2));
     }
 
     [Fact]
@@ -43,7 +43,7 @@ public class SetLayoutTests
             new FocusInDirectionCommand(Direction.Down)
         );
 
-        root.FocusedWindow()!.WindowId.ShouldBe(new WindowId(2));
+        root.FocusedWindow!.WindowId.ShouldBe(new WindowId(2));
     }
 
     [Fact]
@@ -72,7 +72,7 @@ public class SetLayoutTests
         // w1 swaps past w2 -> order becomes [w2, w1, w3], focus follows w1
         ((TilingWindow)ws.Children[0]).WindowId.ShouldBe(new WindowId(2));
         ((TilingWindow)ws.Children[1]).WindowId.ShouldBe(new WindowId(1));
-        root.FocusedWindow()!.WindowId.ShouldBe(new WindowId(1));
+        root.FocusedWindow!.WindowId.ShouldBe(new WindowId(1));
     }
 
     private static (RootContainer Root, Workspace Workspace, LayoutEngine Layout) Desktop(

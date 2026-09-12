@@ -59,6 +59,8 @@ public abstract class Container
         }
     }
 
+    public Container LastFocusedDescendantOrSelf => LastFocusedDescendant ?? this;
+
     /// <summary>
     /// This container's position among its parent's children.
     /// </summary>
@@ -114,6 +116,24 @@ public abstract class Container
                 }
             }
         }
+    }
+
+    /// <summary>
+    /// Returns the first ancestor of type <typeparamref name="T" /> or null if
+    /// detached.
+    /// </summary>
+    public T? FindAncestor<T>()
+        where T : Container
+    {
+        foreach (Container ancestor in Ancestors)
+        {
+            if (ancestor is T target)
+            {
+                return target;
+            }
+        }
+
+        return null;
     }
 
     /// <summary>
@@ -239,7 +259,7 @@ public abstract class Container
         if (ReferenceEquals(newChild, this) || newChild.IsAncestorOf(this))
         {
             throw new InvalidOperationException(
-                "Cannot attach a container to itself or one of its descendats."
+                "Cannot attach a container to itself or one of its descendants."
             );
         }
 

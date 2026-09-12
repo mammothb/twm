@@ -36,12 +36,8 @@ csharp_indent_case_contents_when_block = false
 csharp_indent_switch_labels = true
 csharp_indent_labels = one_less_than_current
 
-# IDE0011: Prefer braces
-dotnet_diagnostic.IDE0011.severity = error
-
 # Modifier preferences
 csharp_preferred_modifier_order = public,protected,internal,private,new,abstract,virtual,override,sealed,static,readonly,extern,unsafe,volatile,async:suggestion
-dotnet_diagnostic.IDE0036.severity = warning
 
 # avoid this. unless absolutely necessary
 dotnet_style_qualification_for_field = false:suggestion
@@ -85,9 +81,6 @@ dotnet_naming_style.camel_case_underscore_style.capitalization = camel_case
 
 # Code style defaults
 csharp_using_directive_placement = outside_namespace:suggestion
-
-# Library: flat namespace for consumers (Core/, Models/, etc. are internal organization)
-dotnet_diagnostic.IDE0130.severity = none
 dotnet_sort_system_directives_first = true
 csharp_prefer_braces = true:error
 csharp_preserve_single_line_blocks = true:none
@@ -136,15 +129,6 @@ csharp_style_prefer_index_operator = true:suggestion
 csharp_style_prefer_range_operator = true:suggestion
 csharp_style_pattern_local_over_anonymous_function = false:none
 
-dotnet_analyzer_diagnostic.category-StyleCop.CSharp.DocumentationRules.severity = none
-dotnet_analyzer_diagnostic.category-StyleCop.CSharp.NamingRules.severity = none
-dotnet_analyzer_diagnostic.category-StyleCop.CSharp.MaintainabilityRules.severity = none
-dotnet_analyzer_diagnostic.category-StyleCop.CSharp.SpacingRules.severity = none
-dotnet_analyzer_diagnostic.category-StyleCop.CSharp.ReadabilityRules.severity = none
-dotnet_diagnostic.SA0001.severity = none
-dotnet_diagnostic.SA1502.severity = none
-dotnet_diagnostic.SA1515.severity = none
-
 # Space preferences
 csharp_space_after_cast = false
 csharp_space_after_colon_in_inheritance_clause = true
@@ -173,37 +157,71 @@ csharp_space_between_square_brackets = false
 roslynator_max_line_length = 100
 roslynator_use_var = never
 
-# Roslynator — promote high-signal quality rules to warning
-# (default severity in parens; CLI --severity-level warning only reports >= warning)
-dotnet_diagnostic.RCS1075.severity = none   # Reconciler intentional use empty catches
+# IDE0011: Prefer braces
+dotnet_diagnostic.IDE0011.severity = error
+# IDE0036: Order modifiers
+dotnet_diagnostic.IDE0036.severity = warning
 
-# Correctness / bug-prone
-dotnet_diagnostic.RCS1047.severity = warning   # non-async method name should not end with 'Async' (suggestion)
-dotnet_diagnostic.RCS1130.severity = warning   # bitwise on enum without Flags (suggestion)
-dotnet_diagnostic.RCS1166.severity = warning   # value type compared to null (suggestion)
-dotnet_diagnostic.RCS1199.severity = warning   # unnecessary null check (suggestion)
-dotnet_diagnostic.RCS1202.severity = warning   # avoid NullReferenceException (suggestion)
-dotnet_diagnostic.RCS1233.severity = warning   # use short-circuiting operator (suggestion)
-dotnet_diagnostic.RCS1249.severity = warning   # unnecessary null-forgiving operator (suggestion)
-dotnet_diagnostic.RCS1256.severity = warning   # invalid argument null check (suggestion)
+dotnet_analyzer_diagnostic.category-StyleCop.CSharp.DocumentationRules.severity = none
+dotnet_analyzer_diagnostic.category-StyleCop.CSharp.NamingRules.severity = none
+dotnet_analyzer_diagnostic.category-StyleCop.CSharp.MaintainabilityRules.severity = none
+dotnet_analyzer_diagnostic.category-StyleCop.CSharp.SpacingRules.severity = none
+dotnet_analyzer_diagnostic.category-StyleCop.CSharp.ReadabilityRules.severity = none
+dotnet_diagnostic.SA0001.severity = none
+dotnet_diagnostic.SA1502.severity = none
+dotnet_diagnostic.SA1515.severity = none
 
-# Code quality / simplification
-dotnet_diagnostic.RCS1058.severity = warning   # use compound assignment (suggestion)
-dotnet_diagnostic.RCS1084.severity = warning   # use coalesce instead of conditional (suggestion)
-dotnet_diagnostic.RCS1085.severity = warning   # use auto-implemented property (suggestion)
-dotnet_diagnostic.RCS1098.severity = warning   # constant on right side of comparison (suggestion)
-dotnet_diagnostic.RCS1113.severity = warning   # use string.IsNullOrEmpty (suggestion)
-dotnet_diagnostic.RCS1128.severity = warning   # use coalesce expression (suggestion)
-dotnet_diagnostic.RCS1146.severity = warning   # use conditional access (suggestion)
-dotnet_diagnostic.RCS1156.severity = warning   # use string.Length instead of comparison (suggestion)
-dotnet_diagnostic.RCS1169.severity = warning   # make field read-only (suggestion)
-dotnet_diagnostic.RCS1173.severity = warning   # use coalesce instead of 'if' (suggestion)
-dotnet_diagnostic.RCS1204.severity = warning   # use EventArgs.Empty (suggestion)
-dotnet_diagnostic.RCS1220.severity = warning   # use pattern matching (is + cast) (suggestion)
-dotnet_diagnostic.RCS1221.severity = warning   # use pattern matching (as + null check) (suggestion)
-dotnet_diagnostic.RCS1225.severity = warning   # make class sealed (suggestion)
-dotnet_diagnostic.RCS1229.severity = warning   # use async/await when necessary (suggestion)
-dotnet_diagnostic.RCS1236.severity = warning   # use exception filter (suggestion)
+# Reconciler intentional use empty catches
+dotnet_diagnostic.RCS1075.severity = none
+
+# non-async method name should not end with 'Async' (suggestion)
+dotnet_diagnostic.RCS1047.severity = warning
+# use compound assignment (suggestion)
+dotnet_diagnostic.RCS1058.severity = warning
+# use coalesce instead of conditional (suggestion)
+dotnet_diagnostic.RCS1084.severity = warning
+# use auto-implemented property (suggestion)
+dotnet_diagnostic.RCS1085.severity = warning
+# constant on right side of comparison (suggestion)
+dotnet_diagnostic.RCS1098.severity = warning
+# use string.IsNullOrEmpty (suggestion)
+dotnet_diagnostic.RCS1113.severity = warning
+# use coalesce expression (suggestion)
+dotnet_diagnostic.RCS1128.severity = warning
+# bitwise on enum without Flags (suggestion)
+dotnet_diagnostic.RCS1130.severity = warning
+# use conditional access (suggestion)
+dotnet_diagnostic.RCS1146.severity = warning
+# use string.Length instead of comparison (suggestion)
+dotnet_diagnostic.RCS1156.severity = warning
+# value type compared to null (suggestion)
+dotnet_diagnostic.RCS1166.severity = warning
+# make field read-only (suggestion)
+dotnet_diagnostic.RCS1169.severity = warning
+# use coalesce instead of 'if' (suggestion)
+dotnet_diagnostic.RCS1173.severity = warning
+# unnecessary null check (suggestion)
+dotnet_diagnostic.RCS1199.severity = warning
+# avoid NullReferenceException (suggestion)
+dotnet_diagnostic.RCS1202.severity = warning
+# use EventArgs.Empty (suggestion)
+dotnet_diagnostic.RCS1204.severity = warning
+# use pattern matching (is + cast) (suggestion)
+dotnet_diagnostic.RCS1220.severity = warning
+# use pattern matching (as + null check) (suggestion)
+dotnet_diagnostic.RCS1221.severity = warning
+# make class sealed (suggestion)
+dotnet_diagnostic.RCS1225.severity = warning
+# use async/await when necessary (suggestion)
+dotnet_diagnostic.RCS1229.severity = warning
+# use short-circuiting operator (suggestion)
+dotnet_diagnostic.RCS1233.severity = warning
+# use exception filter (suggestion)
+dotnet_diagnostic.RCS1236.severity = warning
+# unnecessary null-forgiving operator (suggestion)
+dotnet_diagnostic.RCS1249.severity = warning
+# invalid argument null check (suggestion)
+dotnet_diagnostic.RCS1256.severity = warning
 
 # Xml project files
 [*.{csproj,vbproj,vcxproj,vcxproj.filters,proj,nativeproj,locproj}]
@@ -220,7 +238,6 @@ indent_size = 2
 # Data serialization
 [*.{json,yaml,yml}]
 indent_size = 2
-
 
 # Shell scripts
 [*.sh]

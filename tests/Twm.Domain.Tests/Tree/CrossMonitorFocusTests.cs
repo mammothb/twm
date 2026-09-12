@@ -15,7 +15,7 @@ public class CrossMonitorFocusTests
 
         w2.Focus();
 
-        subject.FocusTargetInDirection(Direction.Left).ShouldBeSameAs(w2);
+        subject.FindFocusTarget(Direction.Left).ShouldBeSameAs(w2);
     }
 
     [Fact]
@@ -27,7 +27,7 @@ public class CrossMonitorFocusTests
 
         w1.Focus();
 
-        subject.FocusTargetInDirection(Direction.Left).ShouldBeSameAs(w2);
+        subject.FindFocusTarget(Direction.Left).ShouldBeSameAs(w2);
     }
 
     [Fact]
@@ -40,7 +40,7 @@ public class CrossMonitorFocusTests
         w1.Focus();
         subject.Bounds = new Rect(1920, 540, 1920, 540);
 
-        subject.FocusTargetInDirection(Direction.Left).ShouldBeSameAs(w2);
+        subject.FindFocusTarget(Direction.Left).ShouldBeSameAs(w2);
     }
 
     [Fact]
@@ -53,7 +53,7 @@ public class CrossMonitorFocusTests
         w2.Focus();
         subject.Bounds = new Rect(1920, 0, 1920, 540);
 
-        subject.FocusTargetInDirection(Direction.Left).ShouldBeSameAs(w1);
+        subject.FindFocusTarget(Direction.Left).ShouldBeSameAs(w1);
     }
 
     [Fact]
@@ -63,7 +63,7 @@ public class CrossMonitorFocusTests
 
         w3.Focus();
 
-        subject.FocusTargetInDirection(Direction.Left).ShouldBeSameAs(w3);
+        subject.FindFocusTarget(Direction.Left).ShouldBeSameAs(w3);
     }
 
     private static (

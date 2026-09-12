@@ -42,11 +42,11 @@ public class SingleMonitorSessionTests
         ws1.Children.ShouldBe([world.Window(1)]);
         ws2.Children.ShouldBe([world.Window(2)]);
         world.Primary.LastFocusedChild.ShouldBeSameAs(ws2);
-        world.Root.FocusedWindow().ShouldBeSameAs(world.Window(2));
+        world.Root.FocusedWindow.ShouldBeSameAs(world.Window(2));
 
         world.Invoke(new FocusWorkspaceCommand("1"));
         world.Primary.LastFocusedChild.ShouldBeSameAs(ws1);
-        world.Root.FocusedWindow().ShouldBeSameAs(world.Window(1));
+        world.Root.FocusedWindow.ShouldBeSameAs(world.Window(1));
     }
 
     [Fact]
@@ -74,7 +74,7 @@ public class SingleMonitorSessionTests
             + "  Window #3 [1280,0 640x1080]\n";
 
         TreeRenderer.Render(ws).ShouldBe(expected);
-        world.Root.FocusedWindow().ShouldBeSameAs(w2);
+        world.Root.FocusedWindow.ShouldBeSameAs(w2);
     }
 
     [Fact]
@@ -90,6 +90,6 @@ public class SingleMonitorSessionTests
         Workspace ws2 = TestWorld.WorkspaceOf(world.Primary, 1);
         ws1.Children.ShouldBe([world.Window(1)]);
         ws2.Children.ShouldBe([world.Window(2)]);
-        world.Window(2).WorkspaceOf().ShouldBeSameAs(ws2);
+        world.Window(2).FindAncestor<Workspace>().ShouldBeSameAs(ws2);
     }
 }

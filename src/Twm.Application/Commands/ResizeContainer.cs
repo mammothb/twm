@@ -17,7 +17,7 @@ public sealed class ResizeContainerHandler(RootContainer root, LayoutEngine layo
     public override CommandResult Handle(ResizeContainerCommand command)
     {
         ArgumentNullException.ThrowIfNull(command);
-        TilingWindow? subject = Root.FocusedWindow();
+        TilingWindow? subject = Root.FocusedWindow;
         if (subject is null)
         {
             return CommandResult.Ok;

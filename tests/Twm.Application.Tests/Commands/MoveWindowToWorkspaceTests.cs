@@ -29,7 +29,7 @@ public class MoveWindowToWorkspaceTests
             new MoveWindowToWorkspaceCommand("2")
         );
 
-        w1.WorkspaceOf().ShouldBeSameAs(ws2);
+        w1.FindAncestor<Workspace>().ShouldBeSameAs(ws2);
         ws1.Children.ShouldBe([w2]);
         w1.Bounds.ShouldBe(monitorBounds);
     }
