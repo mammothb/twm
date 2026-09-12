@@ -12,6 +12,20 @@ public class SplitContainer(Layout layout = Layout.SplitHorizontal) : Container
     /// <summary>How this container arranges its childre.</summary>
     public Layout Layout { get; set; } = layout;
 
+    /// <summary>
+    /// i3's <c>layout toggle split</c>: flip split-horizontal and
+    /// split-vertical; from tabbed or stacked, exit to a horizontal split.
+    /// </summary>
+    public void ToggleSplitDirection()
+    {
+        Layout = Layout switch
+        {
+            Layout.SplitHorizontal => Layout.SplitVertical,
+            Layout.SplitVertical => Layout.SplitHorizontal,
+            _ => Layout.SplitHorizontal,
+        };
+    }
+
     internal bool TryResizeChild(Container child, double delta, Container? neighbor)
     {
         if (neighbor is null)

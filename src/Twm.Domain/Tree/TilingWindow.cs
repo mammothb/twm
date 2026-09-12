@@ -220,6 +220,41 @@ public sealed class TilingWindow(WindowId windowId, WindowId? owner = null) : Co
         && split.TryResizeChild(this, delta, NextSibling ?? PreviousSibling);
 
     /// <summary>
+    /// i3's <c>split</c>: a lone window re-orients its parent split; otherwise
+    /// the window is wrapped in a new split of the given direction so the next
+    /// neighbor nests inside.
+    /// </summary>
+    public void SplitInDirection(TilingDirection direction)
+    {
+        if (Parent is not SplitContainer parent)
+        {
+            return;
+        }
+
+        // A lone window: just set its parent split's direction (i3 splits a
+        // solitary window by re-orienting its container rather than nesting a
+        // redundant single-child split
+        if (parent.Children.Count == 1)
+        {
+            parent.Layout = direction.SplitLayout();
+            return;
+        }
+
+        // Otherwise wrap the focused window in a new split; the next window
+        // inserted next to it will nest inside
+        int index = Index;
+        double fraction = SizeFraction;
+
+        var wrapper = new SplitContainer(direction.SplitLayout());
+        parent.RemoveChild(this);
+        SizeFraction = 1.0;
+        wrapper.AppendChild(this);
+        wrapper.SizeFraction = fraction;
+        parent.InsertChild(index, wrapper);
+        Focus();
+    }
+
+    /// <summary>
     /// The window to focus when entering <paramref name="container" /> while
     /// travelling in <paramref name="moveDirection" />. Descends the tree: a
     /// real split is entered at its edge child along the travel axis, and by

@@ -31,6 +31,9 @@ public static class LayoutExtensions
             _ => TilingDirection.Horizontal,
         };
 
+    public static Layout FromAxis(TilingDirection direction) =>
+        direction == TilingDirection.Vertical ? Layout.SplitVertical : Layout.SplitHorizontal;
+
     /// <summary>
     /// Whether this is a side-by-side tiling layout (not tabbed/stacked).
     /// </summary>
