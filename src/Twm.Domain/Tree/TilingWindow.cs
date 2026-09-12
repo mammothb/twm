@@ -60,6 +60,47 @@ public sealed class TilingWindow(WindowId windowId, WindowId? owner = null) : Co
     }
 
     /// <summary>
+    /// i3's <c>resize grow/shrink width/height</c>: walks up to the nearest
+    /// ancestor split on the direction's axis and trades size between the
+    /// subject's branch and its neighbor Right/Down grow, Left/Up shrink.
+    /// Returns whether it applied.
+    /// </summary>
+    public bool ResizeInDirection(Direction direction, double deltaFraction)
+    {
+        TilingDirection axis = direction.Axis();
+        bool grow = direction is Direction.Right or Direction.Down;
+        double delta = grow ? deltaFraction : -deltaFraction;
+
+        // Walk up to the nearest ancestor split on the matching axis whose
+        // child on the subject's path has a neighbor to trade size with
+        Container pivot = this;
+        while (pivot.Parent is SplitContainer split)
+        {
+            if (
+                split.Layout.Axis() == axis
+                && split.TryResizeChild(pivot, delta, pivot.NextSibling ?? pivot.PreviousSibling)
+            )
+            {
+                return true;
+            }
+
+            pivot = split;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Grows <paramref name="subject" /> within its parent split by
+    /// <paramref name="delta" />, taking the same from an adjacent sibling.
+    /// Returns whether it applied (a neighbor exists and neither side falls
+    /// below the minimum fraction).
+    /// </summary>
+    public bool ResizeWithNeighbor(double delta) =>
+        Parent is SplitContainer split
+        && split.TryResizeChild(this, delta, NextSibling ?? PreviousSibling);
+
+    /// <summary>
     /// The window to focus when entering <paramref name="container" /> while
     /// travelling in <paramref name="moveDirection" />. Descends the tree: a
     /// real split is entered at its edge child along the travel axis, and by

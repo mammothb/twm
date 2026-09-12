@@ -11,9 +11,6 @@ namespace Twm.Domain.Tree;
 /// </summary>
 public static class TreeMutations
 {
-    /// <summary>Smallest size fraction a container may be resized to.</summary>
-    private const double MinimumFraction = 0.1;
-
     /// <summary>
     /// Walks up from <paramref name="start" /> removing empty splits and
     /// flattening single-child splits (the lone child takes the split's place
@@ -43,54 +40,6 @@ public static class TreeMutations
                 return;
             }
         }
-    }
-
-    /// <summary>
-    /// i3's <c>resize grow/shrink width/height</c>: walks up to the nearest
-    /// ancestor split on the direction's axis and trades size between the
-    /// subject's branch and its neighbor Right/Down grow, Left/Up shrink.
-    /// Returns whether it applied.
-    /// </summary>
-    public static bool ResizeInDirection(
-        this Container subject,
-        Direction direction,
-        double deltaFraction
-    )
-    {
-        ArgumentNullException.ThrowIfNull(subject);
-        TilingDirection axis = direction.Axis();
-        bool grow = direction is Direction.Right or Direction.Down;
-        double delta = grow ? deltaFraction : -deltaFraction;
-
-        // Walk up to the nearest ancestor split on the matching axis whose
-        // child on the subject's path has a neighbor to trade size with
-        Container pivot = subject;
-        while (pivot.Parent is SplitContainer split)
-        {
-            if (
-                split.Layout.Axis() == axis
-                && Trade(pivot, pivot.NextSibling ?? pivot.PreviousSibling, delta)
-            )
-            {
-                return true;
-            }
-
-            pivot = split;
-        }
-
-        return false;
-    }
-
-    /// <summary>
-    /// Grows <paramref name="subject" /> within its parent split by
-    /// <paramref name="delta" />, taking the same from an adjacent sibling.
-    /// Returns whether it applied (a neighbor exists and neither side falls
-    /// below the minimum fraction).
-    /// </summary>
-    public static bool ResizeWithNeighbor(this Container subject, double delta)
-    {
-        ArgumentNullException.ThrowIfNull(subject);
-        return Trade(subject, subject.NextSibling ?? subject.PreviousSibling, delta);
     }
 
     /// <summary>
@@ -303,23 +252,4 @@ public static class TreeMutations
 
     private static Layout ToSplitLayout(TilingDirection direction) =>
         direction == TilingDirection.Vertical ? Layout.SplitVertical : Layout.SplitHorizontal;
-
-    private static bool Trade(Container pivot, Container? neighbor, double delta)
-    {
-        if (neighbor is null)
-        {
-            return false;
-        }
-
-        double newPivot = pivot.SizeFraction + delta;
-        double newNeighbor = neighbor.SizeFraction - delta;
-        if (newPivot < MinimumFraction || newNeighbor < MinimumFraction)
-        {
-            return false;
-        }
-
-        pivot.SizeFraction = newPivot;
-        neighbor.SizeFraction = newNeighbor;
-        return true;
-    }
 }
