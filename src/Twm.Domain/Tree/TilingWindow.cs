@@ -60,6 +60,74 @@ public sealed class TilingWindow(WindowId windowId, WindowId? owner = null) : Co
     }
 
     /// <summary>
+    /// Moves the window one step in a direction withing its monitor,
+    /// restructuring the tree i3-style (reorder within a split, dive into an
+    /// adjacent split, or pop out beside an ancestor). Returns whether the tree
+    /// changed.
+    /// </summary>
+    public bool MoveInDirection(Direction direction)
+    {
+        if (Parent is not SplitContainer subjectParent)
+        {
+            return false;
+        }
+
+        TilingDirection axis = direction.Axis();
+        int delta = direction is Direction.Left or Direction.Up ? -1 : 1;
+
+        // Walk up to the nearest ancestor split whose orientation matches the
+        // move axis. `pivot` is that split's child on the subject's path.
+        Container pivot = this;
+        while (pivot.Parent is SplitContainer split)
+        {
+            if (split.Layout.Axis() == axis)
+            {
+                int neighborIndex = pivot.Index + delta;
+                bool inBounds = 0 <= neighborIndex && neighborIndex < split.Children.Count;
+
+                if (ReferenceEquals(pivot, this))
+                {
+                    if (inBounds)
+                    {
+                        Container neighbor = split.Children[neighborIndex];
+                        if (neighbor is SplitContainer nested && nested.Children.Count > 0)
+                        {
+                            // Move into the adjacent split at its near edge
+                            subjectParent.RemoveChild(this);
+                            int insertAt = delta > 0 ? 0 : nested.Children.Count;
+                            nested.InsertChild(insertAt, this);
+                            subjectParent.Cleanup();
+                        }
+                        else
+                        {
+                            // Reorder within the same split
+                            split.MoveChildToIndex(this, neighborIndex);
+                        }
+
+                        Focus();
+                        return true;
+                    }
+                }
+                else if (inBounds)
+                {
+                    // Subject is nested deeper: pop it out beside its pivot
+                    // branch
+                    subjectParent.RemoveChild(this);
+                    int insertAt = delta > 0 ? pivot.Index + 1 : pivot.Index;
+                    split.InsertChild(insertAt, this);
+                    subjectParent.Cleanup();
+                    Focus();
+                    return true;
+                }
+            }
+
+            pivot = split;
+        }
+
+        return false;
+    }
+
+    /// <summary>
     /// i3's <c>resize grow/shrink width/height</c>: walks up to the nearest
     /// ancestor split on the direction's axis and trades size between the
     /// subject's branch and its neighbor Right/Down grow, Left/Up shrink.
