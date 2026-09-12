@@ -148,6 +148,23 @@ public sealed class TilingWindow(WindowId windowId, WindowId? owner = null) : Co
     }
 
     /// <summary>
+    /// Moves the window to <paramref name="target" />. Returns whether it
+    /// moved.
+    /// </summary>
+    public bool MoveToWorkspace(Workspace target)
+    {
+        if (ReferenceEquals(FindAncestor<Workspace>(), target) || Parent is not Container oldParent)
+        {
+            return false;
+        }
+
+        oldParent.RemoveChild(this);
+        target.AppendChild(this);
+        oldParent.Cleanup();
+        return true;
+    }
+
+    /// <summary>
     /// i3's <c>resize grow/shrink width/height</c>: walks up to the nearest
     /// ancestor split on the direction's axis and trades size between the
     /// subject's branch and its neighbor Right/Down grow, Left/Up shrink.

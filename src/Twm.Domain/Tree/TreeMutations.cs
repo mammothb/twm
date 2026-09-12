@@ -43,27 +43,6 @@ public static class TreeMutations
     }
 
     /// <summary>
-    /// Moves the window to <paramref name="target" />. Returns whether it
-    /// moved.
-    /// </summary>
-    public static bool MoveToWorkspace(this TilingWindow subject, Workspace target)
-    {
-        ArgumentNullException.ThrowIfNull(subject);
-        if (
-            ReferenceEquals(subject.FindAncestor<Workspace>(), target)
-            || subject.Parent is not Container oldParent
-        )
-        {
-            return false;
-        }
-
-        oldParent.RemoveChild(subject);
-        target.AppendChild(subject);
-        oldParent.Cleanup();
-        return true;
-    }
-
-    /// <summary>
     /// Detaches the window from the tree and prunes any split it emptied.
     /// </summary>
     public static void Remove(this TilingWindow window)
