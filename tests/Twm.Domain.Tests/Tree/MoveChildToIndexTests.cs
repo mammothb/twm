@@ -5,7 +5,7 @@ namespace Twm.Domain.Tests.Tree;
 public class MoveChildToIndexTests
 {
     [Fact]
-    public void MoveChildToIndex_RejectsNullChild()
+    public void MoveChildToIndex_WhenChildIsNull_ThrowsArgumentNullException()
     {
         var split = new SplitContainer();
         var w1 = new TilingWindow(new WindowId(1));
@@ -15,7 +15,7 @@ public class MoveChildToIndexTests
     }
 
     [Fact]
-    public void MoveChildToIndex_RejectsNonChild()
+    public void MoveChildToIndex_WhenChildIsNotAttached_ThrowsInvalidOperationException()
     {
         var split = new SplitContainer();
         var w1 = new TilingWindow(new WindowId(1));
@@ -27,7 +27,9 @@ public class MoveChildToIndexTests
     [Theory]
     [InlineData(-1)]
     [InlineData(-100)]
-    public void MoveChildToIndex_RejectsNegativeIndex(int newIndex)
+    public void MoveChildToIndex_WhenNewIndexIsNegative_ThrowsArgumentOutOfRangeException(
+        int newIndex
+    )
     {
         var split = new SplitContainer();
         var w1 = new TilingWindow(new WindowId(1));
@@ -41,7 +43,7 @@ public class MoveChildToIndexTests
     }
 
     [Fact]
-    public void MoveChildToIndex_RejectsIndexAtCount()
+    public void MoveChildToIndex_WhenNewIndexEqualsChildCount_ThrowsArgumentOutOfRangeException()
     {
         // MoveChildToIndex uses ThrowIfGreaterThanOrEqual, so index == count
         // is out of range. InsertChild allows it; moving doesn't.
@@ -57,7 +59,7 @@ public class MoveChildToIndexTests
     }
 
     [Fact]
-    public void MoveChildToIndex_RejectsIndexBeyondCount()
+    public void MoveChildToIndex_WhenNewIndexExceedsChildCount_ThrowsArgumentOutOfRangeException()
     {
         var split = new SplitContainer();
         var w1 = new TilingWindow(new WindowId(1));
@@ -69,7 +71,7 @@ public class MoveChildToIndexTests
     }
 
     [Fact]
-    public void MoveChildToIndex_LeavesTreeUnchangedOnRejection()
+    public void MoveChildToIndex_WhenRejected_LeavesTreeUnchanged()
     {
         // Defensive contract: a rejected MoveChildToIndex must not partially
         // mutate the children list. We exercise a rejection path and assert

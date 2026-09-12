@@ -5,7 +5,7 @@ namespace Twm.Domain.Tests.Tree;
 public class ReplaceChildTests
 {
     [Fact]
-    public void ReplaceChild_SwapsInPlaceAndReparents()
+    public void ReplaceChild_WhenOldChildIsReplacedWithNew_SwapsInPlaceAndReparents()
     {
         var split = new SplitContainer();
         var w1 = new TilingWindow(new WindowId(1));
@@ -24,7 +24,7 @@ public class ReplaceChildTests
     }
 
     [Fact]
-    public void ReplaceChild_PreservesFocusStanding()
+    public void ReplaceChild_WhenOldChildWasFocused_PreservesFocusStanding()
     {
         var split = new SplitContainer();
         var w1 = new TilingWindow(new WindowId(1));
@@ -42,7 +42,7 @@ public class ReplaceChildTests
     }
 
     [Fact]
-    public void ReplaceChild_SameOldAndNew_IsNoOp()
+    public void ReplaceChild_WhenOldAndNewAreSame_IsNoOp()
     {
         var split = new SplitContainer();
         var w1 = new TilingWindow(new WindowId(1));
@@ -55,7 +55,7 @@ public class ReplaceChildTests
     }
 
     [Fact]
-    public void ReplaceChild_DoesNotTransferSize()
+    public void ReplaceChild_WhenOldChildHasSizeFraction_DoesNotTransferSize()
     {
         var split = new SplitContainer();
         var w1 = new TilingWindow(new WindowId(1)) { SizeFraction = 3 };
@@ -68,7 +68,7 @@ public class ReplaceChildTests
     }
 
     [Fact]
-    public void RejectsOldChildThatIsNotAChild()
+    public void ReplaceChild_WhenOldChildIsNotAChild_ThrowsInvalidOperationException()
     {
         var split = new SplitContainer();
         var w1 = new TilingWindow(new WindowId(1));
@@ -78,7 +78,7 @@ public class ReplaceChildTests
     }
 
     [Fact]
-    public void RejectsNewChildAlreadyAttached()
+    public void ReplaceChild_WhenNewChildIsAlreadyAttached_ThrowsInvalidOperationException()
     {
         var split = new SplitContainer();
         var w1 = new TilingWindow(new WindowId(1));
@@ -91,7 +91,7 @@ public class ReplaceChildTests
     }
 
     [Fact]
-    public void RejectsNewChildThatWouldCreateACycle()
+    public void ReplaceChild_WhenNewChildWouldCreateCycle_ThrowsInvalidOperationException()
     {
         var root = new SplitContainer();
         var mid = new SplitContainer();

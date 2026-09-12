@@ -10,11 +10,13 @@ public class LayoutTests
     [InlineData(Layout.SplitVertical, TilingDirection.Vertical)]
     [InlineData(Layout.Tabbed, TilingDirection.Horizontal)]
     [InlineData(Layout.Stacked, TilingDirection.Vertical)]
-    public void Axis_MapsLayoutToTilingAxis(Layout layout, TilingDirection expected) =>
-        layout.Axis().ShouldBe(expected);
+    public void Axis_WhenCalled_ReturnsTilingAxisForLayout(
+        Layout layout,
+        TilingDirection expected
+    ) => layout.Axis().ShouldBe(expected);
 
     [Fact]
-    public void Axis_PartitionIsExhaustiveOverDefinedValues()
+    public void Axis_WhenCalledForAllDefinedValues_CoversBothAxes()
     {
         HashSet<TilingDirection> axes = [];
         foreach (Layout l in Enum.GetValues<Layout>())
@@ -26,10 +28,14 @@ public class LayoutTests
     }
 
     [Theory]
-    [InlineData(Layout.SplitHorizontal, true)]
-    [InlineData(Layout.SplitVertical, true)]
-    [InlineData(Layout.Tabbed, false)]
-    [InlineData(Layout.Stacked, false)]
-    public void IsSplit_TrueForSideBySideLayouts(Layout layout, bool expected) =>
-        layout.IsSplit().ShouldBe(expected);
+    [InlineData(Layout.SplitHorizontal)]
+    [InlineData(Layout.SplitVertical)]
+    public void IsSplit_WhenLayoutIsSplitting_ReturnsTrue(Layout layout) =>
+        layout.IsSplit().ShouldBe(true);
+
+    [Theory]
+    [InlineData(Layout.Tabbed)]
+    [InlineData(Layout.Stacked)]
+    public void IsSplit_WhenLayoutIsTabbedOrStacked_ReturnsFalse(Layout layout) =>
+        layout.IsSplit().ShouldBe(false);
 }
