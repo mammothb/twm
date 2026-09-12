@@ -33,6 +33,11 @@ public class SplitContainer(Layout layout = Layout.SplitHorizontal) : Container
             return false;
         }
 
+        if (!double.IsFinite(delta))
+        {
+            return false;
+        }
+
         double newChild = child.SizeFraction + delta;
         double newNeighbor = neighbor.SizeFraction - delta;
         if (newChild < MinimumFraction || newNeighbor < MinimumFraction)
