@@ -43,21 +43,6 @@ public static class TreeMutations
     }
 
     /// <summary>
-    /// Detaches the window from the tree and prunes any split it emptied.
-    /// </summary>
-    public static void Remove(this TilingWindow window)
-    {
-        ArgumentNullException.ThrowIfNull(window);
-        if (window.Parent is not Container parent)
-        {
-            return;
-        }
-
-        parent.RemoveChild(window);
-        parent.Cleanup();
-    }
-
-    /// <summary>
     /// i3's <c>split</c>: a lone window re-orients its parent split; otherwise
     /// the window is wrapped in a new split of the given direction so the next
     /// neighbor nests inside.

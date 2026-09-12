@@ -165,6 +165,20 @@ public sealed class TilingWindow(WindowId windowId, WindowId? owner = null) : Co
     }
 
     /// <summary>
+    /// Detaches the window from the tree and prunes any split it emptied.
+    /// </summary>
+    public void Remove()
+    {
+        if (Parent is not Container parent)
+        {
+            return;
+        }
+
+        parent.RemoveChild(this);
+        parent.Cleanup();
+    }
+
+    /// <summary>
     /// i3's <c>resize grow/shrink width/height</c>: walks up to the nearest
     /// ancestor split on the direction's axis and trades size between the
     /// subject's branch and its neighbor Right/Down grow, Left/Up shrink.
