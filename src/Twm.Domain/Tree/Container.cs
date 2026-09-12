@@ -239,7 +239,7 @@ public abstract class Container
         if (ReferenceEquals(newChild, this) || newChild.IsAncestorOf(this))
         {
             throw new InvalidOperationException(
-                "Cannot attach a container to itself or one of its descendats."
+                "Cannot attach a container to itself or one of its descendants."
             );
         }
 
