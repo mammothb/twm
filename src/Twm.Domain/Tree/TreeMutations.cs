@@ -42,27 +42,6 @@ public static class TreeMutations
         }
     }
 
-    public static bool MoveToAdjacentMonitor(this TilingWindow subject, Direction direction)
-    {
-        ArgumentNullException.ThrowIfNull(subject);
-        if (
-            subject.FindAncestor<Monitor>()?.FindAdjacentMonitor(direction)?.LastFocusedChild
-                is not SplitContainer targetWorkspace
-            || subject.Parent is not Container oldParent
-        )
-        {
-            return false;
-        }
-
-        int delta = direction is Direction.Left or Direction.Up ? -1 : 1;
-        oldParent.RemoveChild(subject);
-        int insertAt = delta > 0 ? 0 : targetWorkspace.Children.Count;
-        targetWorkspace.InsertChild(insertAt, subject);
-        oldParent.Cleanup();
-        subject.Focus();
-        return true;
-    }
-
     /// <summary>
     /// Moves the window to <paramref name="target" />. Returns whether it
     /// moved.

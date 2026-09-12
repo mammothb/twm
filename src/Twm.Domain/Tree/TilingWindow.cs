@@ -127,6 +127,26 @@ public sealed class TilingWindow(WindowId windowId, WindowId? owner = null) : Co
         return false;
     }
 
+    public bool MoveToAdjacentMonitor(Direction direction)
+    {
+        if (
+            FindAncestor<Monitor>()?.FindAdjacentMonitor(direction)?.LastFocusedChild
+                is not SplitContainer targetWorkspace
+            || Parent is not Container oldParent
+        )
+        {
+            return false;
+        }
+
+        int delta = direction is Direction.Left or Direction.Up ? -1 : 1;
+        oldParent.RemoveChild(this);
+        int insertAt = delta > 0 ? 0 : targetWorkspace.Children.Count;
+        targetWorkspace.InsertChild(insertAt, this);
+        oldParent.Cleanup();
+        Focus();
+        return true;
+    }
+
     /// <summary>
     /// i3's <c>resize grow/shrink width/height</c>: walks up to the nearest
     /// ancestor split on the direction's axis and trades size between the
