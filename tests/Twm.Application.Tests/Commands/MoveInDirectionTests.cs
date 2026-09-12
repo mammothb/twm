@@ -27,7 +27,7 @@ public class MoveInDirectionTests
         );
 
         ws.Children.ShouldBe([w2, w1]);
-        root.FocusedWindow().ShouldBeSameAs(w1);
+        root.FocusedWindow.ShouldBeSameAs(w1);
         w1.Bounds.ShouldBe(new Rect(400, 0, 400, 600));
     }
 
@@ -81,7 +81,7 @@ public class MoveInDirectionTests
             + "    Window #2 [266,0 266x600]\n"
             + "    Window #3 [532,0 268x600]\n";
         TreeRenderer.Render(monitor).ShouldBe(expected);
-        root.FocusedWindow().ShouldBeSameAs(w2);
+        root.FocusedWindow.ShouldBeSameAs(w2);
     }
 
     [Fact]
@@ -139,6 +139,6 @@ public class MoveInDirectionTests
 
         w1.Parent.ShouldBeSameAs(right);
         right.Children.ShouldBe([w1, w2, w3]);
-        root.FocusedWindow().ShouldBeSameAs(w1);
+        root.FocusedWindow.ShouldBeSameAs(w1);
     }
 }

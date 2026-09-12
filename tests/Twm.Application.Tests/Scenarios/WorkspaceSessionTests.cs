@@ -55,7 +55,7 @@ public class WorkspaceSessionTests
 
         windows.Shown.ShouldContain(new WindowId(2));
         windows.Hidden.ShouldContain(new WindowId(1));
-        session.Root.FocusedWindow()!.WindowId.ShouldBe(new WindowId(2));
+        session.Root.FocusedWindow!.WindowId.ShouldBe(new WindowId(2));
     }
 
     [Fact]
@@ -71,7 +71,7 @@ public class WorkspaceSessionTests
         windows.Foregrounded.Clear();
         session.SyncFocus(new WindowId(1));
 
-        session.Root.FocusedWindow()!.WindowId.ShouldBe(new WindowId(1));
+        session.Root.FocusedWindow!.WindowId.ShouldBe(new WindowId(1));
         windows.Positioned.ShouldBeEmpty();
         windows.Hidden.ShouldBeEmpty();
         windows.Foregrounded.ShouldBeEmpty();
@@ -89,7 +89,7 @@ public class WorkspaceSessionTests
 
         session.Execute(new FocusWorkspaceCommand("1"));
 
-        session.Root.FocusedWindow()!.WindowId.ShouldBe(new WindowId(1));
+        session.Root.FocusedWindow!.WindowId.ShouldBe(new WindowId(1));
         secondary.LastFocusedChild.ShouldBeSameAs(secondaryActiveBefore);
     }
 

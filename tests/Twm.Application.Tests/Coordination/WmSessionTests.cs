@@ -300,7 +300,7 @@ public class WmSessionTests
         var windowId = new WindowId(1);
         session.SyncFocus(windowId);
 
-        session.Root.FocusedWindow()!.WindowId.ShouldBe(windowId);
+        session.Root.FocusedWindow!.WindowId.ShouldBe(windowId);
     }
 
     [Fact]
@@ -329,7 +329,7 @@ public class WmSessionTests
 
         session.SyncFocus(new WindowId(999)); // never managed
 
-        session.Root.FocusedWindow()!.WindowId.ShouldBe(new WindowId(1));
+        session.Root.FocusedWindow!.WindowId.ShouldBe(new WindowId(1));
     }
 
     [Fact]

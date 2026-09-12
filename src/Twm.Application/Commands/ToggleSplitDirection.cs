@@ -15,7 +15,7 @@ public sealed class ToggleSplitDirectionHandler(RootContainer root, LayoutEngine
     public override CommandResult Handle(ToggleSplitDirectionCommand command)
     {
         ArgumentNullException.ThrowIfNull(command);
-        if (Root.FocusedWindow()?.Parent is not SplitContainer split)
+        if (Root.FocusedWindow?.Parent is not SplitContainer split)
         {
             return CommandResult.Ok;
         }

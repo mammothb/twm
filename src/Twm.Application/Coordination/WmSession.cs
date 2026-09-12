@@ -67,7 +67,7 @@ public sealed class WmSession
     /// </summary>
     public void CloseFocused()
     {
-        if (Root.FocusedWindow() is TilingWindow focused)
+        if (Root.FocusedWindow is TilingWindow focused)
         {
             _windows.Close(focused.WindowId);
         }
@@ -438,7 +438,7 @@ public sealed class WmSession
     private void Apply()
     {
         _reconciler.Apply(Root);
-        _pendingForeground = Root.FocusedWindow()?.WindowId;
+        _pendingForeground = Root.FocusedWindow?.WindowId;
         Log.Line(
             $"reconcile: fg=0x{_pendingForeground?.Value ?? 0:X} managed={ManagedWindowCount}"
         );

@@ -27,7 +27,7 @@ public class FocusWorkspaceTests
         new FocusWorkspaceHandler(root, new LayoutEngine()).Handle(new FocusWorkspaceCommand("2"));
 
         monitor.LastFocusedChild.ShouldBeSameAs(ws2);
-        root.FocusedWindow().ShouldBeSameAs(w2);
+        root.FocusedWindow.ShouldBeSameAs(w2);
     }
 
     [Fact]

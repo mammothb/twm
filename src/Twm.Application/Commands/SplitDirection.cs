@@ -19,7 +19,7 @@ public sealed class SplitDirectionHandler(RootContainer root, LayoutEngine layou
     public override CommandResult Handle(SplitDirectionCommand command)
     {
         ArgumentNullException.ThrowIfNull(command);
-        if (Root.FocusedWindow() is not { Parent: SplitContainer } subject)
+        if (Root.FocusedWindow is not { Parent: SplitContainer } subject)
         {
             return CommandResult.Ok;
         }

@@ -25,7 +25,7 @@ public class FocusInDirectionTests
             new FocusInDirectionCommand(Direction.Right)
         );
 
-        root.FocusedWindow().ShouldBeSameAs(w2);
+        root.FocusedWindow.ShouldBeSameAs(w2);
     }
 
     [Fact]
@@ -46,7 +46,7 @@ public class FocusInDirectionTests
             new FocusInDirectionCommand(Direction.Left)
         );
 
-        root.FocusedWindow().ShouldBeSameAs(w1);
+        root.FocusedWindow.ShouldBeSameAs(w1);
     }
 
     [Fact]
@@ -73,6 +73,6 @@ public class FocusInDirectionTests
             new FocusInDirectionCommand(Direction.Right)
         );
 
-        root.FocusedWindow().ShouldBeSameAs(w3);
+        root.FocusedWindow.ShouldBeSameAs(w3);
     }
 }

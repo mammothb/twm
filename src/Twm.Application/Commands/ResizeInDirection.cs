@@ -23,7 +23,7 @@ public sealed class ResizeInDirectionHandler(RootContainer root, LayoutEngine la
     {
         ArgumentNullException.ThrowIfNull(command);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(command.DeltaFraction);
-        TilingWindow? subject = Root.FocusedWindow();
+        TilingWindow? subject = Root.FocusedWindow;
         if (subject is null)
         {
             return CommandResult.Ok;

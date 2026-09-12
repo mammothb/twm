@@ -261,7 +261,7 @@ MessageLoop.Run(
         {
             case RunCommand run:
                 session.Execute(run.Command);
-                if (session.Root.FocusedWindow() is TilingWindow focused)
+                if (session.Root.FocusedWindow is TilingWindow focused)
                 {
                     Console.WriteLine($"focus - {windows.GetTitle(focused.WindowId)}");
                 }
@@ -326,7 +326,7 @@ void UpdateBorder()
         return;
     }
 
-    if (session.Root.FocusedWindow() is TilingWindow focused)
+    if (session.Root.FocusedWindow is TilingWindow focused)
     {
         border.MoveTo(focused.Bounds);
     }

@@ -3,13 +3,6 @@ namespace Twm.Domain.Tree;
 /// <summary>Read-only queries over the container tree.</summary>
 public static class TreeQueries
 {
-    /// <summary>The globally focused window, or null.</summary>
-    public static TilingWindow? FocusedWindow(this RootContainer root)
-    {
-        ArgumentNullException.ThrowIfNull(root);
-        return root.LastFocusedDescendant as TilingWindow;
-    }
-
     /// <summary>
     /// The monitor's active workspace, its most-recently-focused workspace, or
     /// its first workspace if none has been focused. Null if the monitor has no

@@ -18,7 +18,7 @@ public static class TreeSnapshotMapper
     public static TreeNode From(RootContainer root, Func<WindowId, string?>? titleOf = null)
     {
         ArgumentNullException.ThrowIfNull(root);
-        TilingWindow? focused = root.FocusedWindow();
+        TilingWindow? focused = root.FocusedWindow;
         return ToNode(root, focused, titleOf);
     }
 

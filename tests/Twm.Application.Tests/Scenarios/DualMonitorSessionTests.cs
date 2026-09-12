@@ -76,7 +76,7 @@ public class DualMonitorSessionTests
 
         world.Invoke(new FocusInDirectionCommand(Direction.Right));
 
-        world.Root.FocusedWindow()!.WindowId.ShouldBe(new WindowId(2));
+        world.Root.FocusedWindow!.WindowId.ShouldBe(new WindowId(2));
     }
 
     [Fact]
@@ -92,7 +92,7 @@ public class DualMonitorSessionTests
         world.Invoke(new FocusInDirectionCommand(Direction.Right));
 
         // Must land on secondary's leftmost window (2) and not last focused (3)
-        world.Root.FocusedWindow()!.WindowId.ShouldBe(new WindowId(2));
+        world.Root.FocusedWindow!.WindowId.ShouldBe(new WindowId(2));
     }
 
     [Fact]
@@ -106,6 +106,6 @@ public class DualMonitorSessionTests
         world.Invoke(new MoveInDirectionCommand(Direction.Right));
 
         world.Window(1).MonitorOf().ShouldBeSameAs(world.Secondary);
-        world.Root.FocusedWindow()!.WindowId.ShouldBe(new WindowId(1));
+        world.Root.FocusedWindow!.WindowId.ShouldBe(new WindowId(1));
     }
 }
