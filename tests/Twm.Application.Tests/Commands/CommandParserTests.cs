@@ -67,6 +67,7 @@ public sealed class CommandParserTests
     [Theory]
     [InlineData("layout tabbed", Layout.Tabbed)]
     [InlineData("layout stacked", Layout.Stacked)]
+    [InlineData("layout splith", Layout.SplitHorizontal)]
     [InlineData("layout splitv", Layout.SplitVertical)]
     public void Parse_Layout(string line, Layout expected)
     {
