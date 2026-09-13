@@ -457,7 +457,7 @@ public sealed class WmSession
         _bus.Register(new ResizeContainerHandler(Root, _layout));
         _bus.Register(new ResizeInDirectionHandler(Root, _layout));
         _bus.Register(new SetLayoutHandler(Root, _layout));
-        _bus.Register(new SplitDirectionHandler(Root, _layout));
+        _bus.Register(new SplitInDirectionHandler(Root, _layout));
         _bus.Register(new ToggleSplitDirectionHandler(Root, _layout));
     }
 }

@@ -48,7 +48,7 @@ public sealed class TestWorld
         Bus.Register(new ResizeContainerHandler(Root, Engine));
         Bus.Register(new ResizeInDirectionHandler(Root, Engine));
         Bus.Register(new SetLayoutHandler(Root, Engine));
-        Bus.Register(new SplitDirectionHandler(Root, Engine));
+        Bus.Register(new SplitInDirectionHandler(Root, Engine));
         Bus.Register(new ToggleSplitDirectionHandler(Root, Engine));
 
         Engine.Arrange(Root);

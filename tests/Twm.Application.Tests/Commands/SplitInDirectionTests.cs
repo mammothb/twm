@@ -5,7 +5,7 @@ using Twm.Domain.Tree;
 
 namespace Twm.Application.Tests.Commands;
 
-public class SplitDirectionTests
+public class SplitInDirectionTests
 {
     [Fact]
     public void SplitVertical_WithSiblings_WrapsFocusedWindowInNestedSplit()
@@ -17,8 +17,8 @@ public class SplitDirectionTests
         ws.AppendChild(w2);
         w1.Focus();
 
-        new SplitDirectionHandler(root, new LayoutEngine()).Handle(
-            new SplitDirectionCommand(TilingDirection.Vertical)
+        new SplitInDirectionHandler(root, new LayoutEngine()).Handle(
+            new SplitInDirectionCommand(TilingDirection.Vertical)
         );
 
         SplitContainer wrapper = w1.Parent.ShouldBeOfType<SplitContainer>();
@@ -38,8 +38,8 @@ public class SplitDirectionTests
         ws.AppendChild(w1);
         w1.Focus();
 
-        new SplitDirectionHandler(root, new LayoutEngine()).Handle(
-            new SplitDirectionCommand(TilingDirection.Vertical)
+        new SplitInDirectionHandler(root, new LayoutEngine()).Handle(
+            new SplitInDirectionCommand(TilingDirection.Vertical)
         );
 
         // No wrapper, the workspace itself is re-oriented, w1 stays a direct
@@ -60,8 +60,8 @@ public class SplitDirectionTests
         var windowId = new WindowId(3);
 
         var layout = new LayoutEngine();
-        new SplitDirectionHandler(root, layout).Handle(
-            new SplitDirectionCommand(TilingDirection.Vertical)
+        new SplitInDirectionHandler(root, layout).Handle(
+            new SplitInDirectionCommand(TilingDirection.Vertical)
         );
         // Adopt a new window, it opens next to the focused w1, i.e., inside the
         // wrapper

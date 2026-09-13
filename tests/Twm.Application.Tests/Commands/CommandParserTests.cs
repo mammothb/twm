@@ -45,7 +45,7 @@ public sealed class CommandParserTests
     public void Parse_Split(string line, TilingDirection expected)
     {
         CommandParser.TryParse(line, out WmRequest? request, out _).ShouldBeTrue();
-        Command<SplitDirectionCommand>(request).Direction.ShouldBe(expected);
+        Command<SplitInDirectionCommand>(request).Direction.ShouldBe(expected);
     }
 
     [Theory]
