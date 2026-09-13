@@ -9,49 +9,78 @@ namespace Twm.Application.Tests.Commands;
 public class MoveWindowToWorkspaceTests
 {
     [Fact]
-    public void MoveReordersWithinRowAndKeepsFocus()
+    public void MoveWindowToWorkspace_ExistingWorkspace_MovesAndRefocuses()
     {
+        // Arrange
         var root = new RootContainer();
         var monitorBounds = new Rect(0, 0, 800, 600);
         var monitor = new Monitor(monitorBounds);
         root.AppendChild(monitor);
-        var ws1 = new Workspace("1");
-        var ws2 = new Workspace("2");
-        monitor.AppendChild(ws1);
-        monitor.AppendChild(ws2);
-        var w1 = new TilingWindow(new WindowId(1));
-        var w2 = new TilingWindow(new WindowId(2));
-        ws1.AppendChild(w1);
-        ws1.AppendChild(w2);
-        w1.Focus();
+        var first = new Workspace("1");
+        var second = new Workspace("2");
+        monitor.AppendChild(first);
+        monitor.AppendChild(second);
+        var moved = new TilingWindow(new WindowId(1));
+        var sibling = new TilingWindow(new WindowId(2));
+        first.AppendChild(moved);
+        first.AppendChild(sibling);
+        moved.Focus();
 
+        // Act
         new MoveWindowToWorkspaceHandler(root, new LayoutEngine()).Handle(
             new MoveWindowToWorkspaceCommand("2")
         );
 
-        w1.FindAncestor<Workspace>().ShouldBeSameAs(ws2);
-        ws1.Children.ShouldBe([w2]);
-        w1.Bounds.ShouldBe(monitorBounds);
+        // Assert
+        moved.FindAncestor<Workspace>().ShouldBeSameAs(second);
+        first.Children.ShouldBe([sibling]);
+        moved.Bounds.ShouldBe(monitorBounds);
     }
 
     [Fact]
-    public void MoveToUnknownWorkspaceFails()
+    public void MoveWindowToWorkspace_UnknownWorkspace_Fails()
     {
+        // Arrange
         var root = new RootContainer();
         var monitorBounds = new Rect(0, 0, 800, 600);
         var monitor = new Monitor(monitorBounds);
         root.AppendChild(monitor);
-        var ws1 = new Workspace("1");
-        monitor.AppendChild(ws1);
-        var w1 = new TilingWindow(new WindowId(1));
-        ws1.AppendChild(w1);
-        w1.Focus();
+        var first = new Workspace("1");
+        monitor.AppendChild(first);
+        var focused = new TilingWindow(new WindowId(1));
+        first.AppendChild(focused);
+        focused.Focus();
 
+        // Act
         CommandResult result = new MoveWindowToWorkspaceHandler(root, new LayoutEngine()).Handle(
             new MoveWindowToWorkspaceCommand("2")
         );
 
+        // Assert
         result.Success.ShouldBeFalse();
-        ws1.Children.ShouldBe([w1]);
+        first.Children.ShouldBe([focused]);
+    }
+
+    [Fact]
+    public void MoveWindowToWorkspace_NoFocusedWindow_IsNoOp()
+    {
+        // Arrange — root has no windows, so FocusedWindow is null.
+        var root = new RootContainer();
+        var monitor = new Monitor(new Rect(0, 0, 800, 600));
+        root.AppendChild(monitor);
+        var first = new Workspace("1");
+        var second = new Workspace("2");
+        monitor.AppendChild(first);
+        monitor.AppendChild(second);
+
+        // Act
+        CommandResult result = new MoveWindowToWorkspaceHandler(root, new LayoutEngine()).Handle(
+            new MoveWindowToWorkspaceCommand("2")
+        );
+
+        // Assert
+        result.Success.ShouldBeTrue();
+        first.Children.ShouldBeEmpty();
+        second.Children.ShouldBeEmpty();
     }
 }

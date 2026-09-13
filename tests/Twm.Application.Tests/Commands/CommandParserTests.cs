@@ -15,7 +15,11 @@ public sealed class CommandParserTests
     [InlineData("FOCUS Left", Direction.Left)]
     public void Parse_Focus(string line, Direction expected)
     {
-        CommandParser.TryParse(line, out WmRequest? request, out _).ShouldBeTrue();
+        // Arrange / Act
+        bool parsed = CommandParser.TryParse(line, out WmRequest? request, out _);
+
+        // Assert
+        parsed.ShouldBeTrue();
         Command<FocusInDirectionCommand>(request).Direction.ShouldBe(expected);
     }
 
@@ -24,14 +28,22 @@ public sealed class CommandParserTests
     [InlineData("move down", Direction.Down)]
     public void Parse_Move(string line, Direction expected)
     {
-        CommandParser.TryParse(line, out WmRequest? request, out _).ShouldBeTrue();
+        // Arrange / Act
+        bool parsed = CommandParser.TryParse(line, out WmRequest? request, out _);
+
+        // Assert
+        parsed.ShouldBeTrue();
         Command<MoveInDirectionCommand>(request).Direction.ShouldBe(expected);
     }
 
     [Fact]
     public void Parse_Resize_DefaultAmountIs5Percent()
     {
-        CommandParser.TryParse("resize right", out WmRequest? request, out _).ShouldBeTrue();
+        // Arrange / Act
+        bool parsed = CommandParser.TryParse("resize right", out WmRequest? request, out _);
+
+        // Assert
+        parsed.ShouldBeTrue();
         ResizeInDirectionCommand command = Command<ResizeInDirectionCommand>(request);
         command.Direction.ShouldBe(Direction.Right);
         command.DeltaFraction.ShouldBe(0.05, 1e-10);
@@ -44,7 +56,11 @@ public sealed class CommandParserTests
     [InlineData("split vertical", TilingDirection.Vertical)]
     public void Parse_Split(string line, TilingDirection expected)
     {
-        CommandParser.TryParse(line, out WmRequest? request, out _).ShouldBeTrue();
+        // Arrange / Act
+        bool parsed = CommandParser.TryParse(line, out WmRequest? request, out _);
+
+        // Assert
+        parsed.ShouldBeTrue();
         Command<SplitInDirectionCommand>(request).Direction.ShouldBe(expected);
     }
 
@@ -54,34 +70,51 @@ public sealed class CommandParserTests
     [InlineData("layout splitv", Layout.SplitVertical)]
     public void Parse_Layout(string line, Layout expected)
     {
-        CommandParser.TryParse(line, out WmRequest? request, out _).ShouldBeTrue();
+        // Arrange / Act
+        bool parsed = CommandParser.TryParse(line, out WmRequest? request, out _);
+
+        // Assert
+        parsed.ShouldBeTrue();
         Command<SetLayoutCommand>(request).Layout.ShouldBe(expected);
     }
 
     [Fact]
     public void Parse_LayoutToggleSplit_MapsToToggleCommand()
     {
-        CommandParser.TryParse("layout toggle-split", out WmRequest? request, out _).ShouldBeTrue();
+        // Arrange / Act
+        bool parsed = CommandParser.TryParse("layout toggle-split", out WmRequest? request, out _);
+
+        // Assert
+        parsed.ShouldBeTrue();
         Command<ToggleSplitDirectionCommand>(request);
     }
 
     [Fact]
-    public void Parse_Workspace()
+    public void Parse_Workspace_ReturnsFocusWorkspaceCommand()
     {
-        CommandParser.TryParse("workspace 3", out WmRequest? request, out _).ShouldBeTrue();
+        // Arrange / Act
+        bool parsed = CommandParser.TryParse("workspace 3", out WmRequest? request, out _);
+
+        // Assert
+        parsed.ShouldBeTrue();
         Command<FocusWorkspaceCommand>(request).WorkspaceName.ShouldBe("3");
     }
 
     [Fact]
-    public void Parse_MoveToWorkspace()
+    public void Parse_MoveToWorkspace_ReturnsMoveWindowToWorkspaceCommand()
     {
-        CommandParser.TryParse("move-to-workspace 3", out WmRequest? request, out _).ShouldBeTrue();
+        // Arrange / Act
+        bool parsed = CommandParser.TryParse("move-to-workspace 3", out WmRequest? request, out _);
+
+        // Assert
+        parsed.ShouldBeTrue();
         Command<MoveWindowToWorkspaceCommand>(request).WorkspaceName.ShouldBe("3");
     }
 
     [Fact]
-    public void Parse_AppLevelRequest()
+    public void Parse_AppLevelVerbs_MapToRequests()
     {
+        // Arrange / Act / Assert
         CommandParser.TryParse("close", out WmRequest? closeRequest, out _).ShouldBeTrue();
         closeRequest.ShouldBeOfType<CloseRequest>();
 
@@ -104,17 +137,27 @@ public sealed class CommandParserTests
     [InlineData("focus")]
     [InlineData("focus invalid")]
     [InlineData("move")]
+    [InlineData("resize")]
+    [InlineData("resize left right")]
+    [InlineData("resize diagonal")]
     [InlineData("resize left abc")]
     [InlineData("resize left -5")]
     [InlineData("resize left 0")]
     [InlineData("split invalid")]
-    [InlineData("toggle-split invalid")]
+    [InlineData("split h extra")]
+    [InlineData("layout invalid")]
+    [InlineData("layout tabbed extra")]
     [InlineData("workspace")]
+    [InlineData("move-to-workspace")]
     [InlineData("get-tree invalid")]
     [InlineData("reconcile-displays invalid")]
     public void Parse_Invalid_ReturnsError(string line)
     {
-        CommandParser.TryParse(line, out WmRequest? request, out string? error).ShouldBeFalse();
+        // Arrange / Act
+        bool parsed = CommandParser.TryParse(line, out WmRequest? request, out string? error);
+
+        // Assert
+        parsed.ShouldBeFalse();
         request.ShouldBeNull();
         error.ShouldNotBeNullOrWhiteSpace();
     }

@@ -1,4 +1,5 @@
 using Twm.Application.Commands;
+using Twm.Application.Messaging;
 using Twm.Domain.Geometry;
 using Twm.Domain.Tiling;
 using Twm.Domain.Tree;
@@ -8,70 +9,92 @@ namespace Twm.Application.Tests.Commands;
 public class SplitInDirectionTests
 {
     [Fact]
-    public void SplitVertical_WithSiblings_WrapsFocusedWindowInNestedSplit()
+    public void Split_VerticalWithSibling_WrapsFocusedInNestedSplit()
     {
-        (RootContainer root, _, Workspace ws) = Desktop();
-        var w1 = new TilingWindow(new WindowId(1));
-        var w2 = new TilingWindow(new WindowId(2));
-        ws.AppendChild(w1);
-        ws.AppendChild(w2);
-        w1.Focus();
+        // Arrange
+        (RootContainer root, _, Workspace workspace) = Desktop();
+        var left = new TilingWindow(new WindowId(1));
+        var right = new TilingWindow(new WindowId(2));
+        workspace.AppendChild(left);
+        workspace.AppendChild(right);
+        left.Focus();
 
+        // Act
         new SplitInDirectionHandler(root, new LayoutEngine()).Handle(
             new SplitInDirectionCommand(TilingDirection.Vertical)
         );
 
-        SplitContainer wrapper = w1.Parent.ShouldBeOfType<SplitContainer>();
+        // Assert — left is now inside a fresh vertical wrapper, which sits
+        // alongside right inside the workspace.
+        SplitContainer wrapper = left.Parent.ShouldBeOfType<SplitContainer>();
         wrapper.Layout.ShouldBe(Layout.SplitVertical);
-        // w1 is inside SplitContainer now
-        wrapper.ShouldNotBeSameAs(ws);
-        // SplitContainer parent is inside the workspace
-        wrapper.Parent.ShouldBeSameAs(ws);
-        ws.Children.Count.ShouldBe(2);
+        wrapper.ShouldNotBeSameAs(workspace);
+        wrapper.Parent.ShouldBeSameAs(workspace);
+        workspace.Children.Count.ShouldBe(2);
     }
 
     [Fact]
-    public void Split_LoneWindow_JustReorientItsParent()
+    public void Split_VerticalWithLoneWindow_ReorientsParent()
     {
-        (RootContainer root, _, Workspace ws) = Desktop();
-        var w1 = new TilingWindow(new WindowId(1));
-        ws.AppendChild(w1);
-        w1.Focus();
+        // Arrange — single window; splitting it just flips the parent's
+        // orientation, no wrapper needed.
+        (RootContainer root, _, Workspace workspace) = Desktop();
+        var window = new TilingWindow(new WindowId(1));
+        workspace.AppendChild(window);
+        window.Focus();
 
+        // Act
         new SplitInDirectionHandler(root, new LayoutEngine()).Handle(
             new SplitInDirectionCommand(TilingDirection.Vertical)
         );
 
-        // No wrapper, the workspace itself is re-oriented, w1 stays a direct
-        // child
-        w1.Parent.ShouldBeSameAs(ws);
-        ws.Layout.ShouldBe(Layout.SplitVertical);
+        // Assert — workspace stays the direct parent and is now vertical.
+        window.Parent.ShouldBeSameAs(workspace);
+        workspace.Layout.ShouldBe(Layout.SplitVertical);
     }
 
     [Fact]
-    public void SplitThenAdopt_NestsTheNewWindowInsideTheSplit()
+    public void Split_VerticalThenAdopted_NestsNewWindowInSplit()
     {
-        (RootContainer root, Monitor monitor, Workspace ws) = Desktop();
-        var w1 = new TilingWindow(new WindowId(1));
-        var w2 = new TilingWindow(new WindowId(2));
-        ws.AppendChild(w1);
-        ws.AppendChild(w2);
-        w1.Focus();
-        var windowId = new WindowId(3);
+        // Arrange — split first, then adopt a new window; the new window
+        // should land inside the wrapper next to the focused window.
+        (RootContainer root, Monitor monitor, Workspace workspace) = Desktop();
+        var first = new TilingWindow(new WindowId(1));
+        var second = new TilingWindow(new WindowId(2));
+        workspace.AppendChild(first);
+        workspace.AppendChild(second);
+        first.Focus();
+        var adoptedId = new WindowId(3);
 
         var layout = new LayoutEngine();
         new SplitInDirectionHandler(root, layout).Handle(
             new SplitInDirectionCommand(TilingDirection.Vertical)
         );
-        // Adopt a new window, it opens next to the focused w1, i.e., inside the
-        // wrapper
-        new AdoptWindowHandler(root, layout).Handle(new AdoptWindowCommand(windowId, monitor));
+        new AdoptWindowHandler(root, layout).Handle(new AdoptWindowCommand(adoptedId, monitor));
 
-        SplitContainer wrapper = w1.Parent.ShouldBeOfType<SplitContainer>();
+        // Assert
+        SplitContainer wrapper = first.Parent.ShouldBeOfType<SplitContainer>();
         wrapper.Layout.ShouldBe(Layout.SplitVertical);
-        // w1 + new window
         wrapper.Children.Count.ShouldBe(2);
-        root.FindWindow(windowId)!.Parent.ShouldBeSameAs(wrapper);
+        root.FindWindow(adoptedId)!.Parent.ShouldBeSameAs(wrapper);
+    }
+
+    [Fact]
+    public void Split_NoFocusedWindow_IsNoOp()
+    {
+        // Arrange — root has no windows, so FocusedWindow is null.
+        (RootContainer root, _, Workspace workspace) = Desktop();
+        Layout originalLayout = workspace.Layout;
+
+        // Act
+        CommandResult result = new SplitInDirectionHandler(root, new LayoutEngine()).Handle(
+            new SplitInDirectionCommand(TilingDirection.Vertical)
+        );
+
+        // Assert
+        result.Success.ShouldBeTrue();
+        workspace.Layout.ShouldBe(originalLayout);
+        workspace.Children.ShouldBeEmpty();
     }
 
     private static (RootContainer Root, Monitor Monitor, Workspace Workspace) Desktop()
@@ -79,8 +102,8 @@ public class SplitInDirectionTests
         var root = new RootContainer();
         var monitor = new Monitor(new Rect(0, 0, 800, 600));
         root.AppendChild(monitor);
-        var ws = new Workspace("1");
-        monitor.AppendChild(ws);
-        return (root, monitor, ws);
+        var workspace = new Workspace("1");
+        monitor.AppendChild(workspace);
+        return (root, monitor, workspace);
     }
 }
