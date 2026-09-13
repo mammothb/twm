@@ -16,8 +16,8 @@ namespace Twm.Application.Commands;
 /// </summary>
 public sealed record ResizeInDirectionCommand(Direction Direction, double DeltaFraction) : ICommand;
 
-public sealed class ResizeInDirectionHandler(RootContainer root, LayoutEngine layout)
-    : TreeCommandHandler<ResizeInDirectionCommand>(root, layout)
+public sealed class ResizeInDirectionHandler(RootContainer root, LayoutEngine engine)
+    : TreeCommandHandler<ResizeInDirectionCommand>(root, engine)
 {
     public override CommandResult Handle(ResizeInDirectionCommand command)
     {

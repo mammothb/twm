@@ -11,8 +11,8 @@ namespace Twm.Application.Commands;
 /// </summary>
 public sealed record SetLayoutCommand(Layout Layout) : ICommand;
 
-public sealed class SetLayoutHandler(RootContainer root, LayoutEngine layout)
-    : TreeCommandHandler<SetLayoutCommand>(root, layout)
+public sealed class SetLayoutHandler(RootContainer root, LayoutEngine engine)
+    : TreeCommandHandler<SetLayoutCommand>(root, engine)
 {
     public override CommandResult Handle(SetLayoutCommand command)
     {

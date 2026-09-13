@@ -3,6 +3,10 @@
     <ExcludeFromCodeCoverage>true</ExcludeFromCodeCoverage>
   </PropertyGroup>
 
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute" />
+  </ItemGroup>
+
   <!-- Shared test infrastructure. -->
   <ItemGroup>
     <ProjectReference Include="../../src/Twm.Application/Twm.Application.csproj" />

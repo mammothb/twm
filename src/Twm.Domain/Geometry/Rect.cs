@@ -36,19 +36,19 @@ public readonly record struct Rect(int X, int Y, int Width, int Height)
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(count);
 
-        int total = direction == TilingDirection.Horizontal ? Width : Height;
-        int each = total / count;
+        int totalSize = direction == TilingDirection.Horizontal ? Width : Height;
+        int size = totalSize / count;
 
         int[] sizes = new int[count];
         int used = 0;
         for (int i = 0; i < count - 1; i++)
         {
-            sizes[i] = each;
-            used += each;
+            sizes[i] = size;
+            used += size;
         }
 
-        sizes[count - 1] = total - used;
-        return SlicesFromSizes(direction, sizes);
+        sizes[count - 1] = totalSize - used;
+        return LayoutSlices(direction, sizes);
     }
 
     /// <summary>
@@ -69,7 +69,7 @@ public readonly record struct Rect(int X, int Y, int Width, int Height)
         for (int i = 0; i < weights.Count; i++)
         {
             double weight = weights[i];
-            if (weight < 0 || double.IsNaN(weight) || double.IsInfinity(weight))
+            if (weight < 0 || !double.IsFinite(weight))
             {
                 throw new ArgumentOutOfRangeException(
                     nameof(weights),
@@ -86,27 +86,27 @@ public readonly record struct Rect(int X, int Y, int Width, int Height)
             throw new ArgumentException("Weights must sum to a positive value.", nameof(weights));
         }
 
-        double sum = 0;
+        double normalizedTotalWeight = 0;
         for (int i = 0; i < weights.Count; i++)
         {
-            sum += weights[i] / maxWeight;
+            normalizedTotalWeight += weights[i] / maxWeight;
         }
 
-        int total = direction == TilingDirection.Horizontal ? Width : Height;
+        int totalSize = direction == TilingDirection.Horizontal ? Width : Height;
         int[] sizes = new int[weights.Count];
         int used = 0;
         for (int i = 0; i < weights.Count - 1; i++)
         {
-            int size = (int)(total * (weights[i] / maxWeight / sum));
+            int size = (int)(totalSize * (weights[i] / maxWeight / normalizedTotalWeight));
             sizes[i] = size;
             used += size;
         }
 
-        sizes[weights.Count - 1] = total - used;
-        return SlicesFromSizes(direction, sizes);
+        sizes[weights.Count - 1] = totalSize - used;
+        return LayoutSlices(direction, sizes);
     }
 
-    private Rect[] SlicesFromSizes(TilingDirection direction, int[] sizes)
+    private Rect[] LayoutSlices(TilingDirection direction, int[] sizes)
     {
         Rect[] slices = new Rect[sizes.Length];
         if (direction == TilingDirection.Horizontal)

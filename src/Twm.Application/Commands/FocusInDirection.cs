@@ -8,8 +8,8 @@ namespace Twm.Application.Commands;
 /// <summary>Moves focus to the adjacent window in a direction.</summary>
 public sealed record FocusInDirectionCommand(Direction Direction) : ICommand;
 
-public sealed class FocusInDirectionHandler(RootContainer root, LayoutEngine layout)
-    : TreeCommandHandler<FocusInDirectionCommand>(root, layout)
+public sealed class FocusInDirectionHandler(RootContainer root, LayoutEngine engine)
+    : TreeCommandHandler<FocusInDirectionCommand>(root, engine)
 {
     public override CommandResult Handle(FocusInDirectionCommand command)
     {

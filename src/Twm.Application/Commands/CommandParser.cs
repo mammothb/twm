@@ -22,7 +22,6 @@ public static class CommandParser
     /// <summary>
     /// Grammar: <c>focus|move &lt;dir&gt;</c>,
     /// <c>resize &lt;dir&gt; [percent]</c>, <c>split h|v</c>,
-    /// <c>toggle-split</c>,
     /// <c>layout stacked|tabbed|splith|splitv|toggle-split</c>,
     /// <c>workspace &lt;name&gt;</c>, <c>move-to-workspace &lt;name&gt;</c>,
     /// <c>close</c>, <c>exit</c>, <c>get-tree</c>.
@@ -69,13 +68,6 @@ public static class CommandParser
                 return TrySplit(tokens, out request, out error);
             case "layout":
                 return TryLayout(tokens, out request, out error);
-            case "toggle-split":
-                return TryNoArg(
-                    tokens,
-                    new RunCommandRequest(new ToggleSplitDirectionCommand()),
-                    out request,
-                    out error
-                );
             case "workspace":
                 return TryWorkspace(
                     tokens,
@@ -182,13 +174,13 @@ public static class CommandParser
             case "h":
             case "horizontal":
                 request = new RunCommandRequest(
-                    new SplitDirectionCommand(TilingDirection.Horizontal)
+                    new SplitInDirectionCommand(TilingDirection.Horizontal)
                 );
                 return true;
             case "v":
             case "vertical":
                 request = new RunCommandRequest(
-                    new SplitDirectionCommand(TilingDirection.Vertical)
+                    new SplitInDirectionCommand(TilingDirection.Vertical)
                 );
                 return true;
             default:
@@ -249,7 +241,7 @@ public static class CommandParser
 
         // Everything after the verb is the name (allows names with spaces);
         // collapes runs of whitespace
-        string name = string.Join(' ', tokens.Skip(1));
+        string name = string.Join(' ', tokens, 1, tokens.Length - 1);
         request = new RunCommandRequest(factory(name));
         return true;
     }

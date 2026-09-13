@@ -68,7 +68,7 @@ public static class DefaultKeymap
             ["$mod+ctrl+j"] = "resize down",
             ["$mod+ctrl+k"] = "resize up",
             ["$mod+ctrl+l"] = "resize right",
-            ["$mod+e"] = "toggle-split",
+            ["$mod+e"] = "layout toggle-split",
             ["$mod+s"] = "layout stacked",
             ["$mod+w"] = "layout tabbed",
             ["$mod+v"] = "split v",

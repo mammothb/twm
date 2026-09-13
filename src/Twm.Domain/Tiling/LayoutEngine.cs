@@ -28,12 +28,9 @@ public sealed class LayoutEngine(Gaps gaps, int titleBarHeight)
     public void Arrange(RootContainer root)
     {
         ArgumentNullException.ThrowIfNull(root);
-        foreach (Container child in root.Children)
+        foreach (Monitor monitor in root.Children.OfType<Monitor>())
         {
-            if (child is Monitor monitor)
-            {
-                Arrange(monitor);
-            }
+            Arrange(monitor);
         }
     }
 
@@ -41,16 +38,13 @@ public sealed class LayoutEngine(Gaps gaps, int titleBarHeight)
     /// Arranges each workspace on the monitor to fill the monitor bounds inset
     /// by the outer gap, then lays out the workspace's split tree.
     /// </summary>
-    public void Arrange(Monitor monitor)
+    internal void Arrange(Monitor monitor)
     {
         ArgumentNullException.ThrowIfNull(monitor);
         Rect workspaceRect = Deflate(monitor.Bounds, _gaps.Outer);
-        foreach (Container child in monitor.Children)
+        foreach (Workspace workspace in monitor.Children.OfType<Workspace>())
         {
-            if (child is Workspace workspace)
-            {
-                ArrangeNode(workspace, workspaceRect);
-            }
+            ArrangeNode(workspace, workspaceRect);
         }
     }
 
@@ -123,11 +117,16 @@ public sealed class LayoutEngine(Gaps gaps, int titleBarHeight)
             // child), then give every child the same content rect below it.
             // Only the focused child is shown (the reconciler cloaks the rest);
             // non-focused children still get valid bounds.
-            int rows = split.Layout == Layout.Tabbed ? 1 : split.Children.Count;
+            int rowCount = split.Layout == Layout.Tabbed ? 1 : split.Children.Count;
 
             // Avoid content from being pushed to another container
-            int strip = Math.Min(rect.Height, _titleBarHeight * rows);
-            var content = new Rect(rect.X, rect.Y + strip, rect.Width, rect.Height - strip);
+            int titleStripHeight = Math.Min(rect.Height, _titleBarHeight * rowCount);
+            var content = new Rect(
+                rect.X,
+                rect.Y + titleStripHeight,
+                rect.Width,
+                rect.Height - titleStripHeight
+            );
             foreach (Container child in split.Children)
             {
                 ArrangeNode(child, content);

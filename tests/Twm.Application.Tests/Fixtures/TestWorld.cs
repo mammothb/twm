@@ -37,21 +37,21 @@ public sealed class TestWorld
             Secondary.AppendChild(new Workspace(name));
         }
 
-        Layout = new LayoutEngine();
+        Engine = new LayoutEngine();
         Bus = new Bus();
-        Bus.Register(new AdoptWindowHandler(Root, Layout));
-        Bus.Register(new FocusInDirectionHandler(Root, Layout));
-        Bus.Register(new FocusWorkspaceHandler(Root, Layout));
-        Bus.Register(new MoveInDirectionHandler(Root, Layout));
-        Bus.Register(new MoveWindowToWorkspaceHandler(Root, Layout));
-        Bus.Register(new RemoveWindowHandler(Root, Layout));
-        Bus.Register(new ResizeContainerHandler(Root, Layout));
-        Bus.Register(new ResizeInDirectionHandler(Root, Layout));
-        Bus.Register(new SetLayoutHandler(Root, Layout));
-        Bus.Register(new SplitDirectionHandler(Root, Layout));
-        Bus.Register(new ToggleSplitDirectionHandler(Root, Layout));
+        Bus.Register(new AdoptWindowHandler(Root, Engine));
+        Bus.Register(new FocusInDirectionHandler(Root, Engine));
+        Bus.Register(new FocusWorkspaceHandler(Root, Engine));
+        Bus.Register(new MoveInDirectionHandler(Root, Engine));
+        Bus.Register(new MoveWindowToWorkspaceHandler(Root, Engine));
+        Bus.Register(new RemoveWindowHandler(Root, Engine));
+        Bus.Register(new ResizeContainerHandler(Root, Engine));
+        Bus.Register(new ResizeInDirectionHandler(Root, Engine));
+        Bus.Register(new SetLayoutHandler(Root, Engine));
+        Bus.Register(new SplitInDirectionHandler(Root, Engine));
+        Bus.Register(new ToggleSplitDirectionHandler(Root, Engine));
 
-        Layout.Arrange(Root);
+        Engine.Arrange(Root);
     }
 
     public RootContainer Root { get; }
@@ -60,7 +60,7 @@ public sealed class TestWorld
 
     public Monitor Secondary { get; }
 
-    public LayoutEngine Layout { get; }
+    public LayoutEngine Engine { get; }
 
     public Bus Bus { get; }
 
