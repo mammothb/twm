@@ -9,8 +9,8 @@ namespace Twm.Application.Commands;
 /// </summary>
 public sealed record ToggleSplitDirectionCommand : ICommand;
 
-public sealed class ToggleSplitDirectionHandler(RootContainer root, LayoutEngine layout)
-    : TreeCommandHandler<ToggleSplitDirectionCommand>(root, layout)
+public sealed class ToggleSplitDirectionHandler(RootContainer root, LayoutEngine engine)
+    : TreeCommandHandler<ToggleSplitDirectionCommand>(root, engine)
 {
     public override CommandResult Handle(ToggleSplitDirectionCommand command)
     {

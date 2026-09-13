@@ -11,8 +11,8 @@ namespace Twm.Application.Commands;
 /// </summary>
 public sealed record ResizeContainerCommand(double DeltaFraction) : ICommand;
 
-public sealed class ResizeContainerHandler(RootContainer root, LayoutEngine layout)
-    : TreeCommandHandler<ResizeContainerCommand>(root, layout)
+public sealed class ResizeContainerHandler(RootContainer root, LayoutEngine engine)
+    : TreeCommandHandler<ResizeContainerCommand>(root, engine)
 {
     public override CommandResult Handle(ResizeContainerCommand command)
     {

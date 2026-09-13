@@ -13,8 +13,8 @@ namespace Twm.Application.Commands;
 /// </summary>
 public sealed record SplitDirectionCommand(TilingDirection Direction) : ICommand;
 
-public sealed class SplitDirectionHandler(RootContainer root, LayoutEngine layout)
-    : TreeCommandHandler<SplitDirectionCommand>(root, layout)
+public sealed class SplitDirectionHandler(RootContainer root, LayoutEngine engine)
+    : TreeCommandHandler<SplitDirectionCommand>(root, engine)
 {
     public override CommandResult Handle(SplitDirectionCommand command)
     {

@@ -7,8 +7,8 @@ namespace Twm.Application.Commands;
 /// <summary>Moves the focused window to the named workspace.</summary>
 public sealed record MoveWindowToWorkspaceCommand(string WorkspaceName) : ICommand;
 
-public sealed class MoveWindowToWorkspaceHandler(RootContainer root, LayoutEngine layout)
-    : TreeCommandHandler<MoveWindowToWorkspaceCommand>(root, layout)
+public sealed class MoveWindowToWorkspaceHandler(RootContainer root, LayoutEngine engine)
+    : TreeCommandHandler<MoveWindowToWorkspaceCommand>(root, engine)
 {
     public override CommandResult Handle(MoveWindowToWorkspaceCommand command)
     {

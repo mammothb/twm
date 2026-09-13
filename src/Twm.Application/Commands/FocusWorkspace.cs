@@ -7,8 +7,8 @@ namespace Twm.Application.Commands;
 /// <summary>Activates and focuses the named workspace.</summary>
 public sealed record FocusWorkspaceCommand(string WorkspaceName) : ICommand;
 
-public sealed class FocusWorkspaceHandler(RootContainer root, LayoutEngine layout)
-    : TreeCommandHandler<FocusWorkspaceCommand>(root, layout)
+public sealed class FocusWorkspaceHandler(RootContainer root, LayoutEngine engine)
+    : TreeCommandHandler<FocusWorkspaceCommand>(root, engine)
 {
     public override CommandResult Handle(FocusWorkspaceCommand command)
     {

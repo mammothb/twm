@@ -10,8 +10,8 @@ namespace Twm.Application.Commands;
 public sealed record AdoptWindowCommand(WindowId WindowId, Monitor Monitor, WindowId? Owner = null)
     : ICommand;
 
-public sealed class AdoptWindowHandler(RootContainer root, LayoutEngine layout)
-    : TreeCommandHandler<AdoptWindowCommand>(root, layout)
+public sealed class AdoptWindowHandler(RootContainer root, LayoutEngine engine)
+    : TreeCommandHandler<AdoptWindowCommand>(root, engine)
 {
     public override CommandResult Handle(AdoptWindowCommand command)
     {

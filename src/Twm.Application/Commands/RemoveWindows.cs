@@ -9,8 +9,8 @@ namespace Twm.Application.Commands;
 /// </summary>
 public sealed record RemoveWindowCommand(WindowId WindowId) : ICommand;
 
-public sealed class RemoveWindowHandler(RootContainer root, LayoutEngine layout)
-    : TreeCommandHandler<RemoveWindowCommand>(root, layout)
+public sealed class RemoveWindowHandler(RootContainer root, LayoutEngine engine)
+    : TreeCommandHandler<RemoveWindowCommand>(root, engine)
 {
     public override CommandResult Handle(RemoveWindowCommand command)
     {

@@ -11,8 +11,8 @@ namespace Twm.Application.Commands;
 /// </summary>
 public sealed record MoveInDirectionCommand(Direction Direction) : ICommand;
 
-public sealed class MoveInDirectionHandler(RootContainer root, LayoutEngine layout)
-    : TreeCommandHandler<MoveInDirectionCommand>(root, layout)
+public sealed class MoveInDirectionHandler(RootContainer root, LayoutEngine engine)
+    : TreeCommandHandler<MoveInDirectionCommand>(root, engine)
 {
     public override CommandResult Handle(MoveInDirectionCommand command)
     {
