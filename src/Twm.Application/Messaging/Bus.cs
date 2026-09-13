@@ -31,14 +31,14 @@ public sealed class Bus
     /// <summary>
     /// Fans an event out to every subscriber of its exact type.
     /// </summary>
-    public void Emit(IEvent @event)
+    public void Emit(IEvent evt)
     {
-        ArgumentNullException.ThrowIfNull(@event);
-        if (_eventTypeToSubscribers.TryGetValue(@event.GetType(), out List<Action<IEvent>>? list))
+        ArgumentNullException.ThrowIfNull(evt);
+        if (_eventTypeToSubscribers.TryGetValue(evt.GetType(), out List<Action<IEvent>>? list))
         {
             foreach (Action<IEvent> subscriber in list.ToArray())
             {
-                subscriber(@event);
+                subscriber(evt);
             }
         }
     }
@@ -52,7 +52,9 @@ public sealed class Bus
         Type type = command.GetType();
         if (!_commandTypeToHandler.TryGetValue(type, out Func<ICommand, CommandResult>? handler))
         {
-            throw new InvalidOperationException($"No handler registred for command '{type.Name}'.");
+            throw new InvalidOperationException(
+                $"No handler registered for command '{type.Name}'."
+            );
         }
 
         RecordInvocation(type);
@@ -91,7 +93,7 @@ public sealed class Bus
             _eventTypeToSubscribers[type] = list;
         }
 
-        list.Add(@event => handler((TEvent)@event));
+        list.Add(evt => handler((TEvent)evt));
     }
 
     private void RecordInvocation(Type commandType)

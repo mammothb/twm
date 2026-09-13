@@ -43,12 +43,15 @@ public static class DesktopBuilder
 
         var root = new RootContainer();
 
-        List<MonitorInfo> ordered = [.. OrderPrimaryFirst(monitors)];
-        IReadOnlyList<IReadOnlyList<string>> plan = PlanWorkspaceNames(workspaces, ordered.Count);
+        IReadOnlyList<MonitorInfo> orderedMonitors = OrderPrimaryFirst(monitors);
+        IReadOnlyList<IReadOnlyList<string>> plan = PlanWorkspaceNames(
+            workspaces,
+            orderedMonitors.Count
+        );
 
-        for (int i = 0; i < ordered.Count; i++)
+        for (int i = 0; i < orderedMonitors.Count; i++)
         {
-            var monitor = new Monitor(ordered[i].WorkArea);
+            var monitor = new Monitor(orderedMonitors[i].WorkArea);
 
             // this monitor's round robin slice, first append is active
             foreach (string name in plan[i])
@@ -69,11 +72,15 @@ public static class DesktopBuilder
     /// left-to-right (then top-down). Public so the status bar can pair its
     /// per-monitor windows with the tree's monitors by index.
     /// </summary>
-    public static IEnumerable<MonitorInfo> OrderPrimaryFirst(IReadOnlyList<MonitorInfo> monitors) =>
-        monitors
-            .OrderByDescending(monitor => monitor.IsPrimary)
-            .ThenBy(monitor => monitor.Bounds.X)
-            .ThenBy(monitor => monitor.Bounds.Y);
+    public static IReadOnlyList<MonitorInfo> OrderPrimaryFirst(
+        IReadOnlyList<MonitorInfo> monitors
+    ) =>
+        [
+            .. monitors
+                .OrderByDescending(monitor => monitor.IsPrimary)
+                .ThenBy(monitor => monitor.Bounds.X)
+                .ThenBy(monitor => monitor.Bounds.Y),
+        ];
 
     /// <summary>
     /// Per-monitor workspace-name assignment for

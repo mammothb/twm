@@ -109,16 +109,14 @@ nuint clockTimer = 0;
 if (barOptions.Enabled)
 {
     statusBar = new StatusBarManager(
-        [.. DesktopBuilder.OrderPrimaryFirst(monitors.EnumerateMonitors())],
+        DesktopBuilder.OrderPrimaryFirst(monitors.EnumerateMonitors()),
         barOptions
     );
     RefreshBars();
     session.Subscribe<LayoutChangedEvent>(_ => RefreshBars());
     session.Subscribe<DisplaysReconciledEvent>(_ =>
     {
-        statusBar?.SyncMonitors([
-            .. DesktopBuilder.OrderPrimaryFirst(monitors.EnumerateMonitors()),
-        ]);
+        statusBar?.SyncMonitors(DesktopBuilder.OrderPrimaryFirst(monitors.EnumerateMonitors()));
         RefreshBars();
     });
     clockTimer = MessageLoop.StartTimer(1000);

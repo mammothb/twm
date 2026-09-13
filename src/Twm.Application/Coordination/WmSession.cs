@@ -158,11 +158,10 @@ public sealed class WmSession
     /// </summary>
     public bool ReconcileDisplays()
     {
-        List<MonitorInfo> fresh =
-        [
-            .. DesktopBuilder.OrderPrimaryFirst(_monitors.EnumerateMonitors()),
-        ];
-        List<Monitor> treeMonitors = [.. Root.Children.OfType<Monitor>()];
+        IReadOnlyList<MonitorInfo> fresh = DesktopBuilder.OrderPrimaryFirst(
+            _monitors.EnumerateMonitors()
+        );
+        IReadOnlyList<Monitor> treeMonitors = [.. Root.Children.OfType<Monitor>()];
 
         bool changed =
             fresh.Count == treeMonitors.Count
@@ -324,7 +323,10 @@ public sealed class WmSession
     /// <see cref="Container.Bounds" /> from the fresh work areas. Returns
     /// whether any bounds changed.
     /// </summary>
-    private static bool ResizeInPlace(List<MonitorInfo> fresh, List<Monitor> treeMonitors)
+    private static bool ResizeInPlace(
+        IReadOnlyList<MonitorInfo> fresh,
+        IReadOnlyList<Monitor> treeMonitors
+    )
     {
         bool changed = false;
         for (int i = 0; i < treeMonitors.Count; i++)
@@ -344,7 +346,7 @@ public sealed class WmSession
         return changed;
     }
 
-    private bool Restructure(List<MonitorInfo> fresh, List<Monitor> treeMonitors)
+    private bool Restructure(IReadOnlyList<MonitorInfo> fresh, IReadOnlyList<Monitor> treeMonitors)
     {
         IReadOnlyList<IReadOnlyList<string>> plan;
         try
