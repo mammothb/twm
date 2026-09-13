@@ -34,6 +34,7 @@ coverage: build
 			--coverage \
 			--coverage-output-format cobertura \
 			--coverage-output coverage.cobertura.xml \
+			--coverage-settings coverage.settings.xml \
 			--results-directory $(COVERAGE_DIR)/$$name; \
 	done
 
