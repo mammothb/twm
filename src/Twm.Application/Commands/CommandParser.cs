@@ -249,7 +249,7 @@ public static class CommandParser
 
         // Everything after the verb is the name (allows names with spaces);
         // collapes runs of whitespace
-        string name = string.Join(' ', tokens.Skip(1));
+        string name = string.Join(' ', tokens, 1, tokens.Length - 1);
         request = new RunCommandRequest(factory(name));
         return true;
     }
