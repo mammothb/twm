@@ -10,10 +10,15 @@ namespace Twm.Application.Coordination;
 /// every other managed window is hidden (cloaked, on Windows). The focused
 /// window is then brought to the foreground.
 /// </summary>
-public sealed class Reconciler(IWindowSystem windows)
+public sealed class Reconciler
 {
-    private readonly IWindowSystem _windows =
-        windows ?? throw new ArgumentNullException(nameof(windows));
+    private readonly IWindowSystem _windows;
+
+    public Reconciler(IWindowSystem windows)
+    {
+        ArgumentNullException.ThrowIfNull(windows);
+        _windows = windows;
+    }
 
     /// <summary>
     /// Pushes the tree's window bounds, visibility, and focus out to the
