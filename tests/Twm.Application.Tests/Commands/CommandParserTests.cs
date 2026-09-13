@@ -48,13 +48,6 @@ public sealed class CommandParserTests
         Command<SplitDirectionCommand>(request).Direction.ShouldBe(expected);
     }
 
-    [Fact]
-    public void Parse_ToggleSplit()
-    {
-        CommandParser.TryParse("toggle-split", out WmRequest? request, out _).ShouldBeTrue();
-        Command<ToggleSplitDirectionCommand>(request);
-    }
-
     [Theory]
     [InlineData("layout tabbed", Layout.Tabbed)]
     [InlineData("layout stacked", Layout.Stacked)]

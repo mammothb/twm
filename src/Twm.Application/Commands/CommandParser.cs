@@ -69,13 +69,6 @@ public static class CommandParser
                 return TrySplit(tokens, out request, out error);
             case "layout":
                 return TryLayout(tokens, out request, out error);
-            case "toggle-split":
-                return TryNoArg(
-                    tokens,
-                    new RunCommandRequest(new ToggleSplitDirectionCommand()),
-                    out request,
-                    out error
-                );
             case "workspace":
                 return TryWorkspace(
                     tokens,
