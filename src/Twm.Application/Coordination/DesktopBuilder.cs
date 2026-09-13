@@ -44,7 +44,7 @@ public static class DesktopBuilder
         var root = new RootContainer();
 
         IReadOnlyList<MonitorInfo> orderedMonitors = OrderPrimaryFirst(monitors);
-        IReadOnlyList<IReadOnlyList<string>> plan = PlanWorkspaceNames(
+        IReadOnlyList<IReadOnlyList<string>> perMonitorWorkspaceNames = PlanWorkspaceNames(
             workspaces,
             orderedMonitors.Count
         );
@@ -54,7 +54,7 @@ public static class DesktopBuilder
             var monitor = new Monitor(orderedMonitors[i].WorkArea);
 
             // this monitor's round robin slice, first append is active
-            foreach (string name in plan[i])
+            foreach (string name in perMonitorWorkspaceNames[i])
             {
                 monitor.AppendChild(new Workspace(name));
             }
@@ -98,7 +98,7 @@ public static class DesktopBuilder
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(monitorCount);
         IReadOnlyList<string> names = ResolveNames(workspaces, monitorCount);
 
-        var perMonitor = new List<IReadOnlyList<string>>(monitorCount);
+        var perMonitorWorkspaceNames = new List<IReadOnlyList<string>>(monitorCount);
         for (int i = 0; i < monitorCount; i++)
         {
             List<string> slice = [];
@@ -107,10 +107,10 @@ public static class DesktopBuilder
                 slice.Add(names[j]);
             }
 
-            perMonitor.Add(slice);
+            perMonitorWorkspaceNames.Add(slice);
         }
 
-        return perMonitor;
+        return perMonitorWorkspaceNames;
     }
 
     private static IReadOnlyList<string> ResolveNames(
@@ -141,15 +141,15 @@ public static class DesktopBuilder
             return explicitNames;
         }
 
-        int perMonitor =
+        int countPerMonitor =
             workspaces?.PerMonitor is int count && count > 0 ? count : WorkspacesPerMonitor;
-        int total = perMonitor * monitorCount;
-        var generated = new List<string>(total);
+        int total = countPerMonitor * monitorCount;
+        var generatedNames = new List<string>(total);
         for (int number = 1; number <= total; number++)
         {
-            generated.Add(number.ToString(CultureInfo.InvariantCulture));
+            generatedNames.Add(number.ToString(CultureInfo.InvariantCulture));
         }
 
-        return generated;
+        return generatedNames;
     }
 }
