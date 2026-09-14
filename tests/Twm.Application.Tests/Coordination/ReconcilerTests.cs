@@ -192,8 +192,10 @@ public class ReconcilerTests
     }
 
     [Fact]
-    public void Ctor_NullWindowSystem_Throws() =>
+    public void Ctor_NullWindowSystem_Throws()
+    {
         Should.Throw<ArgumentNullException>(() => new Reconciler(null!));
+    }
 
     [Fact]
     public void Apply_NullRoot_Throws()
