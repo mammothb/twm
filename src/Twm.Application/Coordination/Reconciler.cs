@@ -12,12 +12,12 @@ namespace Twm.Application.Coordination;
 /// </summary>
 public sealed class Reconciler
 {
-    private readonly IWindowSystem _windows;
+    private readonly IWindowSystem _windowSystem;
 
-    public Reconciler(IWindowSystem windows)
+    public Reconciler(IWindowSystem windowSystem)
     {
-        ArgumentNullException.ThrowIfNull(windows);
-        _windows = windows;
+        ArgumentNullException.ThrowIfNull(windowSystem);
+        _windowSystem = windowSystem;
     }
 
     /// <summary>
@@ -61,8 +61,8 @@ public sealed class Reconciler
 
             try
             {
-                _windows.SetWindowRect(window.WindowId, window.Bounds);
-                _windows.Show(window.WindowId);
+                _windowSystem.SetWindowRect(window.WindowId, window.Bounds);
+                _windowSystem.Show(window.WindowId);
             }
             catch (Exception)
             {
@@ -74,7 +74,7 @@ public sealed class Reconciler
         {
             try
             {
-                _windows.SetForeground(focused.WindowId);
+                _windowSystem.SetForeground(focused.WindowId);
             }
             catch (Exception)
             {
@@ -93,7 +93,7 @@ public sealed class Reconciler
 
             try
             {
-                _windows.Hide(window.WindowId);
+                _windowSystem.Hide(window.WindowId);
             }
             catch (Exception)
             {

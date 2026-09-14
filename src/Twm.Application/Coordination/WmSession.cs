@@ -18,9 +18,9 @@ namespace Twm.Application.Coordination;
 /// fakes; the Win32 backends plug in unchanged.
 public sealed class WmSession
 {
-    private readonly IMonitorSystem _monitors;
+    private readonly IMonitorSystem _monitorSystem;
     private readonly WorkspaceOptions? _workspaces;
-    private readonly IWindowSystem _windows;
+    private readonly IWindowSystem _windowSystem;
     private readonly WindowFilter _filter;
     private readonly Bus _bus;
     private readonly LayoutEngine _engine;
@@ -32,26 +32,26 @@ public sealed class WmSession
     private WindowId? _pendingForeground;
 
     public WmSession(
-        IMonitorSystem monitors,
-        IWindowSystem windows,
+        IMonitorSystem monitorSystem,
+        IWindowSystem windowSystem,
         Gaps gaps = default,
         WindowFilter? filter = null,
         WorkspaceOptions? workspaces = null,
         int titleBarHeight = LayoutEngine.DefaultTitleBarHeight
     )
     {
-        ArgumentNullException.ThrowIfNull(monitors);
-        ArgumentNullException.ThrowIfNull(windows);
-        _monitors = monitors;
+        ArgumentNullException.ThrowIfNull(monitorSystem);
+        ArgumentNullException.ThrowIfNull(windowSystem);
+        _monitorSystem = monitorSystem;
         _workspaces = workspaces;
-        _windows = windows;
+        _windowSystem = windowSystem;
         _filter = filter ?? new WindowFilter();
 
-        Root = DesktopBuilder.Build(monitors.EnumerateMonitors(), workspaces);
+        Root = DesktopBuilder.Build(monitorSystem.EnumerateMonitors(), workspaces);
         _engine = new LayoutEngine(gaps, titleBarHeight);
         _bus = new Bus();
         RegisterHandlers();
-        _reconciler = new Reconciler(windows);
+        _reconciler = new Reconciler(windowSystem);
         _engine.Arrange(Root);
     }
 
@@ -69,7 +69,7 @@ public sealed class WmSession
     {
         if (Root.FocusedWindow is TilingWindow focused)
         {
-            _windows.Close(focused.WindowId);
+            _windowSystem.Close(focused.WindowId);
         }
     }
 
@@ -160,7 +160,7 @@ public sealed class WmSession
     public bool ReconcileDisplays()
     {
         IReadOnlyList<MonitorInfo> newMonitors = DesktopBuilder.OrderPrimaryFirst(
-            _monitors.EnumerateMonitors()
+            _monitorSystem.EnumerateMonitors()
         );
         IReadOnlyList<Monitor> origMonitors = [.. Root.Children.OfType<Monitor>()];
 
@@ -210,7 +210,7 @@ public sealed class WmSession
         {
             try
             {
-                _windows.Show(window.WindowId);
+                _windowSystem.Show(window.WindowId);
             }
             catch (Exception)
             {
@@ -225,7 +225,7 @@ public sealed class WmSession
     /// </summary>
     public void Start()
     {
-        foreach (NativeWindowInfo window in _windows.EnumerateWindows())
+        foreach (NativeWindowInfo window in _windowSystem.EnumerateWindows())
         {
             if (_filter.IsManageable(window))
             {

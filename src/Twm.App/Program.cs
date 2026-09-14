@@ -25,17 +25,17 @@ if (cliArgs.UseConsole)
 if (cliArgs.Dump)
 {
     WindowsStartup.EnablePerMonitorDpiAwareness();
-    var monitors = new WindowsMonitorSystem();
-    var windows = new WindowsWindowSystem();
+    var monitorSystem = new WindowsMonitorSystem();
+    var windowSystem = new WindowsWindowSystem();
     ResolvedConfig config = new YamlConfigSource(cliArgs.ConfigPath).Load(
-        monitors.EnumerateMonitors().Count
+        monitorSystem.EnumerateMonitors().Count
     );
     foreach (string configError in config.Errors)
     {
         Console.WriteLine($"config: {configError}");
     }
 
-    return DiagnosticModes.Dump(monitors, windows, new WindowFilter(config.WindowRules));
+    return DiagnosticModes.Dump(monitorSystem, windowSystem, new WindowFilter(config.WindowRules));
 }
 
 using var host = AppHost.Build(cliArgs);

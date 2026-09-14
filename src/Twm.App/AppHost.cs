@@ -109,13 +109,17 @@ internal sealed class AppHost : IDisposable
         WindowsStartup.DisableForegroundLockTimeout();
 
         BarOptions barOptions = config.Bar;
-        IMonitorSystem tilingMonitors = barOptions.Enabled
+
+        // Two monitor views: status bar draws at the taskbar edge (raw
+        // monitors), tiled windows use the inset WorkArea so they sit clear of
+        // the Twm bar.
+        IMonitorSystem tilingMonitorSystem = barOptions.Enabled
             ? new InsetMonitorSystem(monitorSystem, barOptions.Height, barOptions.Position)
             : monitorSystem;
 
         var session = new WmSession(
-            monitors: tilingMonitors,
-            windows: windowSystem,
+            monitorSystem: tilingMonitorSystem,
+            windowSystem: windowSystem,
             gaps: config.Gaps,
             filter: filter,
             workspaces: config.Workspaces,
