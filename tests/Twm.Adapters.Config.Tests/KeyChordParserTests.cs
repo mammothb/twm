@@ -58,4 +58,67 @@ public class KeyChordParserTests
         ok.ShouldBeFalse();
         error.ShouldNotBeNullOrEmpty();
     }
+
+    [Fact]
+    public void TryParse_NullChord_ReturnsFalseWithError()
+    {
+        bool ok = KeyChordParser.TryParse(null!, ModifierKeys.Alt, out _, out string? error);
+
+        ok.ShouldBeFalse();
+        error.ShouldNotBeNullOrEmpty();
+    }
+
+    [Fact]
+    public void TryParse_NoModifier_BindsKeyOnly()
+    {
+        bool ok = KeyChordParser.TryParse("h", ModifierKeys.Alt, out KeyBinding binding, out _);
+
+        ok.ShouldBeTrue();
+        binding.ShouldBe(new KeyBinding(ModifierKeys.None, 'H'));
+    }
+
+    [Fact]
+    public void TryParse_MultipleModifiers_CombinesAllFlags()
+    {
+        bool ok = KeyChordParser.TryParse(
+            "$mod+ctrl+shift+h",
+            ModifierKeys.Alt,
+            out KeyBinding binding,
+            out _
+        );
+
+        ok.ShouldBeTrue();
+        binding.Modifiers.ShouldBe(ModifierKeys.Alt | ModifierKeys.Control | ModifierKeys.Shift);
+        binding.VirtualKey.ShouldBe('H');
+    }
+
+    [Theory]
+    [InlineData("ctrl+h", ModifierKeys.Control)]
+    [InlineData("control+h", ModifierKeys.Control)]
+    [InlineData("win+h", ModifierKeys.Windows)]
+    [InlineData("windows+h", ModifierKeys.Windows)]
+    [InlineData("Ctrl+h", ModifierKeys.Control)]
+    [InlineData("SHIFT+h", ModifierKeys.Shift)]
+    [InlineData("Alt+h", ModifierKeys.Alt)]
+    public void TryParse_ModifierAliases_AllMapToSameModifier(string chord, ModifierKeys expected)
+    {
+        bool ok = KeyChordParser.TryParse(chord, ModifierKeys.Alt, out KeyBinding binding, out _);
+
+        ok.ShouldBeTrue();
+        binding.Modifiers.ShouldBe(expected);
+    }
+
+    [Fact]
+    public void TryParse_WhitespaceAroundPlus_IsTrimmed()
+    {
+        bool ok = KeyChordParser.TryParse(
+            "$mod + h",
+            ModifierKeys.Alt,
+            out KeyBinding binding,
+            out _
+        );
+
+        ok.ShouldBeTrue();
+        binding.ShouldBe(new KeyBinding(ModifierKeys.Alt, 'H'));
+    }
 }
