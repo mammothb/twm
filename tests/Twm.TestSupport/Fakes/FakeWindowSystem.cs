@@ -21,6 +21,13 @@ public sealed class FakeWindowSystem(params NativeWindowInfo[] windows) : IWindo
     /// </summary>
     public HashSet<WindowId> ThrowOnRect { get; } = [];
 
+    /// <summary>
+    /// Ids for which <see cref="Show" /> throws
+    /// (<see cref="Application.Coordination.WmSession.Shutdown" /> must
+    /// swallow these and continue restoring the rest).
+    /// </summary>
+    public HashSet<WindowId> ThrowOnShow { get; } = [];
+
     public List<WindowId> Foregrounded { get; } = [];
 
     public List<WindowId> Shown { get; } = [];
@@ -56,6 +63,11 @@ public sealed class FakeWindowSystem(params NativeWindowInfo[] windows) : IWindo
 
     public void Show(WindowId window)
     {
+        if (ThrowOnShow.Contains(window))
+        {
+            throw new InvalidOperationException($"simulated Show failure for {window}");
+        }
+
         Shown.Add(window);
         Operations.Add($"show:{window.Value}");
     }
