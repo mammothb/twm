@@ -26,13 +26,15 @@ jobs:
         uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5.4.0
         with:
           global-json-file: global.json
-      - name: Test - With Coverage
+      - &test-coverage
+        name: Test - With Coverage
         run: make coverage
       - name: Upload to Codecov
         uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          files: coverage/coverage.cobertura.xml
+          files: coverage/**/coverage.cobertura.xml
+          flags: linux
           fail_ci_if_error: false
   test-windows:
     name: Test (Windows)
@@ -40,5 +42,11 @@ jobs:
     steps:
       - *checkout
       - *setup-dotnet
-      - name: Test
-        run: make test
+      - *test-coverage
+      - name: Upload to Codecov
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: coverage/**/coverage.cobertura.xml
+          flags: windows
+          fail_ci_if_error: false
