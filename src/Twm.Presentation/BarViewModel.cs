@@ -17,32 +17,32 @@ public static class BarViewModel
 
     public static BarSnapshot Build(
         RootContainer root,
-        Func<WindowId, string> titleOf,
+        Func<WindowId, string> titleGetter,
         DateTimeOffset now
     )
     {
         ArgumentNullException.ThrowIfNull(root);
-        ArgumentNullException.ThrowIfNull(titleOf);
+        ArgumentNullException.ThrowIfNull(titleGetter);
 
         List<MonitorBarView> views = [];
         int index = 0;
         foreach (Monitor monitor in root.Children.OfType<Monitor>())
         {
-            var active = monitor.LastFocusedChild as Workspace;
+            var activeWorkspace = monitor.LastFocusedChild as Workspace;
 
-            List<WorkspaceItem> items = [];
+            List<WorkspaceItem> workspaces = [];
             foreach (Workspace workspace in monitor.Children.OfType<Workspace>())
             {
-                bool isActive = ReferenceEquals(workspace, active);
+                bool isActive = ReferenceEquals(workspace, activeWorkspace);
                 bool isOccupied = workspace.Descendants.OfType<TilingWindow>().Any();
-                items.Add(new WorkspaceItem(workspace.Name, isActive, isOccupied));
+                workspaces.Add(new WorkspaceItem(workspace.Name, isActive, isOccupied));
             }
 
-            string? focusedTitle = active?.LastFocusedDescendant is TilingWindow focused
-                ? titleOf(focused.WindowId)
+            string? focusedTitle = activeWorkspace?.LastFocusedDescendant is TilingWindow focused
+                ? titleGetter(focused.WindowId)
                 : null;
 
-            views.Add(new MonitorBarView(index, items, focusedTitle));
+            views.Add(new MonitorBarView(index, workspaces, focusedTitle));
             index++;
         }
 
