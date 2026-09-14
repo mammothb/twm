@@ -10,14 +10,14 @@ namespace Twm.Adapters.Ipc;
 /// the shared <see cref="CommandParser" /> grammar and dispatches to the
 /// <see cref="WmSession" />: <c>get-tree</c> serializes the live tree,
 /// <c>close</c> closes the focused window, <c>exit</c> invokes
-/// <paramref name="onExit" />, and any other verb runs its core command through
+/// <paramref name="exit" />, and any other verb runs its core command through
 /// the bus. The WM thread runs <see cref="Handle" /> via the dispatcher. The
 /// optional title resolver attaches window titles the core tree does not store.
 /// </summary>
 public sealed class IpcRequestHandler(
     WmSession session,
-    Action onExit,
-    Func<WindowId, string?>? titleOf = null
+    Action exit,
+    Func<WindowId, string?>? titleGetter = null
 )
 {
     public string Handle(string request)
@@ -33,12 +33,12 @@ public sealed class IpcRequestHandler(
                 CommandResult result = session.Execute(run.Command);
                 return result.Success ? "ok" : $"err {result.Error ?? "command failed"}";
             case GetTreeRequest:
-                return TreeSnapshotMapper.ToJson(session.Root, titleOf);
+                return TreeSnapshotMapper.ToJson(session.Root, titleGetter);
             case CloseRequest:
                 session.CloseFocused();
                 return "ok";
             case ExitRequest:
-                onExit();
+                exit();
                 return "ok";
             case ReconcileRequest:
                 session.ReconcileDisplays();

@@ -15,20 +15,20 @@ public static class TreeSnapshotMapper
     /// <summary>
     /// Builds a snapshot of the whole tree rooted at <paramref name="root" />.
     /// </summary>
-    public static TreeNode From(RootContainer root, Func<WindowId, string?>? titleOf = null)
+    public static TreeNode From(RootContainer root, Func<WindowId, string?>? titleGetter = null)
     {
         ArgumentNullException.ThrowIfNull(root);
         TilingWindow? focused = root.FocusedWindow;
-        return ToNode(root, focused, titleOf);
+        return ToNode(root, focused, titleGetter);
     }
 
-    public static string ToJson(RootContainer root, Func<WindowId, string?>? titleOf = null) =>
-        JsonSerializer.Serialize(From(root, titleOf), TwmJsonContext.Default.TreeNode);
+    public static string ToJson(RootContainer root, Func<WindowId, string?>? titleGetter = null) =>
+        JsonSerializer.Serialize(From(root, titleGetter), TwmJsonContext.Default.TreeNode);
 
     private static TreeNode ToNode(
         Container container,
         TilingWindow? focused,
-        Func<WindowId, string?>? titleOf
+        Func<WindowId, string?>? titleGetter
     )
     {
         List<TreeNode>? children = null;
@@ -37,7 +37,7 @@ public static class TreeSnapshotMapper
             children = new List<TreeNode>(container.Children.Count);
             foreach (Container child in container.Children)
             {
-                children.Add(ToNode(child, focused, titleOf));
+                children.Add(ToNode(child, focused, titleGetter));
             }
         }
 
@@ -50,7 +50,7 @@ public static class TreeSnapshotMapper
             Name = (container as Workspace)?.Name,
             WindowId = container is TilingWindow idWindow ? (long)idWindow.WindowId.Value : null,
             Title = container is TilingWindow titleWindow
-                ? titleOf?.Invoke(titleWindow.WindowId)
+                ? titleGetter?.Invoke(titleWindow.WindowId)
                 : null,
             SizeFraction = container.SizeFraction,
             Focused = container is TilingWindow window && ReferenceEquals(window, focused),

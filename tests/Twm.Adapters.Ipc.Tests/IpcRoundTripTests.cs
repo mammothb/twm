@@ -72,5 +72,14 @@ public sealed class IpcRoundTripTests
         );
     }
 
+    [Fact]
+    public void Start_CalledTwice_Throws()
+    {
+        using var server = new IpcServer(_ => "ok", UniquePipeName());
+        server.Start();
+
+        Should.Throw<InvalidOperationException>(() => server.Start());
+    }
+
     private static string UniquePipeName() => "twm-test-" + Guid.NewGuid().ToString("N");
 }
