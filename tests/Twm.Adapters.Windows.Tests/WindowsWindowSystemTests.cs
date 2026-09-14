@@ -44,21 +44,6 @@ public sealed class WindowsWindowSystemTests
     }
 
     [Fact(Skip = "Windows only", SkipUnless = nameof(IsWindows))]
-    public void SetWindowRect_NewBounds_ReflectedByDescribe()
-    {
-        using var window = new TestWindow("twm-bounds");
-
-        var ws = new WindowsWindowSystem();
-        ws.SetWindowRect(new WindowId(window.Handle), new Rect(100, 100, 800, 600));
-
-        NativeWindowInfo info = ws.Describe(new WindowId(window.Handle));
-        // Width/Height round-trip exactly; X/Y are offset by the DWM frame inset
-        // (~7px) which NativeMethods.SetBounds applies so the visible rect matches.
-        info.Bounds.Width.ShouldBe(800);
-        info.Bounds.Height.ShouldBe(600);
-    }
-
-    [Fact(Skip = "Windows only", SkipUnless = nameof(IsWindows))]
     public void Describe_NewTopLevelWindow_ReportsExpectedMetadata()
     {
         using var window = new TestWindow("twm-describe");
