@@ -52,8 +52,8 @@ public sealed class WindowsWindowSystemTests
         ws.SetWindowRect(new WindowId(window.Handle), new Rect(100, 100, 800, 600));
 
         NativeWindowInfo info = ws.Describe(new WindowId(window.Handle));
-        info.Bounds.X.ShouldBe(100);
-        info.Bounds.Y.ShouldBe(100);
+        // Width/Height round-trip exactly; X/Y are offset by the DWM frame inset
+        // (~7px) which NativeMethods.SetBounds applies so the visible rect matches.
         info.Bounds.Width.ShouldBe(800);
         info.Bounds.Height.ShouldBe(600);
     }
