@@ -10,10 +10,10 @@ public class LayoutTests
     [InlineData(Layout.SplitVertical, TilingDirection.Vertical)]
     [InlineData(Layout.Tabbed, TilingDirection.Horizontal)]
     [InlineData(Layout.Stacked, TilingDirection.Vertical)]
-    public void Axis_WhenCalled_ReturnsTilingAxisForLayout(
-        Layout layout,
-        TilingDirection expected
-    ) => layout.Axis().ShouldBe(expected);
+    public void Axis_WhenCalled_ReturnsTilingAxisForLayout(Layout layout, TilingDirection expected)
+    {
+        layout.Axis().ShouldBe(expected);
+    }
 
     [Fact]
     public void Axis_WhenCalledForAllDefinedValues_CoversBothAxes()
@@ -30,12 +30,16 @@ public class LayoutTests
     [Theory]
     [InlineData(Layout.SplitHorizontal)]
     [InlineData(Layout.SplitVertical)]
-    public void IsSplit_WhenLayoutIsSplitting_ReturnsTrue(Layout layout) =>
+    public void IsSplit_WhenLayoutIsSplitting_ReturnsTrue(Layout layout)
+    {
         layout.IsSplit().ShouldBe(true);
+    }
 
     [Theory]
     [InlineData(Layout.Tabbed)]
     [InlineData(Layout.Stacked)]
-    public void IsSplit_WhenLayoutIsTabbedOrStacked_ReturnsFalse(Layout layout) =>
+    public void IsSplit_WhenLayoutIsTabbedOrStacked_ReturnsFalse(Layout layout)
+    {
         layout.IsSplit().ShouldBe(false);
+    }
 }

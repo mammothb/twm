@@ -1,4 +1,5 @@
 using System.Collections.Frozen;
+using System.Diagnostics.CodeAnalysis;
 using Twm.Application.InboundPorts;
 
 namespace Twm.Adapters.Config;
@@ -20,7 +21,7 @@ public static class KeyChordParser
         string chord,
         ModifierKeys mod,
         out KeyBinding binding,
-        out string? error
+        [NotNullWhen(false)] out string? error
     )
     {
         binding = default;

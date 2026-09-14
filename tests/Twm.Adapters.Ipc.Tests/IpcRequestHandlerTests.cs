@@ -25,6 +25,20 @@ public sealed class IpcRequestHandlerTests
     }
 
     [Fact]
+    public void GetTree_WithTitleResolver_PopulatesTitleOnWindowNodes()
+    {
+        var handler = new IpcRequestHandler(
+            StartedSession(Win(1)),
+            () => { },
+            titleGetter: id => $"win{id.Value}"
+        );
+
+        string json = handler.Handle("get-tree");
+
+        json.ShouldContain("\"title\":\"win1\"");
+    }
+
+    [Fact]
     public void Exit_InvokesCallback_AndReturnsOk()
     {
         bool exited = false;
@@ -40,6 +54,14 @@ public sealed class IpcRequestHandlerTests
         var handler = new IpcRequestHandler(StartedSession(Win(1)), () => { });
 
         handler.Handle("close").ShouldBe("ok");
+    }
+
+    [Fact]
+    public void ReconcileDisplays_CallsSessionReconcileAndReturnsOk()
+    {
+        var handler = new IpcRequestHandler(StartedSession(Win(1)), () => { });
+
+        handler.Handle("reconcile-displays").ShouldBe("ok");
     }
 
     [Fact]
@@ -64,6 +86,17 @@ public sealed class IpcRequestHandlerTests
         var handler = new IpcRequestHandler(StartedSession(Win(1)), () => { });
 
         handler.Handle("badcommand").ShouldStartWith("err");
+    }
+
+    [Fact]
+    public void EmptyRequest_ReturnsErr()
+    {
+        var handler = new IpcRequestHandler(StartedSession(Win(1)), () => { });
+
+        string response = handler.Handle("");
+
+        response.ShouldStartWith("err");
+        response.ShouldContain("empty command");
     }
 
     private static NativeWindowInfo Win(int id) =>

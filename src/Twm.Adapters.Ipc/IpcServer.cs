@@ -23,7 +23,7 @@ public sealed class IpcServer : IDisposable
 
     private readonly string _pipeName;
     private readonly Func<string, string> _dispatch;
-    private readonly CancellationTokenSource _cancellation = new();
+    private readonly CancellationTokenSource _cancellationTokenSource = new();
     private Task? _acceptLoop;
 
     public IpcServer(Func<string, string> dispatch, string pipeName = DefaultPipeName)
@@ -41,12 +41,12 @@ public sealed class IpcServer : IDisposable
             throw new InvalidOperationException("The IPC server is already started.");
         }
 
-        _acceptLoop = Task.Run(() => AcceptLoopAsync(_cancellation.Token));
+        _acceptLoop = Task.Run(() => AcceptLoopAsync(_cancellationTokenSource.Token));
     }
 
     public void Dispose()
     {
-        _cancellation.Cancel();
+        _cancellationTokenSource.Cancel();
         try
         {
             _acceptLoop?.Wait(TimeSpan.FromSeconds(2));
@@ -56,12 +56,12 @@ public sealed class IpcServer : IDisposable
             // The loop unwinds via cancellation
         }
 
-        _cancellation.Dispose();
+        _cancellationTokenSource.Dispose();
     }
 
-    private async Task AcceptLoopAsync(CancellationToken cancellation)
+    private async Task AcceptLoopAsync(CancellationToken cancellationToken)
     {
-        while (!cancellation.IsCancellationRequested)
+        while (!cancellationToken.IsCancellationRequested)
         {
             var server = new NamedPipeServerStream(
                 pipeName: _pipeName,
@@ -73,14 +73,14 @@ public sealed class IpcServer : IDisposable
 
             try
             {
-                await server.WaitForConnectionAsync(cancellation).ConfigureAwait(false);
+                await server.WaitForConnectionAsync(cancellationToken).ConfigureAwait(false);
             }
             catch (Exception)
             {
                 // Shutdown cancellation or a failed accept: drop this instance,
                 // then exit or try the next one
                 await server.DisposeAsync().ConfigureAwait(false);
-                if (cancellation.IsCancellationRequested)
+                if (cancellationToken.IsCancellationRequested)
                 {
                     return;
                 }
@@ -90,18 +90,18 @@ public sealed class IpcServer : IDisposable
 
             // Handle off the accept loop so the next listener is ready, so a
             // client reconnecting back-to-back never hits an empty gap
-            _ = HandleConnectionAsync(server, cancellation);
+            _ = HandleConnectionAsync(server, cancellationToken);
         }
     }
 
     private async Task HandleConnectionAsync(
         NamedPipeServerStream server,
-        CancellationToken cancellation
+        CancellationToken cancellationToken
     )
     {
         try
         {
-            await HandleAsync(server, cancellation).ConfigureAwait(false);
+            await HandleAsync(server, cancellationToken).ConfigureAwait(false);
         }
         catch (Exception)
         {
@@ -113,12 +113,15 @@ public sealed class IpcServer : IDisposable
         }
     }
 
-    private async Task HandleAsync(NamedPipeServerStream server, CancellationToken cancellation)
+    private async Task HandleAsync(
+        NamedPipeServerStream server,
+        CancellationToken cancellationToken
+    )
     {
         using var reader = new StreamReader(server, leaveOpen: true);
         using var writer = new StreamWriter(server, leaveOpen: true) { AutoFlush = true };
 
-        string? request = await reader.ReadLineAsync(cancellation).ConfigureAwait(false);
+        string? request = await reader.ReadLineAsync(cancellationToken).ConfigureAwait(false);
         if (request is null)
         {
             return;
@@ -142,7 +145,7 @@ public sealed class IpcServer : IDisposable
             }
         }
 
-        await writer.WriteLineAsync(response.AsMemory(), cancellation).ConfigureAwait(false);
+        await writer.WriteLineAsync(response.AsMemory(), cancellationToken).ConfigureAwait(false);
 
         if (OperatingSystem.IsWindows())
         {
@@ -150,10 +153,10 @@ public sealed class IpcServer : IDisposable
         }
         else
         {
-            byte[] scratch = new byte[1];
+            byte[] buffer = new byte[1];
             try
             {
-                while (await server.ReadAsync(scratch, cancellation).ConfigureAwait(false) > 0)
+                while (await server.ReadAsync(buffer, cancellationToken).ConfigureAwait(false) > 0)
                 {
                     // read until pipe is drained
                 }

@@ -6,18 +6,18 @@ public static class TabBarViewModel
 {
     public static IReadOnlyList<TabBarView> Build(
         RootContainer root,
-        Func<WindowId, string> titleOf
+        Func<WindowId, string> titleGetter
     )
     {
         ArgumentNullException.ThrowIfNull(root);
-        ArgumentNullException.ThrowIfNull(titleOf);
+        ArgumentNullException.ThrowIfNull(titleGetter);
 
         List<TabBarView> views = [];
-        foreach (Container child in root.Children)
+        foreach (Monitor monitor in root.Children.OfType<Monitor>())
         {
-            if (child is Monitor monitor && monitor.LastFocusedChild is Container activeWorkspace)
+            if (monitor.LastFocusedChild is Container activeWorkspace)
             {
-                Collect(activeWorkspace, titleOf, views);
+                Collect(activeWorkspace, titleGetter, views);
             }
         }
 
@@ -26,7 +26,7 @@ public static class TabBarViewModel
 
     private static void Collect(
         Container container,
-        Func<WindowId, string> titleOf,
+        Func<WindowId, string> titleGetter,
         List<TabBarView> views
     )
     {
@@ -41,14 +41,14 @@ public static class TabBarViewModel
             foreach (Container child in split.Children)
             {
                 bool isFocused = ReferenceEquals(child, split.LastFocusedChild);
-                tabs.Add(new TabItem(RepresentativeTitle(child, titleOf), isFocused));
+                tabs.Add(new TabItem(RepresentativeTitle(child, titleGetter), isFocused));
             }
 
             views.Add(new TabBarView(split.Id, split.Bounds, split.Layout, tabs));
 
             if (split.LastFocusedChild is Container focused)
             {
-                Collect(focused, titleOf, views);
+                Collect(focused, titleGetter, views);
             }
 
             return;
@@ -56,20 +56,20 @@ public static class TabBarViewModel
 
         foreach (Container child in split.Children)
         {
-            Collect(child, titleOf, views);
+            Collect(child, titleGetter, views);
         }
     }
 
-    private static string RepresentativeTitle(Container child, Func<WindowId, string> titleOf)
+    private static string RepresentativeTitle(Container child, Func<WindowId, string> titleGetter)
     {
         if (child is TilingWindow window)
         {
-            return titleOf(window.WindowId);
+            return titleGetter(window.WindowId);
         }
 
         if (child.LastFocusedDescendant is TilingWindow descendant)
         {
-            return titleOf(descendant.WindowId);
+            return titleGetter(descendant.WindowId);
         }
 
         return child is SplitContainer split ? $"[{split.Layout}]" : "";

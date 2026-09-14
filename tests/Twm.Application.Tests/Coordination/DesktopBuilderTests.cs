@@ -117,8 +117,10 @@ public class DesktopBuilderTests
     }
 
     [Fact]
-    public void EmptyMonitorList_Throws() =>
+    public void EmptyMonitorList_Throws()
+    {
         Should.Throw<ArgumentException>(() => DesktopBuilder.Build([]));
+    }
 
     [Fact]
     public void PerMonitorConfig_ChangesTheCount()

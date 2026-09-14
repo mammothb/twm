@@ -1,5 +1,7 @@
 using Twm.Application.Commands;
+using Twm.Application.Config;
 using Twm.Application.Coordination;
+using Twm.Application.Messaging;
 using Twm.Application.OutboundPorts;
 using Twm.Domain.Geometry;
 using Twm.Domain.Tree;
@@ -165,7 +167,7 @@ public class WmSessionTests
     }
 
     [Fact]
-    public void Remove_UmanagedWindow_IsNoOp()
+    public void Remove_UnmanagedWindow_IsNoOp()
     {
         var windows = new FakeWindowSystem(Win(1, 100, 100));
         var session = new WmSession(new FakeMonitorSystem(Primary), windows);
@@ -363,6 +365,319 @@ public class WmSessionTests
         eventCount.ShouldBePositive();
     }
 
+    [Fact]
+    public void Ctor_NullMonitorSystem_Throws()
+    {
+        var windows = new FakeWindowSystem();
+
+        Should.Throw<ArgumentNullException>(() => new WmSession(null!, windows));
+    }
+
+    [Fact]
+    public void Ctor_NullWindowSystem_Throws()
+    {
+        Should.Throw<ArgumentNullException>(() =>
+            new WmSession(new FakeMonitorSystem(Primary), null!)
+        );
+    }
+
+    [Fact]
+    public void Ctor_WithExplicitWorkspaceNames_UsesThoseNames()
+    {
+        var windows = new FakeWindowSystem();
+        var workspaces = new WorkspaceOptions { Names = ["alpha", "beta"] };
+
+        var session = new WmSession(
+            new FakeMonitorSystem(Primary),
+            windows,
+            workspaces: workspaces
+        );
+
+        // round-robin: monitor 0 owns every name when there is only one monitor
+        Monitor monitor = (Monitor)session.Root.Children[0];
+        Workspace first = monitor.Children.OfType<Workspace>().First();
+        Workspace second = monitor.Children.OfType<Workspace>().Last();
+        first.Name.ShouldBe("alpha");
+        second.Name.ShouldBe("beta");
+    }
+
+    [Fact]
+    public void ManagedWindowCount_ReflectsCurrentTreeSize()
+    {
+        var windows = new FakeWindowSystem();
+        var session = new WmSession(new FakeMonitorSystem(Primary), windows);
+
+        session.ManagedWindowCount.ShouldBe(0);
+
+        session.TryAdopt(Win(1, 100, 100));
+        session.ManagedWindowCount.ShouldBe(1);
+
+        session.Remove(new WindowId(1));
+        session.ManagedWindowCount.ShouldBe(0);
+    }
+
+    [Fact]
+    public void CloseFocused_WithFocusedWindow_CallsCloseOnTheOS()
+    {
+        var windows = new FakeWindowSystem(Win(1, 100, 100));
+        var session = new WmSession(new FakeMonitorSystem(Primary), windows);
+        session.Start(); // win 1 is focused
+
+        session.CloseFocused();
+
+        windows.Closed.ShouldContain(new WindowId(1));
+    }
+
+    [Fact]
+    public void CloseFocused_WithoutFocusedWindow_IsNoOp()
+    {
+        var windows = new FakeWindowSystem();
+        var session = new WmSession(new FakeMonitorSystem(Primary), windows);
+        // no Start: empty tree, no focused window
+        Should.NotThrow(() => session.CloseFocused());
+        windows.Closed.ShouldBeEmpty();
+    }
+
+    [Fact]
+    public void Execute_NullCommand_Throws()
+    {
+        var windows = new FakeWindowSystem();
+        var session = new WmSession(new FakeMonitorSystem(Primary), windows);
+
+        Should.Throw<ArgumentNullException>(() => session.Execute(null!));
+    }
+
+    [Fact]
+    public void Execute_ReturnsCommandResultFromHandler()
+    {
+        var windows = new FakeWindowSystem();
+        var session = new WmSession(new FakeMonitorSystem(Primary), windows);
+
+        CommandResult result = session.Execute(new FocusWorkspaceCommand("1"));
+
+        result.Success.ShouldBeTrue();
+    }
+
+    [Fact]
+    public void Execute_AfterRunningCommand_AppliesLayout()
+    {
+        var windows = new FakeWindowSystem(Win(1, 100, 100), Win(2, 200, 200));
+        var session = new WmSession(new FakeMonitorSystem(Primary), windows);
+        session.Start();
+        int layoutEvents = 0;
+        session.Subscribe<LayoutChangedEvent>(_ => layoutEvents++);
+        windows.Positioned.Clear(); // ignore startup positioning
+
+        // refocus the active workspace where the windows live, so Apply()
+        // must re-position them rather than cloak them
+        session.Execute(new FocusWorkspaceCommand("1"));
+
+        layoutEvents.ShouldBePositive();
+        windows.Positioned.ShouldNotBeEmpty();
+    }
+
+    [Fact]
+    public void HandleCloaked_UnmanagedWindow_ReturnsFalse()
+    {
+        var session = new WmSession(new FakeMonitorSystem(Primary), new FakeWindowSystem());
+
+        bool removed = session.HandleCloaked(new WindowId(999));
+
+        removed.ShouldBeFalse();
+    }
+
+    [Fact]
+    public void HandleHidden_UnmanagedWindow_ReturnsFalse()
+    {
+        var session = new WmSession(new FakeMonitorSystem(Primary), new FakeWindowSystem());
+
+        bool removed = session.HandleHidden(new WindowId(999));
+
+        removed.ShouldBeFalse();
+    }
+
+    [Fact]
+    public void HandleMinimized_UnmanagedWindow_ReturnsFalse()
+    {
+        var session = new WmSession(new FakeMonitorSystem(Primary), new FakeWindowSystem());
+
+        bool removed = session.HandleMinimized(new WindowId(999));
+
+        removed.ShouldBeFalse();
+    }
+
+    [Fact]
+    public void ReconcileDisplays_SameCountSameBounds_ReturnsFalse()
+    {
+        var monitors = new MutableMonitorSystem(Primary);
+        var session = new WmSession(monitors, new FakeWindowSystem());
+
+        bool changed = session.ReconcileDisplays();
+
+        changed.ShouldBeFalse();
+    }
+
+    [Fact]
+    public void ReconcileDisplays_BoundsChange_UpdatesMonitorBoundsAndReturnsTrue()
+    {
+        var monitors = new MutableMonitorSystem(Primary);
+        var session = new WmSession(monitors, new FakeWindowSystem());
+
+        var newPrimary = new MonitorInfo(
+            new MonitorId(1),
+            new Rect(0, 0, 2560, 1440),
+            new Rect(0, 0, 2560, 1440),
+            IsPrimary: true
+        );
+        monitors.SetMonitors(newPrimary);
+        int reconciledEvents = 0;
+        session.Subscribe<DisplaysReconciledEvent>(_ => reconciledEvents++);
+
+        bool changed = session.ReconcileDisplays();
+
+        changed.ShouldBeTrue();
+        ((Monitor)session.Root.Children[0]).Bounds.ShouldBe(new Rect(0, 0, 2560, 1440));
+        reconciledEvents.ShouldBe(1);
+    }
+
+    [Fact]
+    public void ReconcileDisplays_AddedMonitor_RestructuresAndReturnsTrue()
+    {
+        var monitors = new MutableMonitorSystem(Primary);
+        var session = new WmSession(monitors, new FakeWindowSystem());
+
+        monitors.SetMonitors(Primary, Secondary);
+
+        bool changed = session.ReconcileDisplays();
+
+        changed.ShouldBeTrue();
+        session.Root.Children.Count.ShouldBe(2);
+    }
+
+    [Fact]
+    public void ReconcileDisplays_RemovedMonitor_RestructuresAndRehomesWindows()
+    {
+        var windows = new FakeWindowSystem(Win(1, 100, 100), Win(2, 200, 200));
+        var monitors = new MutableMonitorSystem(Primary, Secondary);
+        var session = new WmSession(monitors, windows);
+        session.Start();
+        // move win 2 to workspace "5" on the primary (becomes orphan once the
+        // secondary is dropped and the primary drops down to 4 workspaces)
+        session.Execute(new MoveWindowToWorkspaceCommand("5"));
+
+        monitors.SetMonitors(Primary);
+
+        bool changed = session.ReconcileDisplays();
+
+        changed.ShouldBeTrue();
+        // win 2 was on "5" which is not in the new plan {1,2,3,4}; it lands
+        // on the surviving primary workspace "1"
+        TilingWindow win2 = session.Root.FindWindow(new WindowId(2))!;
+        win2.FindAncestor<Workspace>()!.Name.ShouldBe("1");
+    }
+
+    [Fact]
+    public void ReconcileDisplays_FocusedWorkspaceSurvives_KeepsFocus()
+    {
+        var windows = new FakeWindowSystem();
+        var monitors = new MutableMonitorSystem(Primary);
+        var session = new WmSession(monitors, windows);
+        // focus workspace "2" on the primary
+        session.Execute(new FocusWorkspaceCommand("2"));
+
+        // add a secondary monitor -> restructure path; all existing workspace
+        // names are in the new plan, so the focused workspace survives
+        monitors.SetMonitors(Primary, Secondary);
+
+        bool changed = session.ReconcileDisplays();
+
+        changed.ShouldBeTrue();
+        // focused workspace is itself a leaf in the tree (no descendants),
+        // so it IS the focused node, not an ancestor of one
+        Container focused = session.Root.LastFocusedDescendant!;
+        focused.ShouldBeOfType<Workspace>();
+        ((Workspace)focused).Name.ShouldBe("2");
+    }
+
+    [Fact]
+    public void ReconcileDisplays_PlanWorkspaceNamesFails_ReturnsFalse()
+    {
+        // initial 1-monitor build with one explicit name passes
+        var monitors = new MutableMonitorSystem(Primary);
+        var workspaces = new WorkspaceOptions { Names = ["only"] };
+        var session = new WmSession(monitors, new FakeWindowSystem(), workspaces: workspaces);
+
+        // adding a second monitor invalidates the explicit-name plan (1 < 2)
+        monitors.SetMonitors(Primary, Secondary);
+
+        bool changed = session.ReconcileDisplays();
+
+        changed.ShouldBeFalse();
+        // tree untouched: still 1 monitor
+        session.Root.Children.Count.ShouldBe(1);
+    }
+
+    [Fact]
+    public void Shutdown_WhenShowThrows_ContinuesSilently()
+    {
+        var windows = new FakeWindowSystem(Win(1, 100, 100), Win(2, 200, 200));
+        windows.ThrowOnShow.Add(new WindowId(1));
+        var session = new WmSession(new FakeMonitorSystem(Primary), windows);
+        session.Start();
+
+        // every Show() throws; Shutdown's catch swallows them and continues
+        Should.NotThrow(() => session.Shutdown());
+
+        // win 2 was not in ThrowOnShow, so it must have been restored
+        windows.Shown.ShouldContain(new WindowId(2));
+    }
+
+    [Fact]
+    public void SyncFocus_OnInactiveWorkspace_TriggersReconcile()
+    {
+        var windows = new FakeWindowSystem(Win(1, 100, 100), Win(2, 200, 200));
+        var session = new WmSession(new FakeMonitorSystem(Primary), windows);
+        session.Start();
+        // move win 2 off the active workspace onto an inactive one on the
+        // same monitor (round-robin: "2" is also on the primary)
+        session.Execute(new MoveWindowToWorkspaceCommand("2"));
+        int eventCount = 0;
+        session.Subscribe<LayoutChangedEvent>(_ => eventCount++);
+        windows.Positioned.Clear();
+        windows.Foregrounded.Clear();
+
+        session.SyncFocus(new WindowId(2));
+
+        // reveal-inactive-workspace path runs Apply() which emits
+        // LayoutChangedEvent, re-positions, and re-foregrounds
+        eventCount.ShouldBePositive();
+        windows.Positioned.ShouldNotBeEmpty();
+        windows.Foregrounded.ShouldContain(new WindowId(2));
+    }
+
+    [Fact]
+    public void TryAdopt_NullWindow_Throws()
+    {
+        var windows = new FakeWindowSystem();
+        var session = new WmSession(new FakeMonitorSystem(Primary), windows);
+
+        Should.Throw<ArgumentNullException>(() => session.TryAdopt(null!));
+    }
+
+    [Fact]
+    public void TryAdopt_ManageableNewWindow_AdoptsAndReturnsTrue()
+    {
+        var windows = new FakeWindowSystem(Win(1, 100, 100));
+        var session = new WmSession(new FakeMonitorSystem(Primary), windows);
+        session.Start();
+
+        bool adopted = session.TryAdopt(Win(2, 200, 200));
+
+        adopted.ShouldBeTrue();
+        session.IsManaged(new WindowId(2)).ShouldBeTrue();
+        session.ManagedWindowCount.ShouldBe(2);
+    }
+
     private static NativeWindowInfo Win(
         int id,
         int x,
@@ -385,4 +700,13 @@ public class WmSessionTests
 
     private static int WindowCount(WmSession session) =>
         session.Root.Descendants.OfType<TilingWindow>().Count();
+
+    private sealed class MutableMonitorSystem(params MonitorInfo[] initial) : IMonitorSystem
+    {
+        public IReadOnlyList<MonitorInfo> Monitors { get; private set; } = initial;
+
+        public IReadOnlyList<MonitorInfo> EnumerateMonitors() => Monitors;
+
+        public void SetMonitors(params MonitorInfo[] next) => Monitors = next;
+    }
 }

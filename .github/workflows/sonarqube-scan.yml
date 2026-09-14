@@ -49,7 +49,11 @@ jobs:
           dotnet sonarscanner begin \
             /k:"${{ steps.sonar.outputs.sonar-project-key }}" \
             /d:sonar.host.url="${SONAR_HOST_URL}" \
-            /d:sonar.token="${SONAR_TOKEN}"
+            /d:sonar.token="${SONAR_TOKEN}" \
+            /d:sonar.projectBaseDir="${{ github.workspace }}" \
+            /d:sonar.issue.ignore.multicriteria=trivialNativeWrapper \
+            /d:sonar.issue.ignore.multicriteria.trivialNativeWrapper.ruleKey=csharpsquid:S4200 \
+            /d:sonar.issue.ignore.multicriteria.trivialNativeWrapper.resourceKey="**/Twm.Adapters.Windows/**/*.cs"
 
           make coverage
 

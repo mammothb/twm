@@ -49,7 +49,7 @@ public static class KeymapBuilder
                 )
             )
             {
-                errors.Add(chordError!);
+                errors.Add(chordError);
                 continue;
             }
 

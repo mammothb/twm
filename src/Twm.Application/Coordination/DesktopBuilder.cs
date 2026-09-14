@@ -43,15 +43,18 @@ public static class DesktopBuilder
 
         var root = new RootContainer();
 
-        List<MonitorInfo> ordered = [.. OrderPrimaryFirst(monitors)];
-        IReadOnlyList<IReadOnlyList<string>> plan = PlanWorkspaceNames(workspaces, ordered.Count);
+        IReadOnlyList<MonitorInfo> orderedMonitors = OrderPrimaryFirst(monitors);
+        IReadOnlyList<IReadOnlyList<string>> perMonitorWorkspaceNames = PlanWorkspaceNames(
+            workspaces,
+            orderedMonitors.Count
+        );
 
-        for (int i = 0; i < ordered.Count; i++)
+        for (int i = 0; i < orderedMonitors.Count; i++)
         {
-            var monitor = new Monitor(ordered[i].WorkArea);
+            var monitor = new Monitor(orderedMonitors[i].WorkArea);
 
             // this monitor's round robin slice, first append is active
-            foreach (string name in plan[i])
+            foreach (string name in perMonitorWorkspaceNames[i])
             {
                 monitor.AppendChild(new Workspace(name));
             }
@@ -69,11 +72,15 @@ public static class DesktopBuilder
     /// left-to-right (then top-down). Public so the status bar can pair its
     /// per-monitor windows with the tree's monitors by index.
     /// </summary>
-    public static IEnumerable<MonitorInfo> OrderPrimaryFirst(IReadOnlyList<MonitorInfo> monitors) =>
-        monitors
-            .OrderByDescending(monitor => monitor.IsPrimary)
-            .ThenBy(monitor => monitor.Bounds.X)
-            .ThenBy(monitor => monitor.Bounds.Y);
+    public static IReadOnlyList<MonitorInfo> OrderPrimaryFirst(
+        IReadOnlyList<MonitorInfo> monitors
+    ) =>
+        [
+            .. monitors
+                .OrderByDescending(monitor => monitor.IsPrimary)
+                .ThenBy(monitor => monitor.Bounds.X)
+                .ThenBy(monitor => monitor.Bounds.Y),
+        ];
 
     /// <summary>
     /// Per-monitor workspace-name assignment for
@@ -91,7 +98,7 @@ public static class DesktopBuilder
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(monitorCount);
         IReadOnlyList<string> names = ResolveNames(workspaces, monitorCount);
 
-        var perMonitor = new List<IReadOnlyList<string>>(monitorCount);
+        var perMonitorWorkspaceNames = new List<IReadOnlyList<string>>(monitorCount);
         for (int i = 0; i < monitorCount; i++)
         {
             List<string> slice = [];
@@ -100,10 +107,10 @@ public static class DesktopBuilder
                 slice.Add(names[j]);
             }
 
-            perMonitor.Add(slice);
+            perMonitorWorkspaceNames.Add(slice);
         }
 
-        return perMonitor;
+        return perMonitorWorkspaceNames;
     }
 
     private static IReadOnlyList<string> ResolveNames(
@@ -134,15 +141,15 @@ public static class DesktopBuilder
             return explicitNames;
         }
 
-        int perMonitor =
+        int countPerMonitor =
             workspaces?.PerMonitor is int count && count > 0 ? count : WorkspacesPerMonitor;
-        int total = perMonitor * monitorCount;
-        var generated = new List<string>(total);
+        int total = countPerMonitor * monitorCount;
+        var generatedNames = new List<string>(total);
         for (int number = 1; number <= total; number++)
         {
-            generated.Add(number.ToString(CultureInfo.InvariantCulture));
+            generatedNames.Add(number.ToString(CultureInfo.InvariantCulture));
         }
 
-        return generated;
+        return generatedNames;
     }
 }

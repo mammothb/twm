@@ -223,6 +223,13 @@ dotnet_diagnostic.RCS1249.severity = warning
 # invalid argument null check (suggestion)
 dotnet_diagnostic.RCS1256.severity = warning
 
+[tests/**/*.cs]
+dotnet_diagnostic.IDE0022.severity = none
+
+# S4200: trivial P/Invoke wrapper
+[src/Twm.Adapters.Windows/**/*.cs]
+dotnet_diagnostic.S4200.severity = none
+
 # Xml project files
 [*.{csproj,vbproj,vcxproj,vcxproj.filters,proj,nativeproj,locproj}]
 indent_size = 2

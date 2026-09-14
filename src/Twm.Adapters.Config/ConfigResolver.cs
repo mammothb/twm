@@ -21,7 +21,7 @@ public static class ConfigResolver
         KeymapBuildResult keymapResult = KeymapBuilder.Build(config);
         errors.AddRange(keymapResult.Errors);
 
-        WindowRuleCompileResult rulesResult = ConfigMapping.CompileRules(config.WindowRules);
+        WindowRuleCompileResult rulesResult = WindowRuleCompiler.Compile(config.WindowRules);
         errors.AddRange(rulesResult.Errors);
 
         Gaps gaps = ConfigMapping.MapGaps(config.Gaps);

@@ -21,6 +21,26 @@ public sealed class FakeWindowSystem(params NativeWindowInfo[] windows) : IWindo
     /// </summary>
     public HashSet<WindowId> ThrowOnRect { get; } = [];
 
+    /// <summary>
+    /// Ids for which <see cref="Show" /> throws
+    /// (<see cref="Application.Coordination.WmSession.Shutdown" /> must
+    /// swallow these and continue restoring the rest).
+    /// </summary>
+    public HashSet<WindowId> ThrowOnShow { get; } = [];
+
+    /// <summary>
+    /// Ids for which <see cref="SetForeground" /> throws
+    /// (<see cref="Reconciler.Apply" /> must swallow and continue cloaking).
+    /// </summary>
+    public HashSet<WindowId> ThrowOnForeground { get; } = [];
+
+    /// <summary>
+    /// Ids for which <see cref="Hide" /> throws
+    /// (<see cref="Reconciler.Apply" /> must swallow and continue hiding the
+    /// rest).
+    /// </summary>
+    public HashSet<WindowId> ThrowOnHide { get; } = [];
+
     public List<WindowId> Foregrounded { get; } = [];
 
     public List<WindowId> Shown { get; } = [];
@@ -50,18 +70,33 @@ public sealed class FakeWindowSystem(params NativeWindowInfo[] windows) : IWindo
 
     public void SetForeground(WindowId window)
     {
+        if (ThrowOnForeground.Contains(window))
+        {
+            throw new InvalidOperationException($"simulated SetForeground failure for {window}");
+        }
+
         Foregrounded.Add(window);
         Operations.Add($"foreground:{window.Value}");
     }
 
     public void Show(WindowId window)
     {
+        if (ThrowOnShow.Contains(window))
+        {
+            throw new InvalidOperationException($"simulated Show failure for {window}");
+        }
+
         Shown.Add(window);
         Operations.Add($"show:{window.Value}");
     }
 
     public void Hide(WindowId window)
     {
+        if (ThrowOnHide.Contains(window))
+        {
+            throw new InvalidOperationException($"simulated Hide failure for {window}");
+        }
+
         Hidden.Add(window);
         Operations.Add($"hide:{window.Value}");
     }

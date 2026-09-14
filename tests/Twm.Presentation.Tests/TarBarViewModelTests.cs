@@ -82,6 +82,55 @@ public class TabBarViewModelTests
         TabBarViewModel.Build(root, Title).ShouldBeEmpty();
     }
 
+    [Fact]
+    public void Build_NullRoot_Throws()
+    {
+        Should.Throw<ArgumentNullException>(() => TabBarViewModel.Build(null!, Title));
+    }
+
+    [Fact]
+    public void Build_NullTitleGetter_Throws()
+    {
+        Should.Throw<ArgumentNullException>(() =>
+            TabBarViewModel.Build(new RootContainer(), null!)
+        );
+    }
+
+    [Fact]
+    public void StackedWorkspace_EmitsOneBarLikeTabbed()
+    {
+        (RootContainer root, _, Workspace ws) = Desktop(Layout.Stacked);
+        ws.AppendChild(new TilingWindow(new WindowId(1)));
+        var w2 = new TilingWindow(new WindowId(2));
+        ws.AppendChild(w2);
+        ws.AppendChild(new TilingWindow(new WindowId(3)));
+        w2.Focus();
+        new LayoutEngine().Arrange(root);
+
+        TabBarView view = TabBarViewModel.Build(root, Title).ShouldHaveSingleItem();
+
+        view.Layout.ShouldBe(Layout.Stacked);
+        view.Tabs.Select(t => t.Title).ShouldBe(["win1", "win2", "win3"]);
+        view.Tabs.Select(t => t.Focused).ShouldBe([false, true, false]);
+    }
+
+    [Fact]
+    public void SplitContainerWithNoChildren_IsSkippedSilently()
+    {
+        (RootContainer root, _, Workspace ws) = Desktop(Layout.SplitHorizontal);
+        var emptyTabbed = new SplitContainer(Layout.Tabbed);
+        ws.AppendChild(emptyTabbed);
+        var nested = new SplitContainer(Layout.Tabbed);
+        var nestedWindow = new TilingWindow(new WindowId(1));
+        nested.AppendChild(nestedWindow);
+        ws.AppendChild(nested);
+        new LayoutEngine().Arrange(root);
+
+        // Collect hits the `Children.Count == 0` early return on `emptyTabbed`;
+        // the populated `nested` still yields one bar
+        TabBarViewModel.Build(root, Title).ShouldHaveSingleItem();
+    }
+
     private static string Title(WindowId id) => $"win{id.Value}";
 
     private static (RootContainer Root, Monitor Monitor, Workspace Workspace) Desktop(Layout layout)

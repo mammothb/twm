@@ -187,7 +187,7 @@ public sealed unsafe partial class WinEventHook : IDisposable
         uint eventTime
     )
     {
-        // Only top-level window event (OBJID_WINDOW == 0, CHILDID_SELF == 0;
+        // Only top-level window event (OBJID_WINDOW == 0, CHILDID_SELF == 0)
         // skip control/menus
         if (
             idObject != 0
@@ -199,8 +199,8 @@ public sealed unsafe partial class WinEventHook : IDisposable
             return;
         }
 
-        // Cloak/minimize makes a managed window vanish without a destroy/hide;
-        // uncloadk and minimize-end bring it back. Handling them presents
+        // Cloak/minimize makes a managed window vanish without a destroy/hide,
+        // uncloak and minimize-end bring it back. Handling them presents
         // ghost tiles (empty slots)
         WindowEventKind? kind = (WinEvent)eventType switch
         {

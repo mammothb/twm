@@ -8,7 +8,7 @@ public interface IMonitorSystem
 {
     /// <summary>
     /// Enumerates the currently connected monitors. The order is unspecified;
-    /// calleds identify the primary via <see cref="MonitorInfo.IsPrimary" />.
+    /// callers identify the primary via <see cref="MonitorInfo.IsPrimary" />.
     /// </summary>
     IReadOnlyList<MonitorInfo> EnumerateMonitors();
 }

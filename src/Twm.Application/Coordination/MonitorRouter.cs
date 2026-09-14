@@ -20,23 +20,18 @@ public static class MonitorRouter
         ArgumentNullException.ThrowIfNull(root);
 
         Point center = windowBounds.Center;
-        Monitor? primary = null;
+        Monitor? first = null;
 
-        foreach (Container child in root.Children)
+        foreach (Monitor monitor in root.Children.OfType<Monitor>())
         {
-            if (child is not Monitor monitor)
-            {
-                continue;
-            }
-
-            primary ??= monitor;
+            first ??= monitor;
             if (monitor.Bounds.Contains(center))
             {
                 return monitor;
             }
         }
 
-        return primary
+        return first
             ?? throw new InvalidOperationException("Root has no monitors to route the window to.");
     }
 }

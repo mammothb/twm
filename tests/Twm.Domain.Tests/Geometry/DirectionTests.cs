@@ -12,7 +12,10 @@ public class DirectionTests
     public void Axis_WhenCalled_ReturnsTilingAxisForDirection(
         Direction direction,
         TilingDirection expected
-    ) => direction.Axis().ShouldBe(expected);
+    )
+    {
+        direction.Axis().ShouldBe(expected);
+    }
 
     [Fact]
     public void Axis_WhenCalledForAllDefinedValues_CoversBothAxes()
@@ -27,8 +30,10 @@ public class DirectionTests
     }
 
     [Fact]
-    public void Axis_WhenGivenUndefinedValue_ThrowsArgumentOutOfRangeException() =>
+    public void Axis_WhenGivenUndefinedValue_ThrowsArgumentOutOfRangeException()
+    {
         Should.Throw<ArgumentOutOfRangeException>(() => ((Direction)999).Axis());
+    }
 
     [Theory]
     [InlineData(Direction.Left, Direction.Right)]
@@ -38,33 +43,44 @@ public class DirectionTests
     public void Opposite_WhenCalled_ReturnsOppositeDirection(
         Direction direction,
         Direction expected
-    ) => direction.Opposite().ShouldBe(expected);
+    )
+    {
+        direction.Opposite().ShouldBe(expected);
+    }
 
     [Theory]
     [InlineData(Direction.Left)]
     [InlineData(Direction.Right)]
     [InlineData(Direction.Up)]
     [InlineData(Direction.Down)]
-    public void Opposite_WhenAppliedTwice_ReturnsOriginalDirection(Direction direction) =>
+    public void Opposite_WhenAppliedTwice_ReturnsOriginalDirection(Direction direction)
+    {
         direction.Opposite().Opposite().ShouldBe(direction);
+    }
 
     [Theory]
     [InlineData(Direction.Left)]
     [InlineData(Direction.Right)]
     [InlineData(Direction.Up)]
     [InlineData(Direction.Down)]
-    public void Opposite_WhenApplied_ReturnsDifferentDirection(Direction direction) =>
+    public void Opposite_WhenApplied_ReturnsDifferentDirection(Direction direction)
+    {
         direction.Opposite().ShouldNotBe(direction);
+    }
 
     [Theory]
     [InlineData(Direction.Left)]
     [InlineData(Direction.Right)]
     [InlineData(Direction.Up)]
     [InlineData(Direction.Down)]
-    public void Opposite_WhenApplied_PreservesAxis(Direction direction) =>
+    public void Opposite_WhenApplied_PreservesAxis(Direction direction)
+    {
         direction.Opposite().Axis().ShouldBe(direction.Axis());
+    }
 
     [Fact]
-    public void Opposite_WhenGivenUndefinedValue_ThrowsArgumentOutOfRangeException() =>
+    public void Opposite_WhenGivenUndefinedValue_ThrowsArgumentOutOfRangeException()
+    {
         Should.Throw<ArgumentOutOfRangeException>(() => ((Direction)999).Opposite());
+    }
 }
