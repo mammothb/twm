@@ -1,3 +1,4 @@
+using System.Threading;
 using Twm.Adapters.Config;
 using Twm.Adapters.Windows;
 using Twm.App;
@@ -36,6 +37,20 @@ if (cliArgs.Dump)
     }
 
     return DiagnosticModes.Dump(monitorSystem, windowSystem, new WindowFilter(config.WindowRules));
+}
+
+// Single-instance gate. The mutex lives for the rest of Main; using-decl
+// semantics mean a second launch can take the lock only after we've
+// cleaned up (i.e., after host.Dispose() runs, which is its own using-decl).
+using var singleInstanceMutex = new Mutex(
+    initiallyOwned: true,
+    "Twm.SingleInstance",
+    out bool isOnlyInstance
+);
+if (!isOnlyInstance)
+{
+    Console.WriteLine("Twm is already running.");
+    return 1;
 }
 
 using var host = AppHost.Build(cliArgs);

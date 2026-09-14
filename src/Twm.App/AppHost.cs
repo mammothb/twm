@@ -1,4 +1,3 @@
-using System.Threading;
 using Twm.Adapters.Config;
 using Twm.Adapters.Ipc;
 using Twm.Adapters.Windows;
@@ -31,14 +30,6 @@ internal sealed class AppHost : IDisposable
     private readonly BorderHost? _border;
     private readonly TabBarHost _tabBar;
 
-    /// <summary>
-    /// Named kernel mutex held for the lifetime of the process to block a
-    /// second <c>twm</c> from starting. Released (and the handle closed) in
-    /// <see cref="Dispose" /> so a second launch can start cleanly after
-    /// this one exits.
-    /// </summary>
-    private readonly Mutex _singleInstanceMutex;
-
     /// <summary>Set in <see cref="Run" />; null beforehand.</summary>
     private IpcServer? _ipcServer;
 
@@ -54,8 +45,7 @@ internal sealed class AppHost : IDisposable
         WindowEventRouter windowEventRouter,
         StatusBarHost? statusBar,
         BorderHost? border,
-        TabBarHost tabBar,
-        Mutex singleInstanceMutex
+        TabBarHost tabBar
     )
     {
         _configPath = configPath;
@@ -68,25 +58,10 @@ internal sealed class AppHost : IDisposable
         _statusBar = statusBar;
         _border = border;
         _tabBar = tabBar;
-        _singleInstanceMutex = singleInstanceMutex;
     }
 
     public static AppHost Build(CliArgs args)
     {
-        // Acquire the named mutex up front. Whether we got it or not, the
-        // handle stays alive on AppHost so the lock holds for the whole
-        // process; releasing it during Dispose is what unblocks a future launch.
-        Mutex singleInstanceMutex = new(
-            initiallyOwned: true,
-            "Twm.SingleInstance",
-            out bool isOnlyInstance
-        );
-        if (!isOnlyInstance)
-        {
-            Console.WriteLine("Twm is already running.");
-            Environment.Exit(1);
-        }
-
         StreamWriter? logWriter = null;
         if (args.Log)
         {
@@ -177,8 +152,7 @@ internal sealed class AppHost : IDisposable
             windowEventRouter,
             statusBar,
             border,
-            tabBar,
-            singleInstanceMutex
+            tabBar
         );
     }
 
@@ -234,9 +208,5 @@ internal sealed class AppHost : IDisposable
         _tabBar.Dispose();
         _session.Shutdown();
         _logWriter?.Dispose();
-        // Release the single-instance lock last, after every Twm-owned window
-        // and resource is gone. Dispose() releases if still owned, then closes
-        // the handle.
-        _singleInstanceMutex.Dispose();
     }
 }
