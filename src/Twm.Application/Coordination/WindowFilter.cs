@@ -78,10 +78,7 @@ public sealed class WindowFilter(IReadOnlyList<WindowRule>? rules = null)
         }
 
         // Windows that never take activation (WS_EX_NOACTIVATE) or are owned
-        // popups/menus with no title bar (WinUI flyouts like the taskbar's
-        // "PopupHost", Notepad++'s autocomplete are not real app windows,
-        // adopting them starts a tile-flicker fight with the popup.
-        // (glazewm's heuristic: WindowService.IsHandleManageable)
+        // popups/menus with no title bar
         if (window.IsNoActivate || window.IsMenuPopup)
         {
             return false;
