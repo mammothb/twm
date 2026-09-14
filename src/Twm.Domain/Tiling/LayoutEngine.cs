@@ -115,7 +115,7 @@ public sealed class LayoutEngine(Gaps gaps, int titleBarHeight)
         {
             // Reserve a title strip (tabbed = one row; stacked = one row per
             // child), then give every child the same content rect below it.
-            // Only the focused child is shown (the reconciler cloaks the rest);
+            // Only the focused child is shown (the reconciler cloaks the rest),
             // non-focused children still get valid bounds.
             int rowCount = split.Layout == Layout.Tabbed ? 1 : split.Children.Count;
 

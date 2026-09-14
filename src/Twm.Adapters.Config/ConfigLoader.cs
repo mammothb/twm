@@ -31,7 +31,7 @@ public static class ConfigLoader
         }
         catch (Exception error)
         {
-            // VYaml throws parser/serializer exceptions on malformed input;
+            // VYaml throws parser/serializer exceptions on malformed input,
             // stay total for a WM
             return new ConfigLoadResult(TwmConfig.Defaults, [error.Message]);
         }

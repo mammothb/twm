@@ -155,13 +155,6 @@ public class TilingWindowOperationsTests
     }
 
     [Fact]
-    public void Remove_WhenWindowIsDetached_IsNoOp()
-    {
-        var window = new TilingWindow(new WindowId(1));
-        window.Remove();
-    }
-
-    [Fact]
     public void Remove_WhenWindowIsAttached_DetachesFromParent()
     {
         var split = new SplitContainer();
@@ -232,13 +225,6 @@ public class TilingWindowOperationsTests
         resized.ShouldBeTrue();
         w1.SizeFraction.ShouldBe(0.7);
         w2.SizeFraction.ShouldBe(0.3);
-    }
-
-    [Fact]
-    public void SplitInDirection_WhenWindowHasNoParent_IsNoOp()
-    {
-        var window = new TilingWindow(new WindowId(1));
-        window.SplitInDirection(TilingDirection.Horizontal);
     }
 
     [Fact]

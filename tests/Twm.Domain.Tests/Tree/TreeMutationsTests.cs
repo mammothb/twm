@@ -10,8 +10,7 @@ public class TreeMutationsTests
     {
         Container? nullContainer = null;
 
-        // Should not throw.
-        nullContainer.Cleanup();
+        Should.NotThrow(() => nullContainer.Cleanup());
     }
 
     [Fact]
