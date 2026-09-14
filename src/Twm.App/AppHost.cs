@@ -138,6 +138,13 @@ internal sealed class AppHost : IDisposable
             workspaces: config.Workspaces,
             titleBarHeight: config.Tabs.Height
         );
+
+        // Install WinEventHook BEFORE Start(): SetWinEventHook only delivers
+        // events that occur after registration. Any window appearing in a
+        // Start-after-Install gap would never fire Appeared and stay unmanaged.
+        var windowEventRouter = new WindowEventRouter(session, windowSystem);
+        windowEventRouter.Install();
+
         session.Start();
 
         StatusBarHost? statusBar = barOptions.Enabled
@@ -159,9 +166,6 @@ internal sealed class AppHost : IDisposable
                 );
             }
         }
-
-        var windowEventRouter = new WindowEventRouter(session, windowSystem);
-        windowEventRouter.Install();
 
         return new AppHost(
             args.ConfigPath,
