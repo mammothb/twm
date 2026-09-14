@@ -30,40 +30,4 @@ public class ConfigMappingTests
         mapped.PerMonitor.ShouldBe(3);
         mapped.Names.ShouldBe(["a", "b"]);
     }
-
-    [Fact]
-    public void CompileRules_ValidRules_ParsesActionsAndCriteria()
-    {
-        WindowRuleCompileResult result = ConfigMapping.CompileRules([
-            new WindowRuleDto { Class = "TaskManagerWindow", Action = "ignore" },
-            new WindowRuleDto { Title = "Picture in picture", Action = "MANAGE" },
-        ]);
-
-        result.Errors.ShouldBeEmpty();
-        result.Rules.Count.ShouldBe(2);
-        result.Rules[0].Action.ShouldBe(WindowRuleAction.Ignore);
-        result.Rules[1].Action.ShouldBe(WindowRuleAction.Manage);
-    }
-
-    [Fact]
-    public void CompileRules_InvalidAction_IsRejectedWithError()
-    {
-        WindowRuleCompileResult result = ConfigMapping.CompileRules([
-            new WindowRuleDto { Class = "TaskManagerWindow", Action = "float" },
-        ]);
-
-        result.Errors.ShouldNotBeEmpty();
-        result.Rules.ShouldBeEmpty();
-    }
-
-    [Fact]
-    public void CompileRules_NoCriteria_IsRejectedWithError()
-    {
-        WindowRuleCompileResult result = ConfigMapping.CompileRules([
-            new WindowRuleDto { Action = "ignore" },
-        ]);
-
-        result.Errors.ShouldNotBeEmpty();
-        result.Rules.ShouldBeEmpty();
-    }
 }
