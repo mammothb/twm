@@ -3,10 +3,9 @@ using Twm.Adapters.Windows.Tests.Helpers;
 namespace Twm.Adapters.Windows.Tests.Fixtures;
 
 /// <summary>
-/// A real but invisible Win32 window for end-to-end tests of the Win32 P/Invoke
-/// surface. Message-only parent (<c>HWND_MESSAGE</c>) + <c>WS_EX_TOOLWINDOW</c>
-/// means the window has no UI, doesn't paint, and never appears in the taskbar
-/// or Alt+Tab — safe for CI.
+/// A real top-level Win32 window for end-to-end tests of the Win32 P/Invoke
+/// surface. <c>WS_EX_TOOLWINDOW</c> hides it from the taskbar and Alt+Tab, and
+/// no <c>ShowWindow</c> is called so it never paints — safe for CI.
 /// </summary>
 internal sealed class TestWindow : IDisposable
 {
@@ -21,7 +20,7 @@ internal sealed class TestWindow : IDisposable
             y: 0,
             nWidth: 0,
             nHeight: 0,
-            hWndParent: Win32.HwndMessage,
+            hWndParent: 0,
             hMenu: 0,
             hInstance: 0,
             lpParam: 0

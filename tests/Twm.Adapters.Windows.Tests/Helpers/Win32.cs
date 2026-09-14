@@ -13,10 +13,6 @@ internal static partial class Win32
     // CI runs never flash a visible window while a test is creating fixtures.
     internal const uint WsExToolwindow = 0x00000080;
 
-    // HWND_MESSAGE = (HWND)-3: message-only windows have no UI and never paint,
-    // but participate in EnumWindows/SetWinEventHook/SetWindowPos.
-    internal static readonly nint HwndMessage = -3;
-
     [LibraryImport("user32.dll", StringMarshalling = StringMarshalling.Utf16)]
     internal static partial nint CreateWindowExW(
         uint dwExStyle,

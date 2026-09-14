@@ -59,7 +59,7 @@ public sealed class WindowsWindowSystemTests
     }
 
     [Fact(Skip = "Windows only", SkipUnless = nameof(IsWindows))]
-    public void Describe_NewMessageOnlyWindow_ReportsExpectedMetadata()
+    public void Describe_NewTopLevelWindow_ReportsExpectedMetadata()
     {
         using var window = new TestWindow("twm-describe");
 
