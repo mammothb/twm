@@ -12,7 +12,6 @@ using Twm.Domain.Tree;
 using Twm.Presentation;
 
 bool dump = args.Contains("--dump");
-bool cloakTest = args.Contains("--cloak-test");
 bool useConsole = args.Contains("--console");
 
 if (!OperatingSystem.IsWindows())
@@ -21,7 +20,7 @@ if (!OperatingSystem.IsWindows())
     return 1;
 }
 
-if (dump || cloakTest)
+if (dump)
 {
     WindowsStartup.AttachParentConsole();
 }
@@ -71,11 +70,6 @@ var filter = new WindowFilter(config.WindowRules);
 if (dump)
 {
     return DiagnosticModes.Dump(monitors, windows, filter);
-}
-
-if (cloakTest)
-{
-    return DiagnosticModes.CloakTest(windows, filter);
 }
 
 using var mutex = new Mutex(initiallyOwned: true, "Twm.SingleInstance", out bool isOnlyInstance);
