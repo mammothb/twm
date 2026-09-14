@@ -190,4 +190,111 @@ public class ReconcilerTests
         second.Shown.ShouldContain(new WindowId(2));
         second.Shown.ShouldContain(new WindowId(1));
     }
+
+    [Fact]
+    public void Ctor_NullWindowSystem_Throws() =>
+        Should.Throw<ArgumentNullException>(() => new Reconciler(null!));
+
+    [Fact]
+    public void Apply_NullRoot_Throws()
+    {
+        Should.Throw<ArgumentNullException>(() =>
+            new Reconciler(new FakeWindowSystem()).Apply(null!)
+        );
+    }
+
+    [Fact]
+    public void Apply_WithEmptyTree_PerformsNoWindowOperations()
+    {
+        // no monitors, no workspaces, no windows -> every loop body is empty
+        // and the FocusedWindow branch is skipped
+        var root = new RootContainer();
+        var windows = new FakeWindowSystem();
+
+        new Reconciler(windows).Apply(root);
+
+        windows.Operations.ShouldBeEmpty();
+        windows.Positioned.ShouldBeEmpty();
+        windows.Shown.ShouldBeEmpty();
+        windows.Hidden.ShouldBeEmpty();
+        windows.Foregrounded.ShouldBeEmpty();
+    }
+
+    [Fact]
+    public void Apply_WithoutFocusedWindow_DoesNotCallSetForeground()
+    {
+        // tree has a monitor and workspace but no tiling window -> FocusedWindow
+        // is null, so the SetForeground branch must be skipped (not entered and
+        // not swallowed)
+        var root = new RootContainer();
+        var monitor = new Monitor(new Rect(0, 0, 1920, 1080));
+        monitor.AppendChild(new Workspace("1"));
+        root.AppendChild(monitor);
+        new LayoutEngine().Arrange(root);
+
+        var windows = new FakeWindowSystem();
+
+        new Reconciler(windows).Apply(root);
+
+        windows.Foregrounded.ShouldBeEmpty();
+    }
+
+    [Fact]
+    public void Apply_WhenSetForegroundThrows_ContinuesAndStillCloaksOthers()
+    {
+        // the foreground call can race the window's destruction; the
+        // reconciler must swallow it and still cloak the rest in pass 2
+        var root = new RootContainer();
+        var monitor = new Monitor(new Rect(0, 0, 1920, 1080));
+        var active = new Workspace("1");
+        var inactive = new Workspace("2");
+        monitor.AppendChild(active);
+        monitor.AppendChild(inactive);
+        root.AppendChild(monitor);
+
+        var focused = new TilingWindow(new WindowId(1));
+        var inactiveWindow = new TilingWindow(new WindowId(2));
+        active.AppendChild(focused);
+        inactive.AppendChild(inactiveWindow);
+        focused.Focus();
+        new LayoutEngine().Arrange(root);
+
+        var windows = new FakeWindowSystem();
+        windows.ThrowOnForeground.Add(new WindowId(1));
+
+        Should.NotThrow(() => new Reconciler(windows).Apply(root));
+        // pass 2 ran despite the foreground failure
+        windows.Hidden.ShouldContain(new WindowId(2));
+    }
+
+    [Fact]
+    public void Apply_WhenHideThrows_StillHidesTheOthers()
+    {
+        // one stubborn window refuses to be cloaked; the rest still must be
+        var root = new RootContainer();
+        var monitor = new Monitor(new Rect(0, 0, 1920, 1080));
+        var active = new Workspace("1");
+        var inactive = new Workspace("2");
+        monitor.AppendChild(active);
+        monitor.AppendChild(inactive);
+        root.AppendChild(monitor);
+
+        var activeWindow = new TilingWindow(new WindowId(1));
+        var stubborn = new TilingWindow(new WindowId(2));
+        var other = new TilingWindow(new WindowId(3));
+        active.AppendChild(activeWindow);
+        inactive.AppendChild(stubborn);
+        inactive.AppendChild(other);
+        activeWindow.Focus();
+        new LayoutEngine().Arrange(root);
+
+        var windows = new FakeWindowSystem();
+        windows.ThrowOnHide.Add(new WindowId(2));
+
+        Should.NotThrow(() => new Reconciler(windows).Apply(root));
+        // the stubborn window was skipped, the other inactive window was
+        // hidden
+        windows.Hidden.ShouldContain(new WindowId(3));
+        windows.Hidden.ShouldNotContain(new WindowId(2));
+    }
 }
