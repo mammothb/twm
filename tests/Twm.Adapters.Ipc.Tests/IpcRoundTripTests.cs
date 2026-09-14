@@ -5,7 +5,7 @@ namespace Twm.Adapters.Ipc.Tests;
 
 public sealed class IpcRoundTripTests
 {
-    public static bool s_isWindows => OperatingSystem.IsWindows();
+    public static bool IsWindows => OperatingSystem.IsWindows();
 
     [Fact]
     public void Send_RoundTripsThroughTheDispatcher()
@@ -19,7 +19,7 @@ public sealed class IpcRoundTripTests
         response.ShouldBe("echo:focus left");
     }
 
-    [Fact(Skip = "Windows only", SkipUnless = nameof(s_isWindows))]
+    [Fact(Skip = "Windows only", SkipUnless = nameof(IsWindows))]
     public void Send_MultipleRequests_EachHandledInOrder()
     {
         string pipeName = UniquePipeName();
