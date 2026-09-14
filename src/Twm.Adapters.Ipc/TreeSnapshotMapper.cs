@@ -15,7 +15,10 @@ public static class TreeSnapshotMapper
     /// <summary>
     /// Builds a snapshot of the whole tree rooted at <paramref name="root" />.
     /// </summary>
-    public static TreeNode From(RootContainer root, Func<WindowId, string?>? titleGetter = null)
+    public static TreeNode ToTreeNode(
+        RootContainer root,
+        Func<WindowId, string?>? titleGetter = null
+    )
     {
         ArgumentNullException.ThrowIfNull(root);
         TilingWindow? focused = root.FocusedWindow;
@@ -23,7 +26,7 @@ public static class TreeSnapshotMapper
     }
 
     public static string ToJson(RootContainer root, Func<WindowId, string?>? titleGetter = null) =>
-        JsonSerializer.Serialize(From(root, titleGetter), TwmJsonContext.Default.TreeNode);
+        JsonSerializer.Serialize(ToTreeNode(root, titleGetter), TwmJsonContext.Default.TreeNode);
 
     private static TreeNode ToNode(
         Container container,

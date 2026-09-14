@@ -29,10 +29,10 @@ public sealed class TreeSnapshotTests
     }
 
     [Fact]
-    public void From_MarksFocusedWindowAndActiveWorkspace()
+    public void ToTreeNode_MarksFocusedWindowAndActiveWorkspace()
     {
         (RootContainer root, TilingWindow first) = BuildTwoWindowDesktop();
-        TreeNode rootNode = TreeSnapshotMapper.From(root);
+        TreeNode rootNode = TreeSnapshotMapper.ToTreeNode(root);
 
         TreeNode monitor = rootNode.Children.ShouldHaveSingleItem();
         TreeNode workspace = monitor.Children.ShouldHaveSingleItem();
