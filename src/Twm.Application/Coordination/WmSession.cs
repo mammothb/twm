@@ -23,7 +23,7 @@ public sealed class WmSession
     private readonly IWindowSystem _windows;
     private readonly WindowFilter _filter;
     private readonly Bus _bus;
-    private readonly LayoutEngine _layout;
+    private readonly LayoutEngine _engine;
     private readonly Reconciler _reconciler;
 
     // The window Twm last asked the OS to foreground. SyncFocus ignores the
@@ -48,11 +48,11 @@ public sealed class WmSession
         _filter = filter ?? new WindowFilter();
 
         Root = DesktopBuilder.Build(monitors.EnumerateMonitors(), workspaces);
-        _layout = new LayoutEngine(gaps, titleBarHeight);
+        _engine = new LayoutEngine(gaps, titleBarHeight);
         _bus = new Bus();
         RegisterHandlers();
         _reconciler = new Reconciler(windows);
-        _layout.Arrange(Root);
+        _engine.Arrange(Root);
     }
 
     /// <summary>The live container tree.</summary>
@@ -94,7 +94,8 @@ public sealed class WmSession
     /// </summary>
     public bool HandleCloaked(WindowId window)
     {
-        if (Root.FindWindow(window) is null)
+        TilingWindow? target = Root.FindWindow(window);
+        if (target is null)
         {
             return false;
         }
@@ -158,22 +159,22 @@ public sealed class WmSession
     /// </summary>
     public bool ReconcileDisplays()
     {
-        IReadOnlyList<MonitorInfo> fresh = DesktopBuilder.OrderPrimaryFirst(
+        IReadOnlyList<MonitorInfo> newMonitors = DesktopBuilder.OrderPrimaryFirst(
             _monitors.EnumerateMonitors()
         );
-        IReadOnlyList<Monitor> treeMonitors = [.. Root.Children.OfType<Monitor>()];
+        IReadOnlyList<Monitor> origMonitors = [.. Root.Children.OfType<Monitor>()];
 
         bool changed =
-            fresh.Count == treeMonitors.Count
-                ? ResizeInPlace(fresh, treeMonitors)
-                : Restructure(fresh, treeMonitors);
+            newMonitors.Count == origMonitors.Count
+                ? ResizeInPlace(newMonitors, origMonitors)
+                : Restructure(newMonitors, origMonitors);
 
         if (!changed)
         {
             return false;
         }
 
-        _layout.Arrange(Root);
+        _engine.Arrange(Root);
         Apply();
         _bus.Emit(new DisplaysReconciledEvent());
         return true;
@@ -324,16 +325,16 @@ public sealed class WmSession
     /// whether any bounds changed.
     /// </summary>
     private static bool ResizeInPlace(
-        IReadOnlyList<MonitorInfo> fresh,
-        IReadOnlyList<Monitor> treeMonitors
+        IReadOnlyList<MonitorInfo> newMonitors,
+        IReadOnlyList<Monitor> origMonitors
     )
     {
         bool changed = false;
-        for (int i = 0; i < treeMonitors.Count; i++)
+        for (int i = 0; i < origMonitors.Count; i++)
         {
-            if (treeMonitors[i].Bounds != fresh[i].WorkArea)
+            if (origMonitors[i].Bounds != newMonitors[i].WorkArea)
             {
-                treeMonitors[i].Bounds = fresh[i].WorkArea;
+                origMonitors[i].Bounds = newMonitors[i].WorkArea;
                 changed = true;
             }
         }
@@ -346,23 +347,29 @@ public sealed class WmSession
         return changed;
     }
 
-    private bool Restructure(IReadOnlyList<MonitorInfo> fresh, IReadOnlyList<Monitor> treeMonitors)
+    private bool Restructure(
+        IReadOnlyList<MonitorInfo> newMonitors,
+        IReadOnlyList<Monitor> origMonitors
+    )
     {
-        IReadOnlyList<IReadOnlyList<string>> plan;
+        IReadOnlyList<IReadOnlyList<string>> perMonitorWorkspaceNames;
         try
         {
-            plan = DesktopBuilder.PlanWorkspaceNames(_workspaces, fresh.Count);
+            perMonitorWorkspaceNames = DesktopBuilder.PlanWorkspaceNames(
+                _workspaces,
+                newMonitors.Count
+            );
         }
         catch (ArgumentException ex)
         {
             Log.Line(
-                $"reconcile-displays: cannot plan {fresh.Count} monitors ({ex.Message}); skipped"
+                $"reconcile-displays: cannot plan {newMonitors.Count} monitors ({ex.Message}); skipped"
             );
             return false;
         }
 
         Log.Line(
-            $"reconcile-displays: monitor count {treeMonitors.Count}->{fresh.Count}; redistributing"
+            $"reconcile-displays: monitor count {origMonitors.Count}->{newMonitors.Count}; redistributing"
         );
 
         // Workspace to re-focus afterward (persists by reference across the
@@ -374,14 +381,14 @@ public sealed class WmSession
         // Detach every existing workspace (name globally unique); drop old
         // monitors
         var nameToWorkspace = new Dictionary<string, Workspace>(StringComparer.Ordinal);
-        List<Workspace> existingOrdered = [];
-        foreach (Monitor monitor in treeMonitors)
+        List<Workspace> origOrderedWorkspaces = [];
+        foreach (Monitor monitor in origMonitors)
         {
             foreach (Workspace workspace in monitor.Children.OfType<Workspace>().ToList())
             {
                 monitor.RemoveChild(workspace);
                 nameToWorkspace[workspace.Name] = workspace;
-                existingOrdered.Add(workspace);
+                origOrderedWorkspaces.Add(workspace);
             }
 
             Root.RemoveChild(monitor);
@@ -390,10 +397,10 @@ public sealed class WmSession
         // Rebuild the scaffold from the plan, reusing each workspace by name
         // (moving its subtree) or creating an empty one
         var targetNames = new HashSet<string>(StringComparer.Ordinal);
-        for (int i = 0; i < fresh.Count; i++)
+        for (int i = 0; i < newMonitors.Count; i++)
         {
-            var monitor = new Monitor(fresh[i].WorkArea);
-            foreach (string name in plan[i])
+            var monitor = new Monitor(newMonitors[i].WorkArea);
+            foreach (string name in perMonitorWorkspaceNames[i])
             {
                 targetNames.Add(name);
                 monitor.AppendChild(
@@ -408,8 +415,10 @@ public sealed class WmSession
 
         // Rehome windows from dropped workspaces onto the primary's active
         // workspace
-        Workspace survivor = ((Monitor)Root.Children[0]).Children.OfType<Workspace>().First();
-        foreach (Workspace orphan in existingOrdered)
+        Workspace survivingWorkspace = ((Monitor)Root.Children[0])
+            .Children.OfType<Workspace>()
+            .First();
+        foreach (Workspace orphan in origOrderedWorkspaces)
         {
             if (targetNames.Contains(orphan.Name))
             {
@@ -419,7 +428,7 @@ public sealed class WmSession
             foreach (Container child in orphan.Children.ToList())
             {
                 orphan.RemoveChild(child);
-                survivor.AppendChild(child);
+                survivingWorkspace.AppendChild(child);
             }
         }
 
@@ -450,16 +459,16 @@ public sealed class WmSession
 
     private void RegisterHandlers()
     {
-        _bus.Register(new AdoptWindowHandler(Root, _layout));
-        _bus.Register(new FocusInDirectionHandler(Root, _layout));
-        _bus.Register(new FocusWorkspaceHandler(Root, _layout));
-        _bus.Register(new MoveInDirectionHandler(Root, _layout));
-        _bus.Register(new MoveWindowToWorkspaceHandler(Root, _layout));
-        _bus.Register(new RemoveWindowHandler(Root, _layout));
-        _bus.Register(new ResizeContainerHandler(Root, _layout));
-        _bus.Register(new ResizeInDirectionHandler(Root, _layout));
-        _bus.Register(new SetLayoutHandler(Root, _layout));
-        _bus.Register(new SplitInDirectionHandler(Root, _layout));
-        _bus.Register(new ToggleSplitDirectionHandler(Root, _layout));
+        _bus.Register(new AdoptWindowHandler(Root, _engine));
+        _bus.Register(new FocusInDirectionHandler(Root, _engine));
+        _bus.Register(new FocusWorkspaceHandler(Root, _engine));
+        _bus.Register(new MoveInDirectionHandler(Root, _engine));
+        _bus.Register(new MoveWindowToWorkspaceHandler(Root, _engine));
+        _bus.Register(new RemoveWindowHandler(Root, _engine));
+        _bus.Register(new ResizeContainerHandler(Root, _engine));
+        _bus.Register(new ResizeInDirectionHandler(Root, _engine));
+        _bus.Register(new SetLayoutHandler(Root, _engine));
+        _bus.Register(new SplitInDirectionHandler(Root, _engine));
+        _bus.Register(new ToggleSplitDirectionHandler(Root, _engine));
     }
 }
