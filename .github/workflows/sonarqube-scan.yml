@@ -50,7 +50,7 @@ jobs:
             /k:"${{ steps.sonar.outputs.sonar-project-key }}" \
             /d:sonar.host.url="${SONAR_HOST_URL}" \
             /d:sonar.token="${SONAR_TOKEN}" \
-            /d:sonar.projectBaseDir=. \
+            /d:sonar.projectBaseDir="${{ github.workspace }}" \
             /d:sonar.issue.ignore.multicriteria=trivialNativeWrapper \
             /d:sonar.issue.ignore.multicriteria.trivialNativeWrapper.ruleKey=csharpsquid:S4200 \
             /d:sonar.issue.ignore.multicriteria.trivialNativeWrapper.resourceKey="**/MessageLoop.cs,**/NativeMethods.cs,**/NativeMethods.Enums.cs,**/NativeMethods.Windowing.cs,**/ImmersiveShell.cs"
