@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Threading;
 
 namespace Twm.Adapters.Windows.Tests;
@@ -36,21 +37,34 @@ public sealed class MessageLoopTests
         try
         {
             threadIdReady
-                .Wait(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken)
+                .Wait(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken)
                 .ShouldBeTrue();
-            MessageLoop.Post(pumpThreadId, MessageLoop.WmApp).ShouldBeTrue();
+
+            // PostThreadMessageW can fail with ERROR_INVALID_THREAD_ID if the
+            // pump thread hasn't yet entered GetMessageW (which is what
+            // creates the message queue). Poll until the queue exists.
+            bool posted = false;
+            Stopwatch sw = Stopwatch.StartNew();
+            while (!posted && sw.Elapsed < TimeSpan.FromSeconds(10))
+            {
+                posted = MessageLoop.Post(pumpThreadId, MessageLoop.WmApp);
+                if (!posted)
+                {
+                    Thread.Sleep(10);
+                }
+            }
+
+            posted.ShouldBeTrue();
 
             messageReceived
-                .Wait(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken)
+                .Wait(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken)
                 .ShouldBeTrue();
             receivedMessage.ShouldBe(MessageLoop.WmApp);
         }
         finally
         {
             // If the test failed mid-way, the pump thread is still alive —
-            // best-effort join so we don't leak it past the test boundary. If
-            // it doesn't exit in 2s (Quit() never fired), it'll be cleaned
-            // up at process exit (background thread).
+            // best-effort join so we don't leak it past the test boundary.
             pumpThread.Join(TimeSpan.FromSeconds(2));
         }
     }
@@ -75,17 +89,12 @@ public sealed class MessageLoopTests
         ready.Wait(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken).ShouldBeTrue();
         thread.Join();
 
-        // Thread is now exited; PostThreadMessageW against it returns false
-        // (handle-died error branch).
         MessageLoop.Post(threadId, MessageLoop.WmApp).ShouldBeFalse();
     }
 
     [Fact(Skip = "Windows only", SkipUnless = nameof(IsWindows))]
     public void CurrentThreadId_ReturnsNonZero()
     {
-        // Sanity check: if GetCurrentThreadId P/Invoke binding is broken,
-        // threadId would be 0, which would mask Test 1's Post failure as
-        // "invalid thread id" instead of the real cause.
         MessageLoop.CurrentThreadId().ShouldNotBe(0u);
     }
 }
