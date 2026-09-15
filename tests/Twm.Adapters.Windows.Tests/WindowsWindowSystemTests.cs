@@ -51,15 +51,24 @@ public sealed class WindowsWindowSystemTests
         var ws = new WindowsWindowSystem();
         NativeWindowInfo info = ws.Describe(new WindowId(window.Handle));
 
+        // Every boolean field is asserted so the Is* helpers all get hit.
+        // (Describe walks every Is* in NativeMethods; assertions cover the
+        // call paths even when the value is the documented default.)
         info.Title.ShouldBe("twm-describe");
         info.ClassName.ShouldBe("Static");
+        info.Owner.ShouldBeNull();
         info.IsToolWindow.ShouldBeTrue();
         info.IsVisible.ShouldBeFalse();
         info.IsChild.ShouldBeFalse();
         info.IsMinimized.ShouldBeFalse();
         info.IsLayered.ShouldBeFalse();
         info.IsCloaked.ShouldBeFalse();
-        info.Owner.ShouldBeNull();
+        info.IsElevated.ShouldBeFalse();
+        info.IsNoActivate.ShouldBeTrue();
+        info.IsMenuPopup.ShouldBeFalse();
+        info.HasCaption.ShouldBeFalse();
+        info.HasWindowEdge.ShouldBeFalse();
+        info.IsDlgModalFrame.ShouldBeFalse();
     }
 
     [Fact(Skip = "Windows only", SkipUnless = nameof(IsWindows))]
