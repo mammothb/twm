@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using Twm.Domain.Tree;
 
@@ -176,6 +177,9 @@ public sealed unsafe partial class WinEventHook : IDisposable
     [return: MarshalAs(UnmanagedType.Bool)]
     private static partial bool UnhookWinEvent(nint hWinEventHook);
 
+    // OS WinEvent callback dispatch: untestable from the hook's own process
+    // because SetWinEventHook is registered with WINEVENT_SKIPOWNPROCESS
+    [ExcludeFromCodeCoverage]
     [UnmanagedCallersOnly]
     private static void OnWinEvent(
         nint hook,
