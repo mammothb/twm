@@ -1,88 +1,49 @@
-using System.Threading;
-using Twm.Adapters.Windows.Tests.Fixtures;
-using Twm.Domain.Tree;
-
 namespace Twm.Adapters.Windows.Tests;
 
 /// <summary>
-/// End-to-end tests for <see cref="WinEventHook" />: install the OS hook,
-/// trigger a window event by creating a real window, verify the callback
-/// fired with the expected <see cref="WindowEventKind" />.
+/// Tests for <see cref="WinEventHook" />.
+///
+/// <para>
+/// Event-delivery tests (verifying that <c>SetWinEventHook</c> actually
+/// dispatches to the C# callback) are NOT included here. <c>WinEventHook</c>
+/// registers with <c>WINEVENT_SKIPOWNPROCESS</c>, which means events for
+/// windows in the test runner's own process are filtered out at the OS level.
+/// A test that creates a window in-process will never see an event fire on
+/// its own hook, regardless of how long it waits.
+/// </para>
+///
+/// <para>
+/// To test event delivery end-to-end, either: (a) add a way for
+/// <c>WinEventHook.Install</c> to accept custom flags (skip
+/// <c>SkipOwnProcess</c> for testing), or (b) spawn a child process that
+/// creates a window in a different process. Both are deferred.
+/// </para>
 /// </summary>
-public sealed class WinEventHookTests : IDisposable
+public sealed class WinEventHookTests
 {
-    private readonly WinEventHook _hook = new();
-    private readonly List<(WindowEventKind Kind, WindowId Id)> _events = [];
-    private readonly ManualResetEventSlim _eventReceived = new();
-
     public static bool IsWindows => OperatingSystem.IsWindows();
-
-    public void Dispose()
-    {
-        _hook.Dispose();
-        _eventReceived.Dispose();
-    }
-
-    [Fact(Skip = "Windows only", SkipUnless = nameof(IsWindows))]
-    public void Install_ThenCreateWindow_FiresAppeared()
-    {
-        _hook.Install(OnEvent);
-
-        using var window = new TestWindow("twm-event-create");
-
-        _eventReceived
-            .Wait(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken)
-            .ShouldBeTrue();
-        lock (_events)
-        {
-            _events.ShouldContain(e =>
-                e.Kind == WindowEventKind.Appeared && e.Id.Value == window.Handle
-            );
-        }
-    }
 
     [Fact(Skip = "Windows only", SkipUnless = nameof(IsWindows))]
     public void Install_Twice_Throws()
     {
-        _hook.Install(OnEvent);
+        using var first = new WinEventHook();
+        first.Install(static (_, _) => { });
 
         using var second = new WinEventHook();
-        Should.Throw<InvalidOperationException>(() => second.Install(OnEvent));
+        Should.Throw<InvalidOperationException>(() => second.Install(static (_, _) => { }));
     }
 
     [Fact(Skip = "Windows only", SkipUnless = nameof(IsWindows))]
-    public void Dispose_UnhooksAndStopsReceiving()
+    public void Dispose_AllowsReinstall()
     {
-        _hook.Install(OnEvent);
+        using var first = new WinEventHook();
+        first.Install(static (_, _) => { });
 
-        using var first = new TestWindow("twm-event-first");
-        _eventReceived
-            .Wait(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken)
-            .ShouldBeTrue();
-        _eventReceived.Reset();
+        first.Dispose();
 
-        _hook.Dispose();
-
-        using var second = new TestWindow("twm-event-after");
-
-        // No event with second's HWND should have arrived: Dispose synchronously
-        // unhooked, and the second window's HWND allocation is synchronous on
-        // this thread, so no callback can fire after Dispose for it.
-        lock (_events)
-        {
-            _events.ShouldNotContain(e => e.Id.Value == second.Handle);
-        }
-    }
-
-    private void OnEvent(WindowEventKind kind, WindowId id)
-    {
-        // The WinEvent callback fires on the OS hook thread, so the list
-        // mutations need locking for the test thread to read safely.
-        lock (_events)
-        {
-            _events.Add((kind, id));
-        }
-
-        _eventReceived.Set();
+        // After Dispose, the global state is cleared; a fresh hook should
+        // install without throwing.
+        using var second = new WinEventHook();
+        second.Install(static (_, _) => { });
     }
 }
