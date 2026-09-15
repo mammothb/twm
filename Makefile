@@ -25,7 +25,8 @@ TEST_PROJECTS := $(wildcard tests/*/*.Tests.csproj)
 coverage: build
 	rm -rf $(COVERAGE_DIR)
 	mkdir -p $(COVERAGE_DIR)
-	@for proj in $(TEST_PROJECTS); do \
+	@status=0; \
+	for proj in $(TEST_PROJECTS); do \
 		name=`basename $$proj .csproj`; \
 		echo "==> $$name"; \
 		dotnet test --project $$proj \
@@ -35,8 +36,9 @@ coverage: build
 			--coverage-output-format cobertura \
 			--coverage-output coverage.cobertura.xml \
 			--coverage-settings coverage.settings.xml \
-			--results-directory $(COVERAGE_DIR)/$$name; \
-	done
+			--results-directory $(COVERAGE_DIR)/$$name || status=$$?; \
+	done; \
+	exit $$status
 
 # Merge per-project cobertura files into a single HTML report and text summary.
 coverage-report: coverage

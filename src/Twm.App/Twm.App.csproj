@@ -26,5 +26,6 @@
   <ItemGroup>
     <TrimmerRootAssembly Include="VYaml" />
     <TrimmerRootAssembly Include="Twm.Adapters.Config" />
+    <InternalsVisibleTo Include="Twm.App.Tests" />
   </ItemGroup>
 </Project>

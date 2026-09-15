@@ -7,10 +7,23 @@ on:
   pull_request:
 permissions:
   contents: read
+defaults:
+  run:
+    shell: bash
 jobs:
   test:
-    name: Test
-    runs-on: ubuntu-latest
+    name: Test (${{ matrix.os }})
+    runs-on: ${{ matrix.runs-on }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: Linux
+            runs-on: ubuntu-latest
+            flags: linux
+          - os: Windows
+            runs-on: windows-latest
+            flags: windows
     steps:
       - name: Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -27,5 +40,6 @@ jobs:
         uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          files: coverage/coverage.cobertura.xml
+          files: coverage/**/coverage.cobertura.xml
+          flags: ${{ matrix.flags }}
           fail_ci_if_error: false

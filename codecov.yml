@@ -1,0 +1,20 @@
+coverage:
+  status:
+    patch:
+      default:
+        target: 80%
+        threshold: 5%
+flags:
+  linux:
+    carryforward: true
+    paths:
+      - src/Twm.Domain/
+      - src/Twm.Application/
+      - src/Twm.Adapters.Config/
+      - src/Twm.Adapters.Ipc/
+      - src/Twm.Presentation/
+  windows:
+    carryforward: true
+    paths:
+      - src/Twm.Adapters.Windows/
+      - src/Twm.App/

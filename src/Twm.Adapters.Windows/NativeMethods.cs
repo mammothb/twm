@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using Twm.Domain.Geometry;
 
@@ -302,14 +303,16 @@ internal static unsafe partial class NativeMethods
 
     internal static bool IsVisible(nint window) => IsWindowVisible(window);
 
-    // Create a dedicated console window for this process (used by --console
-    // when there is no launching terminal to attach to). No-op safe: fails if
-    // a console is already attached.
+    // Allocates a process-wide console. Process-wide one-shot: would
+    // conflict across tests in the same xUnit process and has no parent
+    // console in dotnet test.
+    [ExcludeFromCodeCoverage]
     internal static void AllocateConsole() => AllocConsole();
 
-    // Bind this process to its launching terminal's console so Console output
-    // is visible there. If there is no parent console (launched detached),
-    // AttachConsole fails and we ignore it
+    // Process-wide console attachment via AttachConsole(ATTACH_PARENT_PROCESS);
+    // no parent console under dotnet test, and the call would conflict across
+    // test instances.
+    [ExcludeFromCodeCoverage]
     internal static void AttachParentConsole() => AttachConsole(AttachParentProcess);
 
     internal static void Close(nint window) => PostMessageW(window, WindowMessage.Close, 0, 0);
@@ -412,6 +415,10 @@ internal static unsafe partial class NativeMethods
         return 1; // TRUE: continue enumeration
     }
 
+    // UIPI elevation check: requires an elevated child process to exercise.
+    // Medium-integrity tests can't open higher-integrity process tokens,
+    // so OpenProcessToken returns 0 before this path runs.
+    [ExcludeFromCodeCoverage]
     private static int ProcessIntegrityRid(nint window)
     {
         GetWindowThreadProcessId(window, out uint processId);
@@ -449,6 +456,9 @@ internal static unsafe partial class NativeMethods
         }
     }
 
+    // Called only from ProcessIntegrityRid / ComputeOurIntegrityRid,
+    // both excluded above.
+    [ExcludeFromCodeCoverage]
     private static int IntegrityRid(nint tokenHandle)
     {
         GetTokenInformation(tokenHandle, TokenIntegrityLevel, null, 0, out uint needed);
@@ -477,6 +487,10 @@ internal static unsafe partial class NativeMethods
         return ridPtr is null ? -1 : (int)*ridPtr;
     }
 
+    // s_ourIntegrityRid.Value is read only when IsElevated enters the
+    // integrity path, which doesn't fire for non-elevated test fixtures
+    // (ProcessIntegrityRid returns -1 first).
+    [ExcludeFromCodeCoverage]
     private static int ComputeOurIntegrityRid()
     {
         if (!OpenProcessToken(GetCurrentProcess(), TokenQuery, out nint tokenHandle))
