@@ -13,7 +13,7 @@ public sealed class WindowsWindowSystemTests
     [Fact(Skip = "Windows only", SkipUnless = nameof(IsWindows))]
     public void EnumerateWindows_IncludesTestWindow()
     {
-        using var window = new TestWindow("twm-enum-test-" + Guid.NewGuid().ToString("N"));
+        using var window = new TestWindow($"twm-enum-test-{Guid.NewGuid():N}");
 
         var ws = new WindowsWindowSystem();
         IReadOnlyList<NativeWindowInfo> windows = ws.EnumerateWindows();

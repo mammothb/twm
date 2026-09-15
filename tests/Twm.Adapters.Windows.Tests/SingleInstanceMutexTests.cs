@@ -8,7 +8,7 @@ public sealed class SingleInstanceMutexTests
     public void Mutex_TwoInstances_SecondCannotAcquire()
     {
         // Unique per-test name so other tests / real Twm instances can't collide.
-        string name = "Twm.MutexTest." + Guid.NewGuid().ToString("N");
+        string name = $"Twm.MutexTest.{Guid.NewGuid():N}";
 
         using var first = new Mutex(initiallyOwned: true, name, out bool firstOnly);
         firstOnly.ShouldBeTrue();
@@ -20,7 +20,7 @@ public sealed class SingleInstanceMutexTests
     [Fact]
     public void Mutex_AfterFirstReleases_SecondCanAcquire()
     {
-        string name = "Twm.MutexTest." + Guid.NewGuid().ToString("N");
+        string name = $"Twm.MutexTest.{Guid.NewGuid():N}";
 
         var first = new Mutex(initiallyOwned: true, name, out bool firstOnly);
         firstOnly.ShouldBeTrue();
