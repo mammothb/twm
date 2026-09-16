@@ -46,4 +46,10 @@ public interface IWindowSystem
     /// focused-window line printed by run-command hotkeys.
     /// </summary>
     string GetTitle(WindowId window);
+
+    /// <summary>
+    /// Reads a fresh metadata snapshot for one window (used by the WinEvent
+    /// hook to pick up new windows).
+    /// </summary>
+    NativeWindowInfo Describe(WindowId window);
 }

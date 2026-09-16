@@ -57,6 +57,10 @@ public sealed class FakeWindowSystem(params NativeWindowInfo[] windows) : IWindo
 
     public IReadOnlyList<NativeWindowInfo> EnumerateWindows() => _windows;
 
+    public NativeWindowInfo Describe(WindowId window) =>
+        _windows.FirstOrDefault(w => w.Id == window)
+        ?? throw new InvalidOperationException($"no fake window for {window}");
+
     public void SetWindowRect(WindowId window, Rect bounds)
     {
         if (ThrowOnRect.Contains(window))
