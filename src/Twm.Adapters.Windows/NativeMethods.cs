@@ -326,12 +326,24 @@ internal static unsafe partial class NativeMethods
     // DPI_AWARENESS_CONTEXT_PER_MONITOR_V2 = (HANDLE)-4
     internal static void EnablePerMonitorV2Dpi() => SetProcessDpiAwarenessContext((nint)(-4));
 
+    // SetForegroundWindow is gated by Windows' foreground lock timeout and
+    // focus-stealing-prevention rules; a background process (Twm) can only
+    // activate a window if the user just clicked something. Behavior is
+    // system-state-dependent, not unit-testable.
+    [ExcludeFromCodeCoverage]
     internal static void Foreground(nint window)
     {
         SetForegroundWindow(window);
         BringWindowToTop(window);
     }
 
+    // Moves and resizes a window, expanding the target by the DWM frame inset
+    // so adjacent tiled windows' visible edges align. The DWM inset is
+    // system-state-dependent (96/125/150 DPI give different values; tool
+    // windows get no inset at all), so the adjusted path is not
+    // deterministically testable. Behavior is exercised end-to-end by every
+    // other window-positioning test in this project.
+    [ExcludeFromCodeCoverage]
     internal static void SetBounds(nint window, Rect bounds)
     {
         // Drop any always-on-top flag so the window tiles flat with its
