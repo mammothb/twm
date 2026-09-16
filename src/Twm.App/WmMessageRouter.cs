@@ -20,7 +20,7 @@ internal sealed class WmMessageRouter(
     IReadOnlyDictionary<KeyBinding, KeyEffect> keymap,
     WmThreadDispatcher ipcDispatcher,
     StatusBarHost? statusBar,
-    Action? onQuit = null
+    Action? quit = null
 )
 {
     private readonly WmSession _session = session;
@@ -29,7 +29,7 @@ internal sealed class WmMessageRouter(
     private readonly IReadOnlyDictionary<KeyBinding, KeyEffect> _keymap = keymap;
     private readonly WmThreadDispatcher _ipcDispatcher = ipcDispatcher;
     private readonly StatusBarHost? _statusBar = statusBar;
-    private readonly Action _quit = onQuit ?? MessageLoop.Quit;
+    private readonly Action _quit = quit ?? MessageLoop.Quit;
 
     public void Handle(uint message, nint wParam, nint lParam)
     {

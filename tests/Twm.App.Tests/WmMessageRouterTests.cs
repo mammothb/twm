@@ -12,7 +12,7 @@ public sealed class WmMessageRouterTests
     [Fact]
     public void Handle_WmAppQuit_InvokesOnQuit()
     {
-        var (session, _, windows) = BuildSession();
+        (WmSession session, _, FakeWindowSystem windows) = BuildSession();
         List<string> quitCalls = [];
         WmMessageRouter router = new(
             session,
@@ -32,7 +32,7 @@ public sealed class WmMessageRouterTests
     [Fact]
     public void Handle_WmApp_DoesNotInvokeOnQuit()
     {
-        var (session, _, windows) = BuildSession();
+        (WmSession session, _, FakeWindowSystem windows) = BuildSession();
         List<string> quitCalls = [];
         WmMessageRouter router = new(
             session,
@@ -52,7 +52,7 @@ public sealed class WmMessageRouterTests
     [Fact]
     public void Handle_WmTimer_WithoutStatusBar_DoesNotThrow()
     {
-        var (session, _, windows) = BuildSession();
+        (WmSession session, _, FakeWindowSystem windows) = BuildSession();
         WmMessageRouter router = new(
             session,
             windows,
@@ -69,7 +69,7 @@ public sealed class WmMessageRouterTests
     [Fact]
     public void Handle_HotkeyMessageNotInKeymap_IsNoOp()
     {
-        var (session, _, windows) = BuildSession();
+        (WmSession session, _, FakeWindowSystem windows) = BuildSession();
         List<string> quitCalls = [];
         WmMessageRouter router = new(
             session,
