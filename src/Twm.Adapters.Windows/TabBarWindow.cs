@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using Twm.Domain.Tree;
 using Twm.Presentation;
@@ -161,6 +162,9 @@ public sealed unsafe partial class TabBarWindow : IDisposable
         }
     }
 
+    // GDI paint runs on WM_PAINT; unit tests can construct the window but
+    // can't verify pixels. Visual regression would catch real bugs here.
+    [ExcludeFromCodeCoverage]
     private static void Paint(nint hWnd)
     {
         nint hdc = BeginPaint(hWnd, out PaintStruct ps);
@@ -194,6 +198,8 @@ public sealed unsafe partial class TabBarWindow : IDisposable
         EndPaint(hWnd, in ps);
     }
 
+    // GDI paint (per-row DrawTextW for stacked layout); only called from Paint.
+    [ExcludeFromCodeCoverage]
     private static void PaintStacked(nint hdc, in Rect32 client, TabBarRenderState state)
     {
         nint accent = CreateSolidBrush(state.Accent);
@@ -222,6 +228,8 @@ public sealed unsafe partial class TabBarWindow : IDisposable
         DeleteObject(accent);
     }
 
+    // GDI paint (per-cell DrawTextW for tabbed layout); only called from Paint.
+    [ExcludeFromCodeCoverage]
     private static void PaintTabbed(nint hdc, in Rect32 client, TabBarRenderState state)
     {
         int count = state.View.Tabs.Count;
