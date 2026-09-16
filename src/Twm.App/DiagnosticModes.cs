@@ -39,18 +39,7 @@ internal static class DiagnosticModes
         return 0;
     }
 
-    private static void PrintMonitors(IMonitorSystem monitorSystem)
-    {
-        foreach (MonitorInfo monitor in monitorSystem.EnumerateMonitors())
-        {
-            char primaryIndicator = monitor.IsPrimary ? '*' : ' ';
-            Console.WriteLine(
-                $"  {primaryIndicator} bounds={monitor.Bounds} workarea={monitor.WorkArea}"
-            );
-        }
-    }
-
-    private static string FormatWindowLine(
+    internal static string FormatWindowLine(
         NativeWindowInfo window,
         WindowFilter filter,
         Dictionary<WindowId, NativeWindowInfo> idToWindow,
@@ -95,5 +84,16 @@ internal static class DiagnosticModes
         }
 
         return $"  [{decision}] {window.ClassName, -28} \"{window.Title}\" 0x{window.Id.Value:X} owner={ownerText}{exeSuffix}{flagSuffix}";
+    }
+
+    private static void PrintMonitors(IMonitorSystem monitorSystem)
+    {
+        foreach (MonitorInfo monitor in monitorSystem.EnumerateMonitors())
+        {
+            char primaryIndicator = monitor.IsPrimary ? '*' : ' ';
+            Console.WriteLine(
+                $"  {primaryIndicator} bounds={monitor.Bounds} workarea={monitor.WorkArea}"
+            );
+        }
     }
 }

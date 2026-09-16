@@ -102,4 +102,7 @@ public sealed class FakeWindowSystem(params NativeWindowInfo[] windows) : IWindo
     }
 
     public void Close(WindowId window) => Closed.Add(window);
+
+    public string GetTitle(WindowId window) =>
+        _windows.FirstOrDefault(w => w.Id == window)?.Title ?? "";
 }

@@ -40,4 +40,10 @@ public interface IWindowSystem
     /// removal from the tree arrives asynchronously via the destroy WinEvent,
     /// not here.
     void Close(WindowId window);
+
+    /// <summary>
+    /// The current window title, used for display in status messages and the
+    /// focused-window line printed by run-command hotkeys.
+    /// </summary>
+    string GetTitle(WindowId window);
 }

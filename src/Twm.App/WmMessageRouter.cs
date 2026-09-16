@@ -2,6 +2,7 @@ using Twm.Adapters.Windows;
 using Twm.Application.Coordination;
 using Twm.Application.Diagnostics;
 using Twm.Application.InboundPorts;
+using Twm.Application.OutboundPorts;
 using Twm.Domain.Tree;
 
 namespace Twm.App;
@@ -14,19 +15,21 @@ namespace Twm.App;
 /// </summary>
 internal sealed class WmMessageRouter(
     WmSession session,
-    WindowsWindowSystem windowSystem,
+    IWindowSystem windowSystem,
     HotkeyManager hotkeyManager,
     IReadOnlyDictionary<KeyBinding, KeyEffect> keymap,
     WmThreadDispatcher ipcDispatcher,
-    StatusBarHost? statusBar
+    StatusBarHost? statusBar,
+    Action? onQuit = null
 )
 {
     private readonly WmSession _session = session;
-    private readonly WindowsWindowSystem _windowSystem = windowSystem;
+    private readonly IWindowSystem _windowSystem = windowSystem;
     private readonly HotkeyManager _hotkeyManager = hotkeyManager;
     private readonly IReadOnlyDictionary<KeyBinding, KeyEffect> _keymap = keymap;
     private readonly WmThreadDispatcher _ipcDispatcher = ipcDispatcher;
     private readonly StatusBarHost? _statusBar = statusBar;
+    private readonly Action _quit = onQuit ?? MessageLoop.Quit;
 
     public void Handle(uint message, nint wParam, nint lParam)
     {
@@ -38,7 +41,7 @@ internal sealed class WmMessageRouter(
 
         if (message == MessageLoop.WmAppQuit)
         {
-            MessageLoop.Quit();
+            _quit();
             return;
         }
 
@@ -73,7 +76,7 @@ internal sealed class WmMessageRouter(
                 _session.CloseFocused();
                 break;
             case ExitWm:
-                MessageLoop.Quit();
+                _quit();
                 break;
             case ReconcileDisplays:
                 _session.ReconcileDisplays();
