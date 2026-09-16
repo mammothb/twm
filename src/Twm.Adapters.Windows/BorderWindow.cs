@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using Twm.Domain.Geometry;
 using static Twm.Adapters.Windows.NativeMethods;
@@ -133,7 +134,10 @@ public sealed unsafe partial class BorderWindow : IDisposable
     private static nint WndProc(nint hWnd, uint uMsg, nint wParam, nint lParam) =>
         DefWindowProcW(hWnd, uMsg, wParam, lParam);
 
-    // Builds a 32bpp premultipled-BGRA bitmap
+    // Builds a 32bpp premultipled-BGRA bitmap for UpdateLayeredWindow. GDI
+    // pixel work: unit tests can construct the window but can't verify
+    // pixels. Visual regression would catch real bugs here.
+    [ExcludeFromCodeCoverage]
     private void Render(int x, int y, int width, int height)
     {
         int band = Math.Min(_width, Math.Min(width, height) / 2);

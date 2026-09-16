@@ -6,7 +6,7 @@
     <PackageVersion Include="VYaml" Version="1.4.0" />
   </ItemGroup>
   <ItemGroup>
-    <PackageVersion Include="Microsoft.Testing.Extensions.CodeCoverage" Version="18.11.0" />
+    <PackageVersion Include="coverlet.MTP" Version="10.0.1" />
     <PackageVersion Include="Roslynator.Analyzers" Version="5.0.0" />
     <PackageVersion Include="Shouldly" Version="4.3.0" />
     <PackageVersion Include="StyleCop.Analyzers" Version="1.2.0-beta.556" />

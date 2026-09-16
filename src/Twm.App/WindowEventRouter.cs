@@ -1,6 +1,7 @@
 using Twm.Adapters.Windows;
 using Twm.Application.Coordination;
 using Twm.Application.Diagnostics;
+using Twm.Application.OutboundPorts;
 using Twm.Domain.Tree;
 
 namespace Twm.App;
@@ -12,18 +13,17 @@ namespace Twm.App;
 /// <see cref="WinEventKind" /> switch lives here so the WM event loop
 /// stays in <c>Program.cs</c> focused on composition.
 /// </summary>
-internal sealed class WindowEventRouter(WmSession session, WindowsWindowSystem windowSystem)
-    : IDisposable
+internal sealed class WindowEventRouter(WmSession session, IWindowSystem windowSystem) : IDisposable
 {
     private readonly WmSession _session = session;
-    private readonly WindowsWindowSystem _windowSystem = windowSystem;
+    private readonly IWindowSystem _windowSystem = windowSystem;
     private readonly WinEventHook _winEventHook = new();
 
     public void Install() => _winEventHook.Install(Handle);
 
     public void Dispose() => _winEventHook.Dispose();
 
-    private void Handle(WindowEventKind kind, WindowId id)
+    internal void Handle(WindowEventKind kind, WindowId id)
     {
         Log.Line($"winevent {kind} 0x{id.Value:X}");
         switch (kind)

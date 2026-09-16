@@ -19,33 +19,34 @@ clean:
 # --- Coverage ---
 TEST_PROJECTS := $(wildcard tests/*/*.Tests.csproj)
 
-# Run each test project separately so coverage output does not collide across
-# multiple test host processes writing to the same path. Each project emits
-# coverage to $(COVERAGE_DIR)/<ProjectName>/coverage.cobertura.xml.
+# coverlet.MTP writes per-test files as <prefix>.coverage.<timestamp>.cobertura.xml
+# under --results-directory. --coverlet-file-prefix scopes each project to its
+# own prefix. [ExcludeFromCodeCoverage] is excluded by coverlet's defaults.
 coverage: build
 	rm -rf $(COVERAGE_DIR)
 	mkdir -p $(COVERAGE_DIR)
-	@for proj in $(TEST_PROJECTS); do \
+	@status=0; \
+	for proj in $(TEST_PROJECTS); do \
 		name=`basename $$proj .csproj`; \
 		echo "==> $$name"; \
 		dotnet test --project $$proj \
 			--configuration Release \
 			--no-build \
-			--coverage \
-			--coverage-output-format cobertura \
-			--coverage-output coverage.cobertura.xml \
-			--coverage-settings coverage.settings.xml \
-			--results-directory $(COVERAGE_DIR)/$$name; \
-	done
+			--coverlet \
+			--coverlet-output-format cobertura \
+			--coverlet-file-prefix $$name \
+			--results-directory $(COVERAGE_DIR)/$$name || status=$$?; \
+	done; \
+	exit $$status
 
 # Merge per-project cobertura files into a single HTML report and text summary.
 coverage-report: coverage
 	dotnet reportgenerator \
-		-reports:$(COVERAGE_DIR)/**/coverage.cobertura.xml \
+		-reports:$(COVERAGE_DIR)/**/*.cobertura.xml \
 		-targetdir:$(COVERAGE_DIR)/html \
 		-reporttypes:Html
 	dotnet reportgenerator \
-		-reports:$(COVERAGE_DIR)/**/coverage.cobertura.xml \
+		-reports:$(COVERAGE_DIR)/**/*.cobertura.xml \
 		-targetdir:$(COVERAGE_DIR) \
 		-reporttypes:TextSummary
 	@echo "Report: $(CURDIR)/$(COVERAGE_DIR)/html/index.html"

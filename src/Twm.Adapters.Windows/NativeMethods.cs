@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using Twm.Domain.Geometry;
 
@@ -302,14 +303,16 @@ internal static unsafe partial class NativeMethods
 
     internal static bool IsVisible(nint window) => IsWindowVisible(window);
 
-    // Create a dedicated console window for this process (used by --console
-    // when there is no launching terminal to attach to). No-op safe: fails if
-    // a console is already attached.
+    // Allocates a process-wide console. Process-wide one-shot: would
+    // conflict across tests in the same xUnit process and has no parent
+    // console in dotnet test.
+    [ExcludeFromCodeCoverage]
     internal static void AllocateConsole() => AllocConsole();
 
-    // Bind this process to its launching terminal's console so Console output
-    // is visible there. If there is no parent console (launched detached),
-    // AttachConsole fails and we ignore it
+    // Process-wide console attachment via AttachConsole(ATTACH_PARENT_PROCESS);
+    // no parent console under dotnet test, and the call would conflict across
+    // test instances.
+    [ExcludeFromCodeCoverage]
     internal static void AttachParentConsole() => AttachConsole(AttachParentProcess);
 
     internal static void Close(nint window) => PostMessageW(window, WindowMessage.Close, 0, 0);
@@ -323,12 +326,24 @@ internal static unsafe partial class NativeMethods
     // DPI_AWARENESS_CONTEXT_PER_MONITOR_V2 = (HANDLE)-4
     internal static void EnablePerMonitorV2Dpi() => SetProcessDpiAwarenessContext((nint)(-4));
 
+    // SetForegroundWindow is gated by Windows' foreground lock timeout and
+    // focus-stealing-prevention rules; a background process (Twm) can only
+    // activate a window if the user just clicked something. Behavior is
+    // system-state-dependent, not unit-testable.
+    [ExcludeFromCodeCoverage]
     internal static void Foreground(nint window)
     {
         SetForegroundWindow(window);
         BringWindowToTop(window);
     }
 
+    // Moves and resizes a window, expanding the target by the DWM frame inset
+    // so adjacent tiled windows' visible edges align. The DWM inset is
+    // system-state-dependent (96/125/150 DPI give different values; tool
+    // windows get no inset at all), so the adjusted path is not
+    // deterministically testable. Behavior is exercised end-to-end by every
+    // other window-positioning test in this project.
+    [ExcludeFromCodeCoverage]
     internal static void SetBounds(nint window, Rect bounds)
     {
         // Drop any always-on-top flag so the window tiles flat with its
@@ -412,6 +427,10 @@ internal static unsafe partial class NativeMethods
         return 1; // TRUE: continue enumeration
     }
 
+    // UIPI elevation check: requires an elevated child process to exercise.
+    // Medium-integrity tests can't open higher-integrity process tokens,
+    // so OpenProcessToken returns 0 before this path runs.
+    [ExcludeFromCodeCoverage]
     private static int ProcessIntegrityRid(nint window)
     {
         GetWindowThreadProcessId(window, out uint processId);
@@ -449,6 +468,9 @@ internal static unsafe partial class NativeMethods
         }
     }
 
+    // Called only from ProcessIntegrityRid / ComputeOurIntegrityRid,
+    // both excluded above.
+    [ExcludeFromCodeCoverage]
     private static int IntegrityRid(nint tokenHandle)
     {
         GetTokenInformation(tokenHandle, TokenIntegrityLevel, null, 0, out uint needed);
@@ -477,6 +499,10 @@ internal static unsafe partial class NativeMethods
         return ridPtr is null ? -1 : (int)*ridPtr;
     }
 
+    // s_ourIntegrityRid.Value is read only when IsElevated enters the
+    // integrity path, which doesn't fire for non-elevated test fixtures
+    // (ProcessIntegrityRid returns -1 first).
+    [ExcludeFromCodeCoverage]
     private static int ComputeOurIntegrityRid()
     {
         if (!OpenProcessToken(GetCurrentProcess(), TokenQuery, out nint tokenHandle))

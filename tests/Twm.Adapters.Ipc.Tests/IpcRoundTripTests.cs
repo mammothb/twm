@@ -5,7 +5,7 @@ namespace Twm.Adapters.Ipc.Tests;
 
 public sealed class IpcRoundTripTests
 {
-    public static bool s_isWindows => OperatingSystem.IsWindows();
+    public static bool IsWindows => OperatingSystem.IsWindows();
 
     [Fact]
     public void Send_RoundTripsThroughTheDispatcher()
@@ -19,7 +19,7 @@ public sealed class IpcRoundTripTests
         response.ShouldBe("echo:focus left");
     }
 
-    [Fact(Skip = "Windows only", SkipUnless = nameof(s_isWindows))]
+    [Fact(Skip = "Windows only", SkipUnless = nameof(IsWindows))]
     public void Send_MultipleRequests_EachHandledInOrder()
     {
         string pipeName = UniquePipeName();
@@ -35,6 +35,22 @@ public sealed class IpcRoundTripTests
 
         first.ShouldBe("1:get-tree");
         second.ShouldBe("2:focus left");
+    }
+
+    [Fact(Skip = "Windows only", SkipUnless = nameof(IsWindows))]
+    public void Send_LargeResponse_ClientReceivesFullPayload()
+    {
+        // Response larger than the named-pipe buffer (~4KB on Windows) so
+        // WriteLineAsync + WaitForPipeDrain has to span multiple writes for
+        // the client to see the whole thing.
+        string large = new string('a', 16 * 1024);
+        string pipeName = UniquePipeName();
+        using var server = new IpcServer(_ => large, pipeName);
+        server.Start();
+
+        string response = IpcClient.Send("any", pipeName);
+
+        response.ShouldBe(large);
     }
 
     [Fact]

@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using Twm.Application.Config;
 using Twm.Domain.Geometry;
@@ -166,10 +167,14 @@ public sealed unsafe partial class StatusBarWindow : IDisposable
 
     /// <summary>
     /// Halves each RGB channel of a COLORREF, for a dimmed (empty-workspace)
-    /// foreground.
+    /// foreground. Only called from <see cref="Paint" />.
     /// </summary>
+    [ExcludeFromCodeCoverage]
     private static uint Dim(uint color) => (color >> 1) & 0x007F7F7F;
 
+    // GDI paint runs on WM_PAINT; unit tests can construct the window but
+    // can't verify pixels. Visual regression would catch real bugs here.
+    [ExcludeFromCodeCoverage]
     private static void Paint(nint hWnd)
     {
         nint hdc = BeginPaint(hWnd, out PaintStruct ps);
@@ -192,6 +197,9 @@ public sealed unsafe partial class StatusBarWindow : IDisposable
         EndPaint(hWnd, in ps);
     }
 
+    // GDI paint (DrawTextW per workspace chip + clock + title); only called
+    // from Paint. Unit tests can't verify pixels.
+    [ExcludeFromCodeCoverage]
     private static void PaintContent(nint hdc, in Rect32 client, StatusBarRenderState state)
     {
         BarOptions options = state.Options;

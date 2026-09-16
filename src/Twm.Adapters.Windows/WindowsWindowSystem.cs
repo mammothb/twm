@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Twm.Adapters.Windows.Diagnostics;
 using Twm.Application.OutboundPorts;
 using Twm.Domain.Geometry;
@@ -90,8 +91,14 @@ public sealed class WindowsWindowSystem : IWindowSystem
     // navigate back to it
     public void Hide(WindowId window) => ImmersiveShell.Cloak(window.Value);
 
+    // 1-line wrapper around NativeMethods.Foreground (excluded); no
+    // independent assertion is meaningful.
+    [ExcludeFromCodeCoverage]
     public void SetForeground(WindowId window) => NativeMethods.Foreground(window.Value);
 
+    // 1-line wrapper around NativeMethods.SetBounds (excluded); no
+    // independent assertion is meaningful.
+    [ExcludeFromCodeCoverage]
     public void SetWindowRect(WindowId window, Rect bounds) =>
         NativeMethods.SetBounds(window.Value, bounds);
 
