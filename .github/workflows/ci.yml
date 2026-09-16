@@ -36,9 +36,8 @@ jobs:
           global-json-file: global.json
       - name: Test - With Coverage
         run: make coverage
-
       - name: Upload coverage XML
-        uses: actions/upload-artifact@ea165f8d45b078c92d3646a79f7af2f148c7f471 # v4.6.2
+        uses: actions/upload-artifact@v7
         with:
           name: coverage-${{ matrix.os }}
           path: coverage/
