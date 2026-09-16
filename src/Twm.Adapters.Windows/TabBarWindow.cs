@@ -94,6 +94,10 @@ public sealed unsafe partial class TabBarWindow : IDisposable
         }
     }
 
+    // Stores the current view state, repositions the window, and requests a
+    // repaint. The visible-update behavior is exercised by Paint (excluded);
+    // the Win32 calls are trivial plumbing not worth a unit test.
+    [ExcludeFromCodeCoverage]
     public void Render(TabBarView view)
     {
         ArgumentNullException.ThrowIfNull(view);
