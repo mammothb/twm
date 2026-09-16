@@ -63,9 +63,17 @@ public sealed class MessageLoopTests
         }
         finally
         {
-            // If the test failed mid-way, the pump thread is still alive —
-            // best-effort join so we don't leak it past the test boundary.
-            pumpThread.Join(TimeSpan.FromSeconds(2));
+            // If the test failed before the callback ran, the pump thread is
+            // still blocked in GetMessageW. Post WM_QUIT so it returns false
+            // and Run exits cleanly; assert the thread actually died rather
+            // than silently leaking it past the test boundary.
+            if (pumpThreadId != 0)
+            {
+                MessageLoop.Post(pumpThreadId, MessageLoop.WmQuit);
+            }
+
+            pumpThread.Join(TimeSpan.FromSeconds(5));
+            pumpThread.IsAlive.ShouldBeFalse();
         }
     }
 

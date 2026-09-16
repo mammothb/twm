@@ -23,6 +23,13 @@ public static partial class MessageLoop
     public const uint WmAppQuit = 0x8001;
 
     /// <summary>
+    /// Standard <c>WM_QUIT</c> — post this to a thread's queue to make
+    /// <c>GetMessageW</c> return 0 and exit <see cref="Run" />. Distinct
+    /// from <see cref="WmAppQuit" />, which is our internal wake-up.
+    /// </summary>
+    public const uint WmQuit = 0x0012;
+
+    /// <summary>
     /// Timer message (WM_TIMER) delivered as a thread message for a
     /// null-window timer.
     /// </summary>
