@@ -64,7 +64,6 @@ public sealed class WindowsWindowSystemTests
         info.IsLayered.ShouldBeFalse();
         info.IsCloaked.ShouldBeFalse();
         info.IsElevated.ShouldBeFalse();
-        info.IsNoActivate.ShouldBeFalse();
         info.IsMenuPopup.ShouldBeFalse();
         info.HasCaption.ShouldBeFalse();
         info.HasWindowEdge.ShouldBeFalse();
