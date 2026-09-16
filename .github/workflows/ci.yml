@@ -36,13 +36,6 @@ jobs:
           global-json-file: global.json
       - name: Test - With Coverage
         run: make coverage
-      - name: Upload coverage XML
-        uses: actions/upload-artifact@v7
-        with:
-          name: coverage-${{ matrix.os }}
-          path: coverage/
-          retention-days: 14
-          if-no-files-found: error
       - name: Upload to Codecov
         uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
         with:
