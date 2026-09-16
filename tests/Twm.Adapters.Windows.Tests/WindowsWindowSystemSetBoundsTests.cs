@@ -37,11 +37,13 @@ public sealed class WindowsWindowSystemSetBoundsTests
     }
 
     [Fact(Skip = "Windows only", SkipUnless = nameof(IsWindows))]
-    public void Describe_AfterSetWindowRect_VisibleBoundsMatch()
+    public void Describe_AfterSetWindowRect_OuterAndVisibleDifferByUniformInset()
     {
-        // Cross-check: Describe reads the outer rect, which differs from the
-        // visible rect by the DWM inset. The inset is small (~7px at 96 DPI)
-        // so we just verify the outer rect moved into the expected region.
+        // Describe reads the OUTER rect (what GetWindowRect returns).
+        // SetBounds widens that rect by the DWM frame inset on every side so
+        // the visible rect equals the target. This test verifies the four
+        // insets are equal (catches typos like missing a side, e.g.
+        // `cx = bounds.Width + left` instead of `+ left + right`).
         using var window = new TestWindow("twm-bounds-after");
 
         var ws = new WindowsWindowSystem();
@@ -49,11 +51,17 @@ public sealed class WindowsWindowSystemSetBoundsTests
         ws.SetWindowRect(new WindowId(window.Handle), target);
 
         NativeWindowInfo info = ws.Describe(new WindowId(window.Handle));
-        // Width/Height round-trip exactly; X/Y are offset by the DWM frame
-        // inset (~7px) which NativeMethods.SetBounds applies so the visible
-        // rect matches.
-        info.Bounds.Width.ShouldBe(target.Width);
-        info.Bounds.Height.ShouldBe(target.Height);
+        Rect visible = QueryVisibleRect(window.Handle);
+
+        int leftInset = visible.X - info.Bounds.X;
+        int rightInset = info.Bounds.Right - visible.Right;
+        int topInset = visible.Y - info.Bounds.Y;
+        int bottomInset = info.Bounds.Bottom - visible.Bottom;
+
+        leftInset.ShouldBe(rightInset);
+        topInset.ShouldBe(bottomInset);
+        leftInset.ShouldBe(topInset);
+        leftInset.ShouldBeGreaterThan(0); // DWM inset is always > 0
     }
 
     private static Rect QueryVisibleRect(nint hWnd)

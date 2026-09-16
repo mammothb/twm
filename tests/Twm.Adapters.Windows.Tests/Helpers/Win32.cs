@@ -3,7 +3,13 @@ using System.Runtime.InteropServices;
 namespace Twm.Adapters.Windows.Tests.Helpers;
 
 [StructLayout(LayoutKind.Sequential)]
-internal readonly record struct Rect32(int Left, int Top, int Right, int Bottom);
+internal readonly struct Rect32(int left, int top, int right, int bottom)
+{
+    public readonly int Left = left;
+    public readonly int Top = top;
+    public readonly int Right = right;
+    public readonly int Bottom = bottom;
+}
 
 /// <summary>
 /// Win32 P/Invoke for the test HWND fixture. Source-generated via
