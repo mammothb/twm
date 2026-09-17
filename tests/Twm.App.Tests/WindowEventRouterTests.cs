@@ -181,6 +181,15 @@ public sealed class WindowEventRouterTests
         Should.NotThrow(() => router.Handle(WindowEventKind.Foreground, new WindowId(0x2222)));
     }
 
+    [Fact]
+    public void Handle_MoveSizeEnd_UnknownWindow_DoesNotThrow()
+    {
+        (WmSession session, FakeMonitorSystem _, FakeWindowSystem windows) = BuildSession();
+        WindowEventRouter router = BuildRouter(session, windows);
+
+        Should.NotThrow(() => router.Handle(WindowEventKind.MoveSizeEnd, new WindowId(0x3333)));
+    }
+
     private static (
         WmSession session,
         FakeMonitorSystem monitors,
