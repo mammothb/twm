@@ -95,11 +95,12 @@ public class MoveInDirectionTests
     }
 
     [Fact]
-    public void Move_NestedWindowAtEdge_LeavesTreeIntact()
+    public void Move_NestedWindowAtEdge_PopsUpAndFlattens()
     {
-        // Arrange — focused window is the rightmost in a vertical column;
-        // moving right from a vertical column is a no-op (column is at the
-        // workspace's right edge).
+        // Arrange — focused window is the rightmost in a horizontal split
+        // that is itself the only child of its workspace. Pop-out is
+        // unconditional, so innerRight pops up beside innerSplit; the now
+        // single-child innerSplit is flattened into the workspace.
         var root = new RootContainer();
         var monitor = new Monitor(new Rect(0, 0, 800, 600));
         root.AppendChild(monitor);
@@ -122,8 +123,8 @@ public class MoveInDirectionTests
         );
 
         // Assert
-        innerSplit.Children.ShouldBe([innerLeft, innerRight]);
-        workspace.Children.ShouldBe([innerSplit]);
+        workspace.Children.ShouldBe([innerLeft, innerRight]);
+        root.FocusedWindow.ShouldBeSameAs(innerRight);
     }
 
     [Fact]
