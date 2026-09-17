@@ -42,6 +42,13 @@ public enum WindowEventKind
     /// The foreground window changed, sync tree focus to it.
     /// </summary>
     Foreground,
+
+    /// <summary>
+    /// The user finished dragging or resizing a window
+    /// (<c>EVENT_SYSTEM_MOVESIZEEND</c>, 0x000B). Snap a managed window back
+    /// to its tiled position.
+    /// </summary>
+    MoveSizeEnd,
 }
 
 /// <summary>
@@ -62,6 +69,7 @@ public sealed unsafe partial class WinEventHook : IDisposable
     private enum WinEvent : uint
     {
         SystemForeground = 0x0003, // EVENT_SYSTEM_FOREGROUND
+        SystemMoveSizeEnd = 0x000B, // EVENT_SYSTEM_MOVESIZEEND
         SystemMinimizeStart = 0x0016, // EVENT_SYSTEM_MINIMIZESTART
         SystemMinimizeEnd = 0x0017, // EVENT_SYSTEM_MINIMIZEEND
         ObjectCreate = 0x8000, // EVENT_OBJECT_CREATE
@@ -107,6 +115,17 @@ public sealed unsafe partial class WinEventHook : IDisposable
             SetWinEventHook(
                 WinEvent.SystemForeground,
                 WinEvent.SystemForeground,
+                0,
+                &OnWinEvent,
+                0,
+                0,
+                flags
+            )
+        );
+        _hooks.Add(
+            SetWinEventHook(
+                WinEvent.SystemMoveSizeEnd,
+                WinEvent.SystemMoveSizeEnd,
                 0,
                 &OnWinEvent,
                 0,
@@ -217,6 +236,7 @@ public sealed unsafe partial class WinEventHook : IDisposable
             WinEvent.ObjectCloaked => WindowEventKind.Cloaked,
             WinEvent.SystemMinimizeStart => WindowEventKind.Minimized,
             WinEvent.SystemForeground => WindowEventKind.Foreground,
+            WinEvent.SystemMoveSizeEnd => WindowEventKind.MoveSizeEnd,
             _ => null,
         };
 

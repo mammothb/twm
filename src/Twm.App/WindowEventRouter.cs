@@ -64,6 +64,9 @@ internal sealed class WindowEventRouter(WmSession session, IWindowSystem windowS
             case WindowEventKind.Foreground:
                 _session.SyncFocus(id);
                 break;
+            case WindowEventKind.MoveSizeEnd:
+                _session.HandleMoveSizeEnd(id);
+                break;
         }
     }
 }

@@ -507,6 +507,34 @@ public class WmSessionTests
     }
 
     [Fact]
+    public void HandleMoveSizeEnd_ManagedWindow_AppliesLayout()
+    {
+        var windows = new FakeWindowSystem(Win(1, 100, 100));
+        var session = new WmSession(new FakeMonitorSystem(Primary), windows);
+        session.Start();
+        // pretend the user dragged win 1 away from its tiled spot
+        windows.Positioned.Clear();
+
+        session.HandleMoveSizeEnd(new WindowId(1));
+
+        // Apply() pushed the window back to its tree bounds
+        windows.Positioned.ShouldContain((new WindowId(1), new Rect(0, 0, 1920, 1080)));
+    }
+
+    [Fact]
+    public void HandleMoveSizeEnd_UnmanagedWindow_DoesNotApply()
+    {
+        var windows = new FakeWindowSystem(Win(1, 100, 100));
+        var session = new WmSession(new FakeMonitorSystem(Primary), windows);
+        session.Start();
+        windows.Positioned.Clear();
+
+        session.HandleMoveSizeEnd(new WindowId(999));
+
+        windows.Positioned.ShouldBeEmpty();
+    }
+
+    [Fact]
     public void ReconcileDisplays_SameCountSameBounds_ReturnsFalse()
     {
         var monitors = new MutableMonitorSystem(Primary);

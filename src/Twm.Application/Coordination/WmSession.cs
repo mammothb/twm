@@ -148,6 +148,22 @@ public sealed class WmSession
         return removed;
     }
 
+    /// <summary>
+    /// Handles a move/resize end event (SystemMoveSizeEnd). A managed window
+    /// the user just dragged or resized is pushed back to its tiled bounds by
+    /// a full reconcile. Unmanaged windows are ignored.
+    /// </summary>
+    public void HandleMoveSizeEnd(WindowId window)
+    {
+        if (Root.FindWindow(window) is null)
+        {
+            return;
+        }
+
+        Log.Line($"movesizeend 0x{window.Value:X}: snap back to tiled bounds");
+        Apply();
+    }
+
     /// <summary>Whether the given window is currently in the tree.</summary>
     public bool IsManaged(WindowId window) => Root.FindWindow(window) is not null;
 

@@ -181,6 +181,50 @@ public sealed class WindowEventRouterTests
         Should.NotThrow(() => router.Handle(WindowEventKind.Foreground, new WindowId(0x2222)));
     }
 
+    [Fact]
+    public void Handle_MoveSizeEnd_ManagedWindow_RoutesToSessionAndApplies()
+    {
+        // Route the event through the router, not directly to the session:
+        // proves the router actually calls HandleMoveSizeEnd (an empty session
+        // would also pass the "does not throw" check on its own).
+        var window = new NativeWindowInfo(
+            Id: new WindowId(0x3333),
+            Title: "snapped",
+            ClassName: "TestClass",
+            Bounds: new Rect(0, 0, 100, 100),
+            IsVisible: true,
+            IsCloaked: false,
+            IsToolWindow: false,
+            IsMinimized: false,
+            IsChild: false,
+            IsElevated: false,
+            IsNoActivate: false,
+            IsMenuPopup: false,
+            IsLayered: false,
+            HasCaption: true,
+            HasWindowEdge: true,
+            Owner: null,
+            IsDlgModalFrame: false
+        );
+        (WmSession session, FakeMonitorSystem _, FakeWindowSystem windows) = BuildSession(window);
+        WindowEventRouter router = BuildRouter(session, windows);
+        router.Handle(WindowEventKind.Appeared, window.Id); // adopt
+        windows.Positioned.Clear(); // ignore startup positioning
+
+        router.Handle(WindowEventKind.MoveSizeEnd, window.Id);
+
+        windows.Positioned.ShouldContain((window.Id, new Rect(0, 0, 1920, 1080)));
+    }
+
+    [Fact]
+    public void Handle_MoveSizeEnd_UnknownWindow_DoesNotThrow()
+    {
+        (WmSession session, FakeMonitorSystem _, FakeWindowSystem windows) = BuildSession();
+        WindowEventRouter router = BuildRouter(session, windows);
+
+        Should.NotThrow(() => router.Handle(WindowEventKind.MoveSizeEnd, new WindowId(0x3333)));
+    }
+
     private static (
         WmSession session,
         FakeMonitorSystem monitors,
