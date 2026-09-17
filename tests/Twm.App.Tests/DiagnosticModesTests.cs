@@ -12,7 +12,11 @@ public sealed class DiagnosticModesTests
     [Fact]
     public void FormatWindowLine_NoOwnerNoDiagnostic_PrintsBasicFormatAndManageDecision()
     {
-        var window = MakeWindow(new WindowId(0x1234), title: "hello", className: "Foo");
+        NativeWindowInfo window = MakeWindow(
+            new WindowId(0x1234),
+            title: "hello",
+            className: "Foo"
+        );
         var filter = new WindowFilter(null); // default rules → MANAGE
         var idToWindow = new Dictionary<WindowId, NativeWindowInfo>();
         var idToDiagnostic = new Dictionary<WindowId, WindowDiagnostic>();
@@ -29,7 +33,7 @@ public sealed class DiagnosticModesTests
     [Fact]
     public void FormatWindowLine_WithDiagnostic_IncludesPidAndExe()
     {
-        var window = MakeWindow(new WindowId(0x1234));
+        NativeWindowInfo window = MakeWindow(new WindowId(0x1234));
         var filter = new WindowFilter(null);
         var idToWindow = new Dictionary<WindowId, NativeWindowInfo>();
         var idToDiagnostic = new Dictionary<WindowId, WindowDiagnostic>
@@ -52,8 +56,8 @@ public sealed class DiagnosticModesTests
     [Fact]
     public void FormatWindowLine_WithOwner_IncludesOwnerTitleAndHexId()
     {
-        var window = MakeWindow(new WindowId(0x1234), owner: new WindowId(0xABCD));
-        var ownerWindow = MakeWindow(new WindowId(0xABCD), title: "owner-title");
+        NativeWindowInfo window = MakeWindow(new WindowId(0x1234), owner: new WindowId(0xABCD));
+        NativeWindowInfo ownerWindow = MakeWindow(new WindowId(0xABCD), title: "owner-title");
         var filter = new WindowFilter(null);
         var idToWindow = new Dictionary<WindowId, NativeWindowInfo>
         {
@@ -72,7 +76,7 @@ public sealed class DiagnosticModesTests
     {
         // WindowRule.Ignore on a class name that matches this window forces
         // IsManageable to return false. Default rules (null) would MANAGE it.
-        var window = MakeWindow(new WindowId(0x1234), className: "WillBeIgnored");
+        NativeWindowInfo window = MakeWindow(new WindowId(0x1234), className: "WillBeIgnored");
         var rules = new List<WindowRule>
         {
             new(ClassName: "WillBeIgnored", TitleSubstring: null, Action: WindowRuleAction.Ignore),

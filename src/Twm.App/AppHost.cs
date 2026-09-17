@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Twm.Adapters.Config;
 using Twm.Adapters.Ipc;
 using Twm.Adapters.Windows;
@@ -156,6 +157,7 @@ internal sealed class AppHost : IDisposable
         );
     }
 
+    [ExcludeFromCodeCoverage]
     public int Run()
     {
         uint wmThreadId = MessageLoop.CurrentThreadId();

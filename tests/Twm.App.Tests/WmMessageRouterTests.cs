@@ -12,7 +12,7 @@ public sealed class WmMessageRouterTests
     [Fact]
     public void Handle_WmAppQuit_InvokesOnQuit()
     {
-        var (session, _, windows) = BuildSession();
+        (WmSession session, _, FakeWindowSystem windows) = BuildSession();
         List<string> quitCalls = [];
         WmMessageRouter router = new(
             session,
@@ -21,7 +21,7 @@ public sealed class WmMessageRouterTests
             new Dictionary<KeyBinding, KeyEffect>(),
             new WmThreadDispatcher(wake: () => true, handleOnWmThread: _ => ""),
             statusBar: null,
-            onQuit: () => quitCalls.Add("quit")
+            quit: () => quitCalls.Add("quit")
         );
 
         router.Handle(MessageLoop.WmAppQuit, wParam: 0, lParam: 0);
@@ -32,7 +32,7 @@ public sealed class WmMessageRouterTests
     [Fact]
     public void Handle_WmApp_DoesNotInvokeOnQuit()
     {
-        var (session, _, windows) = BuildSession();
+        (WmSession session, _, FakeWindowSystem windows) = BuildSession();
         List<string> quitCalls = [];
         WmMessageRouter router = new(
             session,
@@ -41,7 +41,7 @@ public sealed class WmMessageRouterTests
             new Dictionary<KeyBinding, KeyEffect>(),
             new WmThreadDispatcher(wake: () => true, handleOnWmThread: _ => ""),
             statusBar: null,
-            onQuit: () => quitCalls.Add("quit")
+            quit: () => quitCalls.Add("quit")
         );
 
         router.Handle(MessageLoop.WmApp, wParam: 0, lParam: 0);
@@ -52,7 +52,7 @@ public sealed class WmMessageRouterTests
     [Fact]
     public void Handle_WmTimer_WithoutStatusBar_DoesNotThrow()
     {
-        var (session, _, windows) = BuildSession();
+        (WmSession session, _, FakeWindowSystem windows) = BuildSession();
         WmMessageRouter router = new(
             session,
             windows,
@@ -60,7 +60,7 @@ public sealed class WmMessageRouterTests
             new Dictionary<KeyBinding, KeyEffect>(),
             new WmThreadDispatcher(wake: () => true, handleOnWmThread: _ => ""),
             statusBar: null,
-            onQuit: () => { }
+            quit: () => { }
         );
 
         Should.NotThrow(() => router.Handle(MessageLoop.WmTimer, wParam: 0, lParam: 0));
@@ -69,7 +69,7 @@ public sealed class WmMessageRouterTests
     [Fact]
     public void Handle_HotkeyMessageNotInKeymap_IsNoOp()
     {
-        var (session, _, windows) = BuildSession();
+        (WmSession session, _, FakeWindowSystem windows) = BuildSession();
         List<string> quitCalls = [];
         WmMessageRouter router = new(
             session,
@@ -78,7 +78,7 @@ public sealed class WmMessageRouterTests
             new Dictionary<KeyBinding, KeyEffect>(),
             new WmThreadDispatcher(wake: () => true, handleOnWmThread: _ => ""),
             statusBar: null,
-            onQuit: () => quitCalls.Add("quit")
+            quit: () => quitCalls.Add("quit")
         );
 
         // WM_HOTKEY = 0x0312. hotkeyManager has no bindings so TryResolve

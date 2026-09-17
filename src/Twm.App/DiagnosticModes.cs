@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Twm.Adapters.Windows;
 using Twm.Adapters.Windows.Diagnostics;
 using Twm.Application.Coordination;
@@ -16,6 +17,7 @@ internal static class DiagnosticModes
     /// (<see cref="WindowsWindowSystem.DescribeDiagnostics" />) so the
     /// filter hot path doesn't pay the <c>OpenProcess</c> + exe-lookup cost.
     /// </summary>
+    [ExcludeFromCodeCoverage]
     public static int Dump(
         IMonitorSystem monitorSystem,
         WindowsWindowSystem windowSystem,
