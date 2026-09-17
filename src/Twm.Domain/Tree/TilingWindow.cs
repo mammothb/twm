@@ -108,7 +108,7 @@ public sealed class TilingWindow(WindowId windowId, WindowId? owner = null) : Co
                         return true;
                     }
                 }
-                else if (inBounds)
+                else
                 {
                     // Subject is nested deeper: pop it out beside its pivot
                     // branch

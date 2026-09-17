@@ -60,9 +60,8 @@ public sealed class WmThreadDispatcher
             return "err timed out waiting for the window manager.";
         }
 
-        string response = item.Response;
-        item.Done.Dispose();
-        return response;
+        // Do not dispose: it races Drain's Set() on the WM thread
+        return item.Response;
     }
 
     /// <summary>
