@@ -21,7 +21,7 @@ public sealed class WmMessageRouterTests
             new Dictionary<KeyBinding, KeyEffect>(),
             new WmThreadDispatcher(wake: () => true, handleOnWmThread: _ => ""),
             statusBar: null,
-            onQuit: () => quitCalls.Add("quit")
+            quit: () => quitCalls.Add("quit")
         );
 
         router.Handle(MessageLoop.WmAppQuit, wParam: 0, lParam: 0);
@@ -41,7 +41,7 @@ public sealed class WmMessageRouterTests
             new Dictionary<KeyBinding, KeyEffect>(),
             new WmThreadDispatcher(wake: () => true, handleOnWmThread: _ => ""),
             statusBar: null,
-            onQuit: () => quitCalls.Add("quit")
+            quit: () => quitCalls.Add("quit")
         );
 
         router.Handle(MessageLoop.WmApp, wParam: 0, lParam: 0);
@@ -60,7 +60,7 @@ public sealed class WmMessageRouterTests
             new Dictionary<KeyBinding, KeyEffect>(),
             new WmThreadDispatcher(wake: () => true, handleOnWmThread: _ => ""),
             statusBar: null,
-            onQuit: () => { }
+            quit: () => { }
         );
 
         Should.NotThrow(() => router.Handle(MessageLoop.WmTimer, wParam: 0, lParam: 0));
@@ -78,7 +78,7 @@ public sealed class WmMessageRouterTests
             new Dictionary<KeyBinding, KeyEffect>(),
             new WmThreadDispatcher(wake: () => true, handleOnWmThread: _ => ""),
             statusBar: null,
-            onQuit: () => quitCalls.Add("quit")
+            quit: () => quitCalls.Add("quit")
         );
 
         // WM_HOTKEY = 0x0312. hotkeyManager has no bindings so TryResolve
