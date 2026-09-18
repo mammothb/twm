@@ -81,6 +81,16 @@ internal sealed class WmMessageRouter(
             case ReconcileDisplays:
                 _session.ReconcileDisplays();
                 break;
+            case StartProgram sp:
+            {
+                ProcessLaunchResult launched = _session.LaunchProgram(sp.CommandLine);
+                if (launched.Failed)
+                {
+                    Log.Line($"launch failed: {launched.Error}");
+                }
+
+                break;
+            }
         }
     }
 }

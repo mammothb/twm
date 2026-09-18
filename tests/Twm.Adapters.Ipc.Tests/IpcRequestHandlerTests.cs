@@ -99,6 +99,49 @@ public sealed class IpcRequestHandlerTests
         response.ShouldContain("empty command");
     }
 
+    [Fact]
+    public void Handle_StartProgramRequest_SuccessReturnsOkWithPid()
+    {
+        var launcher = new RecordingProcessLauncher
+        {
+            NextResult = new ProcessLaunchResult(1234, null),
+        };
+        var session = new WmSession(
+            new FakeMonitorSystem(Primary),
+            new FakeWindowSystem(Win(1)),
+            processLauncher: launcher
+        );
+        session.Start();
+
+        var handler = new IpcRequestHandler(session, () => { });
+
+        handler.Handle("exec wt.exe").ShouldBe("ok pid=1234");
+        launcher.LastCommandLine.ShouldBe("wt.exe");
+    }
+
+    [Fact]
+    public void Handle_StartProgramRequest_FailureReturnsErr()
+    {
+        var launcher = new RecordingProcessLauncher
+        {
+            NextResult = new ProcessLaunchResult(0, "boom"),
+        };
+        var session = new WmSession(
+            new FakeMonitorSystem(Primary),
+            new FakeWindowSystem(Win(1)),
+            processLauncher: launcher
+        );
+        session.Start();
+
+        var handler = new IpcRequestHandler(session, () => { });
+
+        string response = handler.Handle("exec wt.exe");
+
+        response.ShouldStartWith("err");
+        response.ShouldContain("boom");
+        launcher.LastCommandLine.ShouldBe("wt.exe");
+    }
+
     private static NativeWindowInfo Win(int id) =>
         new(
             new WindowId(id),
@@ -116,5 +159,21 @@ public sealed class IpcRequestHandlerTests
         var session = new WmSession(new FakeMonitorSystem(Primary), new FakeWindowSystem(windows));
         session.Start();
         return session;
+    }
+
+    /// <summary>
+    /// Records the most recent command line and returns a configurable result.
+    /// </summary>
+    private sealed class RecordingProcessLauncher : IProcessLauncher
+    {
+        public string? LastCommandLine { get; private set; }
+
+        public ProcessLaunchResult NextResult { get; set; }
+
+        public ProcessLaunchResult Launch(string commandLine)
+        {
+            LastCommandLine = commandLine;
+            return NextResult;
+        }
     }
 }

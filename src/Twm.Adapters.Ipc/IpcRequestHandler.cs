@@ -1,6 +1,7 @@
 using Twm.Application.Commands;
 using Twm.Application.Coordination;
 using Twm.Application.Messaging;
+using Twm.Application.OutboundPorts;
 using Twm.Domain.Tree;
 
 namespace Twm.Adapters.Ipc;
@@ -43,6 +44,9 @@ public sealed class IpcRequestHandler(
             case ReconcileRequest:
                 session.ReconcileDisplays();
                 return "ok";
+            case StartProgramRequest spawn:
+                ProcessLaunchResult launched = session.LaunchProgram(spawn.CommandLine);
+                return launched.Ok ? $"ok pid={launched.Pid}" : $"err {launched.Error}";
             default:
                 return "err unhandled request";
         }
