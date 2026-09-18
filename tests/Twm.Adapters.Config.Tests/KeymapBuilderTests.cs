@@ -119,6 +119,45 @@ public class KeymapBuilderTests
     }
 
     [Fact]
+    public void Build_ExecBinding_BridgesToStartProgram()
+    {
+        KeymapBuildResult result = KeymapBuilder.Build(
+            WithBindings("alt", ("$mod+r", "exec wt.exe"))
+        );
+
+        result.Errors.ShouldBeEmpty();
+        StartProgram sp = result
+            .Keymap[new KeyBinding(ModifierKeys.Alt, 'R')]
+            .ShouldBeOfType<StartProgram>();
+        sp.CommandLine.ShouldBe("wt.exe");
+    }
+
+    [Fact]
+    public void Build_ExecWithSpaces_KeepsFullLineAsSingleToken()
+    {
+        KeymapBuildResult result = KeymapBuilder.Build(
+            WithBindings("alt", ("$mod+r", "exec wt --new-tab"))
+        );
+
+        result.Errors.ShouldBeEmpty();
+        StartProgram sp = result
+            .Keymap[new KeyBinding(ModifierKeys.Alt, 'R')]
+            .ShouldBeOfType<StartProgram>();
+        sp.CommandLine.ShouldBe("wt --new-tab");
+    }
+
+    [Fact]
+    public void Build_Exec_NoArgsCollectsErrorAndDropsBinding()
+    {
+        KeymapBuildResult result = KeymapBuilder.Build(WithBindings("alt", ("$mod+r", "exec")));
+
+        result.Errors.Count.ShouldBe(1);
+        result.Errors[0].ShouldContain("$mod+r");
+        result.Errors[0].ShouldContain("exec");
+        result.Keymap.ShouldBeEmpty();
+    }
+
+    [Fact]
     public void Build_MixOfValidAndInvalidBindings_KeepsValidOnesAndReportsAllErrors()
     {
         // partial success: one valid RunCommand binding survives, the three

@@ -95,6 +95,9 @@ public static class KeymapBuilder
             case ReconcileRequest:
                 effect = new ReconcileDisplays();
                 return true;
+            case StartProgramRequest spawn:
+                effect = new StartProgram(spawn.CommandLine);
+                return true;
             case GetTreeRequest:
                 error = "'get-tree' is a query, not valid as a keybinding";
                 return false;
