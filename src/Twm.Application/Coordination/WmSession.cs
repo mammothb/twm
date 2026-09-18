@@ -25,6 +25,7 @@ public sealed class WmSession
     private readonly Bus _bus;
     private readonly LayoutEngine _engine;
     private readonly Reconciler _reconciler;
+    private readonly IProcessLauncher _processLauncher;
 
     // The window Twm last asked the OS to foreground. SyncFocus ignores the
     // foreground even our own reconcile triggers (so it isn't mistaken for a
@@ -37,7 +38,8 @@ public sealed class WmSession
         Gaps gaps = default,
         WindowFilter? filter = null,
         WorkspaceOptions? workspaces = null,
-        int titleBarHeight = LayoutEngine.DefaultTitleBarHeight
+        int titleBarHeight = LayoutEngine.DefaultTitleBarHeight,
+        IProcessLauncher? processLauncher = null
     )
     {
         ArgumentNullException.ThrowIfNull(monitorSystem);
@@ -46,6 +48,7 @@ public sealed class WmSession
         _workspaces = workspaces;
         _windowSystem = windowSystem;
         _filter = filter ?? new WindowFilter();
+        _processLauncher = processLauncher ?? new NoOpProcessLauncher();
 
         Root = DesktopBuilder.Build(monitorSystem.EnumerateMonitors(), workspaces);
         _engine = new LayoutEngine(gaps, titleBarHeight);
@@ -166,6 +169,19 @@ public sealed class WmSession
 
     /// <summary>Whether the given window is currently in the tree.</summary>
     public bool IsManaged(WindowId window) => Root.FindWindow(window) is not null;
+
+    /// <summary>
+    /// Hands <paramref name="commandLine" /> to the injected
+    /// <see cref="IProcessLauncher" /> and returns the result verbatim. Pure
+    /// pass-through: no logging here (the caller, typically the hotkey router,
+    /// decides how to surface failures). Never throws — the launcher
+    /// implementation is the boundary at which exceptions are caught.
+    /// </summary>
+    public ProcessLaunchResult LaunchProgram(string commandLine)
+    {
+        ArgumentNullException.ThrowIfNull(commandLine);
+        return _processLauncher.Launch(commandLine);
+    }
 
     /// <summary>
     /// Re-read the display topology and re-tile. Same count: resize monitors
