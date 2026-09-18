@@ -106,13 +106,16 @@ internal sealed class AppHost : IDisposable
             ? new InsetMonitorSystem(monitorSystem, barOptions.Height, barOptions.Position)
             : monitorSystem;
 
+        IProcessLauncher processLauncher = new WindowsProcessLauncher();
+
         var session = new WmSession(
             monitorSystem: tilingMonitorSystem,
             windowSystem: windowSystem,
             gaps: config.Gaps,
             filter: filter,
             workspaces: config.Workspaces,
-            titleBarHeight: config.Tabs.Height
+            titleBarHeight: config.Tabs.Height,
+            processLauncher: processLauncher
         );
 
         // Install WinEventHook BEFORE Start(): SetWinEventHook only delivers
