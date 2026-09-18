@@ -24,7 +24,8 @@ public static class CommandParser
     /// <c>resize &lt;dir&gt; [percent]</c>, <c>split h|v</c>,
     /// <c>layout stacked|tabbed|splith|splitv|toggle-split</c>,
     /// <c>workspace &lt;name&gt;</c>, <c>move-to-workspace &lt;name&gt;</c>,
-    /// <c>close</c>, <c>exit</c>, <c>get-tree</c>.
+    /// <c>close</c>, <c>exit</c>, <c>get-tree</c>,
+    /// <c>exec &lt;command line&gt;</c>.
     /// </summary>
     public static bool TryParse(
         string line,
@@ -90,6 +91,8 @@ public static class CommandParser
                 return TryNoArg(tokens, new ReconcileRequest(), out request, out error);
             case "get-tree":
                 return TryNoArg(tokens, new GetTreeRequest(), out request, out error);
+            case "exec":
+                return TryExec(tokens, out request, out error);
             default:
                 error = $"unknown command '{tokens[0]}'";
                 return false;
@@ -243,6 +246,24 @@ public static class CommandParser
         // collapes runs of whitespace
         string name = string.Join(' ', tokens, 1, tokens.Length - 1);
         request = new RunCommandRequest(factory(name));
+        return true;
+    }
+
+    private static bool TryExec(string[] tokens, out WmRequest? request, out string? error)
+    {
+        request = null;
+        error = null;
+        if (tokens.Length < 2)
+        {
+            error = "usage: exec <command line>";
+            return false;
+        }
+
+        // The remainder is a single command line handed verbatim to the
+        // platform shell; collapse runs of whitespace with single spaces,
+        // matching TryWorkspace's shape for spans-with-spaces.
+        string commandLine = string.Join(' ', tokens, 1, tokens.Length - 1);
+        request = new StartProgramRequest(commandLine);
         return true;
     }
 
