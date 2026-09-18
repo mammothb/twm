@@ -28,3 +28,10 @@ public sealed record ExitRequest : WmRequest;
 
 /// <summary>Re-read the display topology and re-tile to it.</summary>
 public sealed record ReconcileRequest : WmRequest;
+
+/// <summary>
+/// Spawn a child process via the injected <c>IProcessLauncher</c>.
+/// The <see cref="CommandLine" /> is handed verbatim to the platform
+/// shell — no quoting, no argv splitting inside the grammar.
+/// </summary>
+public sealed record StartProgramRequest(string CommandLine) : WmRequest;

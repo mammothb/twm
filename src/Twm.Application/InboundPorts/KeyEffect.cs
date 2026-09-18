@@ -25,3 +25,10 @@ public sealed record ExitWm : KeyEffect;
 /// or a monitor add/remove)
 /// </summary>
 public sealed record ReconcileDisplays : KeyEffect;
+
+/// <summary>
+/// Spawn a child process via the injected <c>IProcessLauncher</c>.
+/// Mirror of <c>StartProgramRequest</c> for the keymap side: parsed from
+/// the <c>exec &lt;command line&gt;</c> action string.
+/// </summary>
+public sealed record StartProgram(string CommandLine) : KeyEffect;
