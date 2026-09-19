@@ -112,6 +112,57 @@ public sealed class CommandParserTests
         Command<MoveWindowToWorkspaceCommand>(request).WorkspaceName.ShouldBe("3");
     }
 
+    [Theory]
+    [InlineData("exec wt.exe", "wt.exe")]
+    [InlineData("exec wt --new-tab", "wt --new-tab")]
+    [InlineData("exec wt -p \"Ubuntu\"", "wt -p \"Ubuntu\"")]
+    [InlineData("exec wt \"C:\\Path with space\"", "wt \"C:\\Path with space\"")]
+    public void Parse_Exec_ValidLine_YieldsStartProgramRequest(
+        string line,
+        string expectedCommandLine
+    )
+    {
+        // Arrange / Act
+        bool parsed = CommandParser.TryParse(line, out WmRequest? request, out _);
+
+        // Assert
+        parsed.ShouldBeTrue();
+        StartProgramRequest start = request.ShouldBeOfType<StartProgramRequest>();
+        start.CommandLine.ShouldBe(expectedCommandLine);
+    }
+
+    [Theory]
+    [InlineData("exec")]
+    [InlineData("exec   ")]
+    [InlineData("  exec  ")]
+    public void Parse_Exec_NoCommandLine_ReturnsUsageError(string line)
+    {
+        // Arrange / Act
+        bool parsed = CommandParser.TryParse(line, out WmRequest? request, out string? error);
+
+        // Assert
+        parsed.ShouldBeFalse();
+        request.ShouldBeNull();
+        error.ShouldNotBeNullOrWhiteSpace();
+        error.ShouldContain("usage: exec");
+    }
+
+    [Fact]
+    public void Parse_Exec_WithMultipleSpacesInQuotes_PreservesInternalWhitespace()
+    {
+        // Arrange / Act
+        const string line = "exec  cmd /c \"echo  a   b\"";
+
+        bool parsed = CommandParser.TryParse(line, out WmRequest? request, out string? error);
+
+        // Assert
+        parsed.ShouldBeTrue();
+        error.ShouldBeNull();
+
+        StartProgramRequest startRequest = request.ShouldBeOfType<StartProgramRequest>();
+        startRequest.CommandLine.ShouldBe("cmd /c \"echo  a   b\"");
+    }
+
     [Fact]
     public void Parse_AppLevelVerbs_MapToRequests()
     {
@@ -129,6 +180,10 @@ public sealed class CommandParserTests
 
         CommandParser.TryParse("get-tree", out WmRequest? getTreeRequest, out _).ShouldBeTrue();
         getTreeRequest.ShouldBeOfType<GetTreeRequest>();
+
+        CommandParser.TryParse("exec wt.exe", out WmRequest? execRequest, out _).ShouldBeTrue();
+        StartProgramRequest startProgram = execRequest.ShouldBeOfType<StartProgramRequest>();
+        startProgram.CommandLine.ShouldBe("wt.exe");
     }
 
     [Theory]
@@ -152,6 +207,7 @@ public sealed class CommandParserTests
     [InlineData("move-to-workspace")]
     [InlineData("get-tree invalid")]
     [InlineData("reconcile-displays invalid")]
+    [InlineData("exec")]
     public void Parse_Invalid_ReturnsError(string line)
     {
         // Arrange / Act
