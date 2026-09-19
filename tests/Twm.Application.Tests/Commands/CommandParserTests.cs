@@ -148,6 +148,22 @@ public sealed class CommandParserTests
     }
 
     [Fact]
+    public void Parse_Exec_WithMultipleSpacesInQuotes_PreservesInternalWhitespace()
+    {
+        // Arrange / Act
+        const string line = "exec  cmd /c \"echo  a   b\"";
+
+        bool parsed = CommandParser.TryParse(line, out WmRequest? request, out string? error);
+
+        // Assert
+        parsed.ShouldBeTrue();
+        error.ShouldBeNull();
+
+        StartProgramRequest startRequest = request.ShouldBeOfType<StartProgramRequest>();
+        startRequest.CommandLine.ShouldBe("cmd /c \"echo  a   b\"");
+    }
+
+    [Fact]
     public void Parse_AppLevelVerbs_MapToRequests()
     {
         // Arrange / Act / Assert

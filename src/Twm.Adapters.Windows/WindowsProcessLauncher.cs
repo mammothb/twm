@@ -48,9 +48,15 @@ public sealed class WindowsProcessLauncher : IProcessLauncher
         try
         {
             using Process? p = Process.Start(psi);
-            return p is null
-                ? new ProcessLaunchResult(0, "Process.Start returned null")
-                : new ProcessLaunchResult(SafePid(p), null);
+            if (p is null)
+            {
+                return new ProcessLaunchResult(0, "Process.Start returned null");
+            }
+
+            int pid = SafePid(p);
+            return pid > 0
+                ? new ProcessLaunchResult(SafePid(p), null)
+                : new ProcessLaunchResult(0, "Process started by PID could not be retrieved");
         }
         catch (Exception ex)
         {

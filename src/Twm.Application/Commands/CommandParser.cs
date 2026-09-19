@@ -92,7 +92,7 @@ public static class CommandParser
             case "get-tree":
                 return TryNoArg(tokens, new GetTreeRequest(), out request, out error);
             case "exec":
-                return TryExec(tokens, out request, out error);
+                return TryExec(line, out request, out error);
             default:
                 error = $"unknown command '{tokens[0]}'";
                 return false;
@@ -249,11 +249,12 @@ public static class CommandParser
         return true;
     }
 
-    private static bool TryExec(string[] tokens, out WmRequest? request, out string? error)
+    private static bool TryExec(string line, out WmRequest? request, out string? error)
     {
         request = null;
         error = null;
-        if (tokens.Length < 2)
+        string remainder = line.TrimStart()["exec".Length..];
+        if (string.IsNullOrWhiteSpace(remainder))
         {
             error = "usage: exec <command line>";
             return false;
@@ -262,7 +263,7 @@ public static class CommandParser
         // The remainder is a single command line handed verbatim to the
         // platform shell; collapse runs of whitespace with single spaces,
         // matching TryWorkspace's shape for spans-with-spaces.
-        string commandLine = string.Join(' ', tokens, 1, tokens.Length - 1);
+        string commandLine = remainder.TrimStart();
         request = new StartProgramRequest(commandLine);
         return true;
     }
