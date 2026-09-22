@@ -54,8 +54,10 @@ internal static partial class NativeMethods
         NoSize = 0x0001, // SWP_NOSIZE
         NoMove = 0x0002, // SWP_NOMOVE
         NoZOrder = 0x0004, // SWP_NOZORDER
+        NoRedraw = 0x0008, // SWP_NOREDRAW
         NoActivate = 0x0010, // SWP_NOACTIVATE
         FrameChanged = 0x0020, // SWP_FRAMECHANGED
+        ShowWindow = 0x0040, // SWP_SHOWWINDOW
         NoCopyBits = 0x0100, // SWP_NOCOPYBITS
         NoOwnerZOrder = 0x0200, // SWP_NOOWNERZORDER
         NoSendChanging = 0x0400, // SWP_NOSENDCHANGING
