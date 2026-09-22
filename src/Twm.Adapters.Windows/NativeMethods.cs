@@ -15,6 +15,9 @@ namespace Twm.Adapters.Windows;
 /// </summary>
 internal static unsafe partial class NativeMethods
 {
+    // GW_HWNDPREV - the window above hWnd in z-order
+    private const uint GwHwndPrev = 3;
+
     // GW_OWNER
     private const uint GwOwner = 4;
 
@@ -193,6 +196,31 @@ internal static unsafe partial class NativeMethods
         }
 
         return length > 0 ? new string(buffer[..length]) : "";
+    }
+
+    /// <summary>
+    /// Returns the window directly above <paramref name="window" /> in z-order,
+    /// or 0 (HWND_TOP) when <paramref name="window" /> is already at the top.
+    /// </summary>
+    internal static nint GetWindowAbove(nint window) => GetWindow(window, GwHwndPrev);
+
+    internal static void PlaceAbove(nint window, nint target)
+    {
+        nint insertAfter = GetWindow(target, GwHwndPrev);
+        SetWindowPos(
+            window,
+            insertAfter,
+            0,
+            0,
+            0,
+            0,
+            SetWindowPosFlags.NoActivate
+                | SetWindowPosFlags.NoMove
+                | SetWindowPosFlags.NoSize
+                | SetWindowPosFlags.NoRedraw
+                | SetWindowPosFlags.NoSendChanging
+                | SetWindowPosFlags.ShowWindow
+        );
     }
 
     internal static void ClearTopmostIfSet(nint window)

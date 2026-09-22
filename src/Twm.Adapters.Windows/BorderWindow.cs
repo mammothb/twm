@@ -35,7 +35,6 @@ public sealed unsafe partial class BorderWindow : IDisposable
         {
             _hWnd = CreateWindowExW(
                 dwExStyle: ExtendedWindowStyle.ToolWindow
-                    | ExtendedWindowStyle.Topmost
                     | ExtendedWindowStyle.NoActivate
                     | ExtendedWindowStyle.Transparent
                     | ExtendedWindowStyle.Layered,
@@ -76,7 +75,7 @@ public sealed unsafe partial class BorderWindow : IDisposable
     /// window's visible frame). The band is drawn just inside the frame edges
     /// (<c>_width</c> px), so it never overlaps a neighboring tile.
     /// </summary>
-    public void MoveTo(Rect frame)
+    public void MoveTo(Rect frame, nint trackedHwnd)
     {
         if (_hWnd == 0)
         {
@@ -90,7 +89,7 @@ public sealed unsafe partial class BorderWindow : IDisposable
         }
 
         Render(frame.X, frame.Y, frame.Width, frame.Height);
-        ShowWindow(_hWnd, ShowWindowCommand.ShowNoActivate);
+        PlaceAbove(_hWnd, trackedHwnd);
     }
 
     public void Hide()

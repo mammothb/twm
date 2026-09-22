@@ -33,7 +33,7 @@ internal sealed class BorderHost : IDisposable
     {
         if (_session.Root.FocusedWindow is TilingWindow focused)
         {
-            _borderWindow.MoveTo(focused.Bounds);
+            _borderWindow.MoveTo(focused.Bounds, focused.WindowId.Value);
         }
         else
         {
